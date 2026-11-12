@@ -25,3 +25,12 @@ Each script appends entries here in the format:
 - <Detail 1>
 - <Detail 2>
 ```
+
+### 2026-11-13 02:36 IST — Ingest Run
+- Scanned: 90 PDFs
+- Registered: 90 new papers
+- Skipped (already registered): 0
+- Errors (unrecognised name): 0
+- Total in inventory: 90
+- Years covered: [2021, 2022, 2023, 2024, 2025]
+
