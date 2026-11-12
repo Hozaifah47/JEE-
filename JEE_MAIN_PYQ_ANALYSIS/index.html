@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JEE Main PYQ Analysis System — Dashboard</title>
+
+<style>
+:root{
+  --primary:#1a237e; --accent:#e53935; --success:#2e7d32;
+  --bg:#f5f5f5; --card:#fff; --shadow:0 2px 8px rgba(0,0,0,.12);
+  --phy:#1565c0; --chem:#2e7d32; --math:#6a1b9a;
+  --b1:#e8f5e9; --b1-border:#4caf50; --b1-text:#1b5e20;
+  --b2:#fff3e0; --b2-border:#ff9800; --b2-text:#e65100;
+  --b3:#fce4ec; --b3-border:#e91e63; --b3-text:#880e4f;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:#212121;line-height:1.6}
+.container{max-width:1400px;margin:0 auto;padding:24px}
+h1{color:var(--primary);font-size:2rem;margin-bottom:8px;border-bottom:3px solid var(--primary);padding-bottom:8px}
+h2{color:var(--primary);font-size:1.5rem;margin:24px 0 12px;border-bottom:2px solid #e0e0e0;padding-bottom:6px}
+h3{color:#333;font-size:1.2rem;margin:16px 0 8px}
+.meta{color:#666;font-size:.9rem;margin-bottom:20px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:20px 0}
+.stat-card{background:var(--card);border-radius:12px;padding:20px;box-shadow:var(--shadow);text-align:center;border-top:4px solid var(--primary)}
+.stat-card.phy{border-top-color:var(--phy)} .stat-card.chem{border-top-color:var(--chem)} .stat-card.math{border-top-color:var(--math)}
+.stat-card .number{font-size:2.5rem;font-weight:700;color:var(--primary)}
+.stat-card .label{font-size:.85rem;color:#666;margin-top:4px}
+.bucket-section{margin:24px 0;padding:24px;border-radius:12px;border-left:6px solid}
+.bucket-1{background:var(--b1);border-left-color:var(--b1-border)}
+.bucket-2{background:var(--b2);border-left-color:var(--b2-border)}
+.bucket-3{background:var(--b3);border-left-color:var(--b3-border)}
+.bucket-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.bucket-title{font-size:1.4rem;font-weight:700}
+.bucket-1 .bucket-title{color:var(--b1-text)} .bucket-2 .bucket-title{color:var(--b2-text)} .bucket-3 .bucket-title{color:var(--b3-text)}
+.target-badge{padding:6px 16px;border-radius:20px;font-weight:600;font-size:.9rem;color:#fff}
+.bucket-1 .target-badge{background:var(--b1-border)} .bucket-2 .target-badge{background:var(--b2-border)} .bucket-3 .target-badge{background:var(--b3-border)}
+table{width:100%;border-collapse:collapse;margin:12px 0;background:var(--card);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
+th{background:var(--primary);color:#fff;padding:12px 16px;text-align:left;font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.5px}
+td{padding:10px 16px;border-bottom:1px solid #e0e0e0;font-size:.9rem}
+tr:hover{background:#f5f5f5}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:600}
+.badge-b1{background:#c8e6c9;color:#1b5e20} .badge-b2{background:#ffe0b2;color:#e65100} .badge-b3{background:#f8bbd0;color:#880e4f} .badge-un{background:#e0e0e0;color:#424242}
+.badge-easy{background:#c8e6c9;color:#1b5e20} .badge-moderate{background:#fff9c4;color:#f57f17} .badge-hard{background:#ffcdd2;color:#c62828}
+.conflict{background:#fff3e0;border:2px solid #ff9800;border-radius:8px;padding:12px 16px;margin:8px 0;font-size:.85rem;color:#e65100;font-weight:500}
+.conflict::before{content:'⚠ ';font-size:1.1rem}
+.bar-chart{margin:12px 0}
+.bar-row{display:flex;align-items:center;margin:4px 0;gap:8px}
+.bar-label{width:250px;font-size:.8rem;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{height:24px;border-radius:4px;transition:width .3s;min-width:2px;display:flex;align-items:center;padding-left:6px;color:#fff;font-size:.75rem;font-weight:600}
+.bar.phy{background:var(--phy)} .bar.chem{background:var(--chem)} .bar.math{background:var(--math)}
+.bar.b1{background:var(--b1-border)} .bar.b2{background:var(--b2-border)} .bar.b3{background:var(--b3-border)}
+.nav{background:var(--primary);padding:12px 24px;border-radius:8px;margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.nav a{color:#fff;text-decoration:none;padding:6px 16px;border-radius:6px;font-size:.9rem;transition:background .2s}
+.nav a:hover{background:rgba(255,255,255,.2)}
+.nav a.active{background:rgba(255,255,255,.3);font-weight:600}
+.top10{background:linear-gradient(135deg,#fff8e1,#fff3e0);border:2px solid #ffa000;border-radius:8px;padding:4px 8px;font-weight:700}
+a{color:var(--primary);text-decoration:none} a:hover{text-decoration:underline}
+.subject-tag{display:inline-block;padding:2px 8px;border-radius:4px;color:#fff;font-size:.75rem;font-weight:600;margin-right:4px}
+.subject-tag.phy{background:var(--phy)} .subject-tag.chem{background:var(--chem)} .subject-tag.math{background:var(--math)}
+.search-box{width:100%;padding:12px 16px;border:2px solid #e0e0e0;border-radius:8px;font-size:1rem;margin:12px 0;outline:none;transition:border-color .2s}
+.search-box:focus{border-color:var(--primary)}
+.hidden{display:none}
+details{margin:8px 0} details summary{cursor:pointer;font-weight:600;color:var(--primary);padding:4px 0}
+.print-only{display:none}
+@media print{
+  .nav,.search-box{display:none!important}
+  .print-only{display:block}
+  .bucket-section{break-inside:avoid}
+  body{background:#fff}
+  table{box-shadow:none;border:1px solid #ccc}
+}
+@media(max-width:768px){
+  .container{padding:12px}
+  .bar-label{width:150px;font-size:.7rem}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+
+</head><body>
+<div class="container">
+<nav class="nav"><a href="index.html" class="active">🏠 Dashboard</a>
+<a href="00_HIGHEST_WEIGHTAGE_PCM.html">📊 Weightage Report</a>
+<a href="09_PRIORITY_SYSTEM/index.html">🎯 Priority System</a>
+<a href="Physics/index.html">🔵 Physics</a>
+<a href="Chemistry/index.html">🟢 Chemistry</a>
+<a href="Mathematics/index.html">🟣 Mathematics</a>
+</nav>
+<h1>JEE Main PYQ Analysis System</h1>
+<p class="meta">5-Year Analysis · 90 Papers · 7959 Questions · 73 Chapters · 5 Years (2021, 2022, 2023, 2024, 2025)</p>
+
+<div class="stats-grid">
+<div class="stat-card"><div class="number">7959</div><div class="label">Total Questions</div></div>
+<div class="stat-card"><div class="number">90</div><div class="label">Papers Processed</div></div>
+<div class="stat-card"><div class="number">5897</div><div class="label">Questions Classified</div></div>
+<div class="stat-card phy"><div class="number">2700</div><div class="label">Physics Questions</div></div>
+<div class="stat-card chem"><div class="number">2700</div><div class="label">Chemistry Questions</div></div>
+<div class="stat-card math"><div class="number">2559</div><div class="label">Mathematics Questions</div></div>
+</div>
+
+<h2>📌 Quick Links</h2>
+<div class="stats-grid">
+<div class="stat-card"><a href="00_HIGHEST_WEIGHTAGE_PCM.html" style="text-decoration:none"><div class="number" style="font-size:1.5rem">📊</div><div class="label">Highest Weightage PCM<br>Chapter Rankings</div></a></div>
+<div class="stat-card"><a href="09_PRIORITY_SYSTEM/index.html" style="text-decoration:none"><div class="number" style="font-size:1.5rem">🎯</div><div class="label">Three-Bucket<br>Priority System</div></a></div>
+<div class="stat-card"><a href="09_PRIORITY_SYSTEM/priority_comparison.html" style="text-decoration:none"><div class="number" style="font-size:1.5rem">📋</div><div class="label">Priority Comparison<br>All Chapters</div></a></div>
+</div>
+
+<h2>📚 Subject Navigation</h2>
+<div class="stats-grid">
+<div class="stat-card phy">
+<a href="Physics/index.html" style="text-decoration:none;color:inherit">
+<div class="number" style="font-size:1.5rem">🔵</div>
+<div class="label"><strong>Physics</strong><br>22 chapters · 2392 PYQs<br>Top: Semiconductors &amp; Electronic Devices</div>
+</a></div>
+<div class="stat-card chem">
+<a href="Chemistry/index.html" style="text-decoration:none;color:inherit">
+<div class="number" style="font-size:1.5rem">🟢</div>
+<div class="label"><strong>Chemistry</strong><br>27 chapters · 1771 PYQs<br>Top: Equilibrium</div>
+</a></div>
+<div class="stat-card math">
+<a href="Mathematics/index.html" style="text-decoration:none;color:inherit">
+<div class="number" style="font-size:1.5rem">🟣</div>
+<div class="label"><strong>Mathematics</strong><br>24 chapters · 1734 PYQs<br>Top: Sets Relations &amp; Functions</div>
+</a></div>
+</div>
+<h2>🏆 Top 10 Highest-Frequency Chapters</h2>
+<table><thead><tr><th>Rank</th><th>Subject</th><th>Chapter</th><th>Bucket</th><th>PYQs</th><th>Years</th><th>Clusters</th></tr></thead><tbody>
+<tr><td>1</td><td><span class="subject-tag phy">Physics</span></td><td>Semiconductors &amp; Electronic Devices</td><td><span class="badge badge-b1">Bucket 1</span></td><td><strong>764</strong></td><td>5</td><td>764</td></tr>
+<tr><td>2</td><td><span class="subject-tag phy">Physics</span></td><td>Kinematics</td><td><span class="badge badge-b2">Bucket 2</span></td><td><strong>348</strong></td><td>5</td><td>184</td></tr>
+<tr><td>3</td><td><span class="subject-tag math">Mathematics</span></td><td>Sets Relations &amp; Functions</td><td><span class="badge badge-b2">Bucket 2</span></td><td><strong>340</strong></td><td>5</td><td>340</td></tr>
+<tr><td>4</td><td><span class="subject-tag chem">Chemistry</span></td><td>Equilibrium</td><td><span class="badge badge-b3">Bucket 3</span></td><td><strong>332</strong></td><td>5</td><td>332</td></tr>
+<tr><td>5</td><td><span class="subject-tag math">Mathematics</span></td><td>Sequences &amp; Series</td><td><span class="badge badge-b1">Bucket 1</span></td><td><strong>322</strong></td><td>5</td><td>322</td></tr>
+<tr><td>6</td><td><span class="subject-tag phy">Physics</span></td><td>Current Electricity</td><td><span class="badge badge-b1">Bucket 1</span></td><td><strong>248</strong></td><td>5</td><td>96</td></tr>
+<tr><td>7</td><td><span class="subject-tag chem">Chemistry</span></td><td>Surface Chemistry</td><td><span class="badge badge-b3">Bucket 3</span></td><td><strong>228</strong></td><td>5</td><td>228</td></tr>
+<tr><td>8</td><td><span class="subject-tag chem">Chemistry</span></td><td>Some Basic Concepts of Chemistry</td><td><span class="badge badge-b2">Bucket 2</span></td><td><strong>212</strong></td><td>5</td><td>212</td></tr>
+<tr><td>9</td><td><span class="subject-tag phy">Physics</span></td><td>Waves</td><td><span class="badge badge-b3">Bucket 3</span></td><td><strong>167</strong></td><td>5</td><td>167</td></tr>
+<tr><td>10</td><td><span class="subject-tag math">Mathematics</span></td><td>Circles</td><td><span class="badge badge-b2">Bucket 2</span></td><td><strong>155</strong></td><td>5</td><td>155</td></tr>
+</tbody></table>
+<h2>📅 Year Coverage</h2>
+<div class="stats-grid"><div class="stat-card"><div class="number">2250</div><div class="label">2021<br>Questions</div></div>
+<div class="stat-card"><div class="number">1080</div><div class="label">2022<br>Questions</div></div>
+<div class="stat-card"><div class="number">2070</div><div class="label">2023<br>Questions</div></div>
+<div class="stat-card"><div class="number">1800</div><div class="label">2024<br>Questions</div></div>
+<div class="stat-card"><div class="number">759</div><div class="label">2025<br>Questions</div></div>
+</div>
+</div></body></html>
