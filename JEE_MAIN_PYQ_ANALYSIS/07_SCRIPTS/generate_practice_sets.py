@@ -144,10 +144,31 @@ def structured_table_html(value):
     )
     return f'''<div class="structured-table-wrap"><div class="structured-table-title">Structured List-I / List-II view</div><table class="structured-table"><thead><tr><th>Label</th><th>List-I</th><th>List-II</th><th>Match</th></tr></thead><tbody>{rows}</tbody></table></div>'''
 
+def semantic_matrix_html(value):
+    """Render only bracketed numeric runs that unambiguously form a square matrix."""
+    text = str(value or '')
+    if not any(ch in text for ch in '⎡⎣⎤⎦'):
+        return ''
+    chunks = re.findall(r'⎡(.*?)⎦', text, flags=re.S)
+    for chunk in chunks:
+        tokens = re.findall(r'(?<![A-Za-z])[-−+]?(?:\d+(?:\.\d+)?|[A-Za-z])', chunk)
+        numeric = [t.replace('−', '-') for t in tokens if re.search(r'\d', t)]
+        size = int(len(numeric) ** 0.5) if numeric else 0
+        if size not in (2, 3, 4) or size * size != len(numeric):
+            continue
+        rows = ''.join(
+            '<tr>' + ''.join(f'<td>{escape(cell)}</td>' for cell in numeric[i:i + size]) + '</tr>'
+            for i in range(0, len(numeric), size)
+        )
+        label = f'{size} by {size} matrix'
+        return f'<div class="matrix-semantic-wrap"><div class="matrix-semantic-title">Semantic matrix view ({label})</div><table class="matrix-semantic" aria-label="{label}"><tbody>{rows}</tbody></table></div>'
+    return ''
+
 def question_body_html(value):
     text = normalize_text(value)
     table = structured_table_html(text)
-    return escape(text) + table
+    matrix = semantic_matrix_html(value)
+    return escape(text) + matrix + table
 
 def filter_controls():
     return """
@@ -235,6 +256,10 @@ COMMON_CSS = """
   .structured-table { width:100%; border-collapse:collapse; background:var(--card); }
   .structured-table th, .structured-table td { border:1px solid var(--border); padding:7px 10px; text-align:left; font-size:.86rem; }
   .structured-table th { background:var(--cluster-bg); }
+  .matrix-semantic-wrap { overflow-x:auto; margin:14px 0; }
+  .matrix-semantic-title { color:var(--muted); font-size:.78rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:.04em; }
+  .matrix-semantic { border-collapse:collapse; margin:0; }
+  .matrix-semantic td { border:1px solid var(--border); min-width:2.4rem; padding:7px 10px; text-align:center; }
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
