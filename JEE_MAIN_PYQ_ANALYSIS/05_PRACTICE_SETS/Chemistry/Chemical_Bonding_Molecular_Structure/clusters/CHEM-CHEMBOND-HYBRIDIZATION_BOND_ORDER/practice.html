@@ -59,6 +59,13 @@
   .badge-cluster   { background: #e9ecef; color: #495057; }
   .badge-year      { background: #e0f2fe; color: #0369a1; }
   .q-text { font-size: 0.95rem; margin: 10px 0; white-space: pre-wrap; }
+  .question-media { display:block; max-width:100%; max-height:460px; margin:14px auto; border:1px solid var(--border); border-radius:8px; background:#fff; object-fit:contain; }
+  .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
+  .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
+  .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-label { font-weight: 600; margin-right: 6px; }
@@ -134,13 +141,40 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function initFilters() {
+  var cards = Array.from(document.querySelectorAll('.q-card[data-year]'));
+  var panel = document.querySelector('.filter-panel');
+  if (!panel || !cards.length) return;
+  var fields = ['year','shift','difficulty','type'];
+  fields.forEach(function(field) {
+    var select = panel.querySelector('[data-filter="' + field + '"]');
+    var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
+    values.forEach(function(value) { var option = document.createElement('option'); option.value = value; option.textContent = value; select.appendChild(option); });
+    select.addEventListener('change', applyFilters);
+  });
+  panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
+    fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    applyFilters();
+  });
+  function applyFilters() {
+    var visible = 0;
+    cards.forEach(function(card) {
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      card.hidden = !show;
+      if (show) visible++;
+    });
+    panel.querySelector('[data-filter-count]').textContent = visible + ' of ' + cards.length + ' shown';
+  }
+  applyFilters();
+}
+document.addEventListener('DOMContentLoaded', initFilters);
 </script>
 
 </head>
 <body>
 <header>
   <h1>📌 Cluster: CHEM-CHEMBOND-HYBRIDIZATION_BOND_ORDER</h1>
-  <p>Chemical Bonding &amp; Molecular Structure · Chemistry · 6 questions</p>
+  <p>Chemical Bonding &amp; Molecular Structure · Chemistry · 3 questions</p>
 </header>
 <nav class="breadcrumb">
   <a href="../../../../index.html">🏠 Practice Home</a> &rsaquo;
@@ -151,97 +185,66 @@ function toggleAnsCell(cell) {
 <div class="container">
   <div class="stats-bar">
     <div class="stat-chip">Cluster: <strong>CHEM-CHEMBOND-HYBRIDIZATION_BOND_ORDER</strong></div>
-    <div class="stat-chip">Questions: <strong>6</strong></div>
+    <div class="stat-chip">Questions: <strong>3</strong></div>
   </div>
-<div class="q-card">
+  
+  <section class="filter-panel" aria-label="Practice filters">
+    <div class="filter-title">Filter questions</div>
+    <label>Year <select data-filter="year"><option value="">All years</option></select></label>
+    <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
+    <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
+    <label>Type <select data-filter="type"><option value="">All types</option></select></label>
+    <button class="btn-reset" type="button" data-filter-reset>Reset</button>
+    <span class="filter-count" data-filter-count></span>
+  </section>
+
+<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q1</span>
-    <span class="q-id">CHEM-2021-0720-S1-Q043</span>
-    <span class="badge badge-year">2021 | 20 Jul 2021 | Shift 1</span>
+    <span class="q-id">CHEM-2021-0101-S2-Q033</span>
+    <span class="badge badge-year">2021 | 20 Jul | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">According to the valence bond theory the hybridization of central metal atom is for which one of the following compounds? (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">The hybridisations of the atomic orbitals of nitrogen in NO− , NO+ and NH+ respectively are. 2 2 4</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>sp3, sp2 and sp</div><div class="option"><span class="option-label">(B)</span>sp, sp2 and sp3</div><div class="option"><span class="option-label">(C)</span>sp3, sp and sp2</div><div class="option"><span class="option-label">(D)</span>sp2, sp and sp3</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
   <div class="q-header">
     <span class="q-num">Q2</span>
-    <span class="q-id">CHEM-2021-0725-S1-Q057</span>
-    <span class="badge badge-year">2021 | 25 Jul 2021 | Shift 1</span>
+    <span class="q-id">CHEM-2023-0101-S2-Q053</span>
+    <span class="badge badge-year">2023 | 30 Jan | Shift 2</span>
     <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
+    <span class="badge badge-integer">Integer</span>
     
   </div>
-  <div class="q-text">The number of sigma bonds in is _______.</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">Match List I with List II: List I List II (Complexes) (Hybridisation) (A) [Ni(CO)4] I sp3 (NH3)4]2+ (B) [Cu II dsp2 (C) (NH3)6]2+ III sp3 d2 [Fe (D) [Fe (H2O)6]2+ IV d2 sp3 (1) A – II, B – I, C – III, D – IV (2) A – I, B – II, C – III, D – IV (3) A – II, B – I, C – IV, D – III (4) A – I, B– II, C – IV, D – III</div>
+  
+  <div class="options"><div class="integer-box">Enter your answer</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> 150</div>
     </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q3</span>
-    <span class="q-id">CHEM-2022-0628-S1-Q052</span>
-    <span class="badge badge-year">2022 | 28 Jun 2022 | Shift 1</span>
+    <span class="q-id">CHEM-2024-0101-S2-Q041</span>
+    <span class="badge badge-year">2024 | 06 Apr | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">The hybridization of exhibited in is . The value of is</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">Given below are two statements : Statement I : PF5 and BrF5 both exhibit sp3 d hybridisation. Statement II : Both SF6 and [Co(NH3)6]3+ exhibit sp3 d2 hybridisation. In the light of the above statements, choose the correct answer from the options given below :</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is true but Statement II is false</div><div class="option"><span class="option-label">(B)</span>Statement I is false but Statement II is true</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are true</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are false</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q4</span>
-    <span class="q-id">CHEM-2023-0124-S2-Q053</span>
-    <span class="badge badge-year">2023 | 24 Jan 2023 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">The hybridization and magnetic behaviour of cobalt ion in complex, respectively is (1) and diamagnetic (2) and paramagnetic (3) and diamagnetic (4) and paramagnetic Q54.Maximum number of isomeric monochloro derivatives which can be obtained from 2,2,5,5- tetramethylhexane by chlorination is _________ Q55.Find out the major products from the following reactions. JEE Main 2023 (24 Jan Shift 2) Question Paper JEE Main Previous Year Paper MathonGo 0. 5 2 1 0 Al Ag Cu Fe Sm2+ Ce2+ Ce4+ Tb4+ K2 Cr2 O7 H2 SO4 [Co(NH3)6]3+ sp3 d2 d2 sp3 d2 sp3 sp3 d2 Join the Most Relevant Test Series for JEE Main with Most Detailed &amp; Advanced Analysis here: https://links.mathongo.com/mWN (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q5</span>
-    <span class="q-id">CHEM-2024-0409-S1-Q033</span>
-    <span class="badge badge-year">2024 | 9 Apr 2024 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">In which one of the following pairs the central atoms exhibit hybridization ? (1) and (2) (3) and (4) and JEE Main 2024 (09 Apr Shift 1) Question Paper JEE Main Previous Year Paper MathonGo 1Ω n 10 n 2 m 2 A x y x −y →B = B0(1 + 4x)^k B0 = 5 T N 20 V 5 A 20 V, 50 Hz 4 A mH ( π = 3 ( 1 4 )th μm λ = 600 nm, d = 1.0 mm, D = 1.0 m 100% 4He 12C 4He + 4He + 4He →12C + Q 2.0 × 1032 kg 5.808 × 1030 W 4He 12C n × 1042 s−1 n 4He = 4.0026u 12C = 12u n = 4, 1 = 1 n = 4, l = 2 n = 3, 1 = 1 n = 3, 1 = 2 n = 4, 1 = 0 (E) &lt; ( C ) &lt; (D) &lt; ( A ) &lt; ( B ) (E) &gt; ( C ) &gt; ( A ) &gt; ( D ) &gt; (B) pπ −pπ sp2 H2O NO2 BF3 and NO− 2 NH− 2 H2O NH− 2 BF3 Join the Most Relevant Test Series for JEE Main with Most Detailed &amp; Advanced Analysis here: https://links.mathongo.com/mWN</div>
-  <div class="options"><div class="option"><span class="option-label">(B)</span>&gt;  (A)  &gt;  (C)  &gt;  (E)  &gt;  (D)</div><div class="option"><span class="option-label">(C)</span>&lt;  (E)  &lt;  (D)  &lt;  (A)  &lt;  (B)</div></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q6</span>
-    <span class="q-id">CHEM-2024-0127-S2-Q044</span>
-    <span class="badge badge-year">2024 | 27 Jan 2024 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">Identify from the following species in which d2sp3 hybridization is shown by central atom: (1) CoNH36 3 + (2) BrF5 (3) Pt ( Cl ) 4 2 - (4) SF6</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
 </div></div>
 <footer>JEE Main PYQ Analysis — Practice Sets &nbsp;|&nbsp;

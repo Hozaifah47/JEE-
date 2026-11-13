@@ -59,6 +59,13 @@
   .badge-cluster   { background: #e9ecef; color: #495057; }
   .badge-year      { background: #e0f2fe; color: #0369a1; }
   .q-text { font-size: 0.95rem; margin: 10px 0; white-space: pre-wrap; }
+  .question-media { display:block; max-width:100%; max-height:460px; margin:14px auto; border:1px solid var(--border); border-radius:8px; background:#fff; object-fit:contain; }
+  .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
+  .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
+  .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-label { font-weight: 600; margin-right: 6px; }
@@ -134,6 +141,33 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function initFilters() {
+  var cards = Array.from(document.querySelectorAll('.q-card[data-year]'));
+  var panel = document.querySelector('.filter-panel');
+  if (!panel || !cards.length) return;
+  var fields = ['year','shift','difficulty','type'];
+  fields.forEach(function(field) {
+    var select = panel.querySelector('[data-filter="' + field + '"]');
+    var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
+    values.forEach(function(value) { var option = document.createElement('option'); option.value = value; option.textContent = value; select.appendChild(option); });
+    select.addEventListener('change', applyFilters);
+  });
+  panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
+    fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    applyFilters();
+  });
+  function applyFilters() {
+    var visible = 0;
+    cards.forEach(function(card) {
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      card.hidden = !show;
+      if (show) visible++;
+    });
+    panel.querySelector('[data-filter-count]').textContent = visible + ' of ' + cards.length + ' shown';
+  }
+  applyFilters();
+}
+document.addEventListener('DOMContentLoaded', initFilters);
 </script>
 
 </head>
@@ -153,110 +187,128 @@ function toggleAnsCell(cell) {
     <div class="stat-chip">Cluster: <strong>PHY-PROPOF-VISCOSITY_STOKES_TERMINAL</strong></div>
     <div class="stat-chip">Questions: <strong>7</strong></div>
   </div>
-<div class="q-card">
+  
+  <section class="filter-panel" aria-label="Practice filters">
+    <div class="filter-title">Filter questions</div>
+    <label>Year <select data-filter="year"><option value="">All years</option></select></label>
+    <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
+    <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
+    <label>Type <select data-filter="type"><option value="">All types</option></select></label>
+    <button class="btn-reset" type="button" data-filter-reset>Reset</button>
+    <span class="filter-count" data-filter-count></span>
+  </section>
+
+<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q1</span>
-    <span class="q-id">PHY-2021-0316-S2-Q005</span>
-    <span class="badge badge-year">2021 | 16 Mar 2021 | Shift 2</span>
+    <span class="q-id">PHY-2021-0101-S2-Q005</span>
+    <span class="badge badge-year">2021 | 16 Mar | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">What will be the nature of flow of water from a circular tap, when its flow rate increased from to The radius of the tap and viscosity of water are and , respectively. (Density of water : ) JEE Main 2021 (16 Mar Shift 2) Question Paper JEE Main Previous Year Paper MathonGo 0. 2 cm = 0. 001 cm 1 m = 1 mm 1 kg = 1 g 0. 5 cm 0. 001 cm 0. 14% 0. 9% 9% 1. 4% →v = 0. 5t2ˆi + 3tˆj + 9ˆk m s−1 2 s tan−1( 2 3 ) x tan−1( √85</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">What will be the nature of flow of water from a circular tap, when its flow rate increased from 0. 18 L (min)−1 to 0. 48 L (min)−1? The radius of the tap and viscosity of water are 0. 5 cm and 10−3 Pa s , respectively. (Density of water : 103 kg m−3 )</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>Unsteady to steady flow</div><div class="option"><span class="option-label">(B)</span>Remains steady flow</div><div class="option"><span class="option-label">(C)</span>Remains turbulent flow</div><div class="option"><span class="option-label">(D)</span>Steady flow to unsteady flow</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q2</span>
-    <span class="q-id">PHY-2021-0827-S2-Q001</span>
-    <span class="badge badge-year">2021 | 27 Aug 2021 | Shift 2</span>
+    <span class="q-id">PHY-2021-0101-S1-Q006</span>
+    <span class="badge badge-year">2021 | 27 Aug | Shift 1</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">Match List- with List- . List- List- a (Rydberg constant) i b (Planck&#x27;s constant) ii c (Magnetic field energy density) iii d (coefficient of viscosity) iv Choose the most appropriate answer from the options given below: (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q3</span>
-    <span class="q-id">PHY-2022-0626-S2-Q006</span>
-    <span class="badge badge-year">2022 | 26 Jun 2022 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">If is the density and is coefficient of viscosity of fluid which flows with a speed in the pipe of diameter , the correct formula for Reynolds number is (1) (2) (3) (4) Q7. A flask contains argon and oxygen in the ratio of in mass and the mixture is kept at . The ratio of their average kinetic energy per molecule respectively (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q4</span>
-    <span class="q-id">PHY-2023-0408-S1-Q012</span>
-    <span class="badge badge-year">2023 | 8 Apr 2023 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">An air bubble of diameter rises steadily through a solution of density at the rate of . The co-efficient of viscosity of the solution (neglect density of air) is ________ Pas (given, ).</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q5</span>
-    <span class="q-id">PHY-2023-0408-S2-Q001</span>
-    <span class="badge badge-year">2023 | 8 Apr 2023 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">Match List I with List II List I List II A. Torque I. B. Stress II. C. Pressure gradient III. D. Coefficient of viscosity IV. Choose the correct answer from the options given below : (1) A-II, B-I, C-IV, D-III (2) A-IV, B-II, C-III, D-I (3) A-II, B-IV, C-I, D-III (4) A-III, B-IV, C-I, D-II</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">In Millikan&#x27;s oil drop experiment, what is viscous force acting on an uncharged drop of radius 2. 0 × 10−5 m and density 1. 2 × 103 kg m−3 ? Take viscosity of liquid = 1. 8 × 10−5 N s m−2. (Neglect buoyancy due to air).</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>5. 8 × 10−10 N</div><div class="option"><span class="option-label">(B)</span>3. 9 × 10−10 N</div><div class="option"><span class="option-label">(C)</span>10−10</div><div class="option"><span class="option-label">(D)</span>10−11 1. 8 × N 3. 8 × N</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-header">
+    <span class="q-num">Q3</span>
+    <span class="q-id">PHY-2021-0101-S2-Q008</span>
+    <span class="badge badge-year">2021 | 27 Jul | Shift 2</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-mcq">MCQ</span>
+    
+  </div>
+  <div class="q-text">A raindrop with radius R = 0. 2 mm falls from a cloud at a height h = 2000 m above the ground. Assume that the drop is spherical throughout its fall and the force of buoyance may be neglected, then the terminal speed attained by the raindrop is : [Density of water fw = 1000 kg m−3 and Density of air fa = 1. 2 kg m−3, g = 10 m/s2 Coefficient of viscosity of air = 1. 8 × 10−5N s m−2]</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>250. 6 m s−1</div><div class="option"><span class="option-label">(B)</span>43. 56 m s−1</div><div class="option"><span class="option-label">(C)</span>4. 94 m s−1</div><div class="option"><span class="option-label">(D)</span>14. 4 m s−1</div></div>
+  <div class="ans-reveal">
+      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+      <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
+    </div>
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-header">
+    <span class="q-num">Q4</span>
+    <span class="q-id">PHY-2022-0101-S2-Q006</span>
+    <span class="badge badge-year">2022 | 26 Jun | Shift 2</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-mcq">MCQ</span>
+    
+  </div>
+  <div class="q-text">If is the density and is coefficient of viscosity of fluid which flows with a speed in the pipe of diameter , p η v d the correct formula for Reynolds number Re is ρv</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>Re = πd ρv</div><div class="option"><span class="option-label">(B)</span>Re = ηd</div><div class="option"><span class="option-label">(C)</span>Re = ρvd</div><div class="option"><span class="option-label">(D)</span>Re = η η ρνd</div></div>
+  <div class="ans-reveal">
+      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+      <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
+    </div>
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+  <div class="q-header">
+    <span class="q-num">Q5</span>
+    <span class="q-id">PHY-2023-0101-S1-Q012</span>
+    <span class="badge badge-year">2023 | 08 Apr | Shift 1</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-integer">Integer</span>
+    
+  </div>
+  <div class="q-text">An air bubble of diameter 6 mm rises steadily through a solution of density 1750 kg m−3 at the rate of 0. 35 cm s−1 . The co-efficient of viscosity of the solution (neglect density of air) is ________ Pas (given, g = 10 m s−2 ).</div>
+  
+  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="ans-reveal">
+      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+      <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
+    </div>
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q6</span>
-    <span class="q-id">PHY-2023-0413-S2-Q001</span>
-    <span class="badge badge-year">2023 | 13 Apr 2023 | Shift 2</span>
+    <span class="q-id">PHY-2023-0101-S2-Q001</span>
+    <span class="badge badge-year">2023 | 13 Apr | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">In the equation 𝑋+ 𝑎 𝑌2[𝑌- 𝑏] = 𝑅𝑇, 𝑋 is pressure, 𝑌 is volume, 𝑅 is universal gas constant and 𝑇 is temperature. The physical quantity equivalent to the ratio 𝑎 𝑏 is: (1) Pressure gradient (2) Energy (3) Impulse (4) Coefficient of viscosity</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">In the equation 𝑋+ 𝑌2[𝑌- 𝑎 𝑏] = 𝑅𝑇, 𝑋 is pressure, 𝑌 is volume, 𝑅 is universal gas constant and 𝑇 is temperature. The physical quantity equivalent to the ratio 𝑎 is: 𝑏</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>Pressure gradient</div><div class="option"><span class="option-label">(B)</span>Energy</div><div class="option"><span class="option-label">(C)</span>Impulse</div><div class="option"><span class="option-label">(D)</span>Coefficient of viscosity</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q7</span>
-    <span class="q-id">PHY-2023-0124-S2-Q011</span>
-    <span class="badge badge-year">2023 | 24 Jan 2023 | Shift 2</span>
+    <span class="q-id">PHY-2023-0101-S2-Q001</span>
+    <span class="badge badge-year">2023 | 25 Jan | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">A spherical ball of radius and density is dropped in glycerine of coefficient of viscosity poise and density . Viscous force on the ball when it attains constant velocity is . The value of is (Given, ) Q12.In an Isothermal change, the change in pressure and volume of a gas can be represented for three different temperature; as: JEE Main 2023 (24 Jan Shift 2) Question Paper JEE Main Previous Year Paper MathonGo h d h = d A R A R R A A R R A A R A R 1. 5 × 106 km 2. 83 6 × 107 km 6 × 106 km 3 × 106 km 3 × 107 km A R R A A R R A A R A R 1 mm 10. 5 g cc−1 9. 8 1. 5 g cc−1 3696 × 10−x N x g = 9. 8 m s−2 and π = 22 7 T3 &gt; T2 &gt; T1 Join the Most Relevant Test Series for JEE Main with Most Detailed &amp; Advanced Analysis here: https://links.mathongo.com/mWN (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">Match List I with List II List List II A Young&#x27;s Modulus (Y ) I [ML–1 T –1] B Co-efficient of Viscosity (η) II [ML2 T –1] C Planck&#x27;s Constant (h) III [ML–1 T –2] D Work Function (ϕ) IV [ML2 T–2] Choose the correct answer from the options given below:</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>A-II, B-III, C-IV, D-I</div><div class="option"><span class="option-label">(B)</span>A-III, B-I, C-II, D-IV</div><div class="option"><span class="option-label">(C)</span>A-I, B-III, C-IV, D-II</div><div class="option"><span class="option-label">(D)</span>A-I, B-II, C-III, D-IV</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
 </div></div>
 <footer>JEE Main PYQ Analysis — Practice Sets &nbsp;|&nbsp;

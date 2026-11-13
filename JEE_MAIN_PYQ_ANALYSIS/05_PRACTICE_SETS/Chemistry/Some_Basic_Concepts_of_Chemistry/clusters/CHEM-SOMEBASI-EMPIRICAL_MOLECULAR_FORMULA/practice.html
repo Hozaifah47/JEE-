@@ -59,6 +59,13 @@
   .badge-cluster   { background: #e9ecef; color: #495057; }
   .badge-year      { background: #e0f2fe; color: #0369a1; }
   .q-text { font-size: 0.95rem; margin: 10px 0; white-space: pre-wrap; }
+  .question-media { display:block; max-width:100%; max-height:460px; margin:14px auto; border:1px solid var(--border); border-radius:8px; background:#fff; object-fit:contain; }
+  .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
+  .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
+  .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-label { font-weight: 600; margin-right: 6px; }
@@ -134,6 +141,33 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function initFilters() {
+  var cards = Array.from(document.querySelectorAll('.q-card[data-year]'));
+  var panel = document.querySelector('.filter-panel');
+  if (!panel || !cards.length) return;
+  var fields = ['year','shift','difficulty','type'];
+  fields.forEach(function(field) {
+    var select = panel.querySelector('[data-filter="' + field + '"]');
+    var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
+    values.forEach(function(value) { var option = document.createElement('option'); option.value = value; option.textContent = value; select.appendChild(option); });
+    select.addEventListener('change', applyFilters);
+  });
+  panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
+    fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    applyFilters();
+  });
+  function applyFilters() {
+    var visible = 0;
+    cards.forEach(function(card) {
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      card.hidden = !show;
+      if (show) visible++;
+    });
+    panel.querySelector('[data-filter-count]').textContent = visible + ' of ' + cards.length + ' shown';
+  }
+  applyFilters();
+}
+document.addEventListener('DOMContentLoaded', initFilters);
 </script>
 
 </head>
@@ -153,50 +187,64 @@ function toggleAnsCell(cell) {
     <div class="stat-chip">Cluster: <strong>CHEM-SOMEBASI-EMPIRICAL_MOLECULAR_FORMULA</strong></div>
     <div class="stat-chip">Questions: <strong>3</strong></div>
   </div>
-<div class="q-card">
+  
+  <section class="filter-panel" aria-label="Practice filters">
+    <div class="filter-title">Filter questions</div>
+    <label>Year <select data-filter="year"><option value="">All years</option></select></label>
+    <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
+    <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
+    <label>Type <select data-filter="type"><option value="">All types</option></select></label>
+    <button class="btn-reset" type="button" data-filter-reset>Reset</button>
+    <span class="filter-count" data-filter-count></span>
+  </section>
+
+<div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
   <div class="q-header">
     <span class="q-num">Q1</span>
-    <span class="q-id">CHEM-2021-0831-S2-Q055</span>
-    <span class="badge badge-year">2021 | 31 Aug 2021 | Shift 2</span>
+    <span class="q-id">CHEM-2021-0101-S1-Q051</span>
+    <span class="badge badge-year">2021 | 16 Mar | Shift 1</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-integer">Integer</span>
+    
+  </div>
+  <div class="q-text">Complete combustion of 750 g of an organic compound provides 420 g of CO2 and 210 g of H2O . The percentage composition of carbon and hydrogen in organic compound is 15. 3 and ______ respectively. (Round off to the Nearest Integer)</div>
+  
+  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="ans-reveal">
+      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+      <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
+    </div>
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+  <div class="q-header">
+    <span class="q-num">Q2</span>
+    <span class="q-id">CHEM-2021-0101-S2-Q055</span>
+    <span class="badge badge-year">2021 | 31 Aug | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-integer">Integer</span>
     
   </div>
   <div class="q-text">The empirical formula for a compound with a cubic close packed arrangement of anions and with cations occupying all the octahedral sites in Ax B . The value of x is (Integer answer)</div>
+  <img class="question-media" src="../../../../assets/b4079de95187fb60.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><div class="integer-box">Enter your answer</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q2</span>
-    <span class="q-id">CHEM-2023-0125-S1-Q042</span>
-    <span class="badge badge-year">2023 | 25 Jan 2023 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">A cubic solid is made up of two elements and . Atoms of are present on every alternate corner and one at the center of cube. is at of the total faces. The empirical formula of the compound is (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q3</span>
-    <span class="q-id">CHEM-2023-0131-S1-Q046</span>
-    <span class="badge badge-year">2023 | 31 Jan 2023 | Shift 1</span>
+    <span class="q-id">CHEM-2023-0101-S1-Q046</span>
+    <span class="badge badge-year">2023 | 31 Jan | Shift 1</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">An organic compound &#x27; 𝐴 &#x27; with empirical formula C6H6O gives sooty flame on burning. Its reaction with bromine solution in low polarity solvent results in high yield of 𝐵 . 𝐵 is (1) (2) (3) (4)</div>
+  <div class="q-text">An organic compound &#x27; 𝐴 &#x27; with empirical formula C6H6O gives sooty flame on burning. Its reaction with bromine solution in low polarity solvent results in high yield of 𝐵 . 𝐵 is</div>
+  <img class="question-media" src="../../../../assets/47f9c3f378b5df6d.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
 </div></div>
 <footer>JEE Main PYQ Analysis — Practice Sets &nbsp;|&nbsp;

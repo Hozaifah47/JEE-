@@ -59,6 +59,13 @@
   .badge-cluster   { background: #e9ecef; color: #495057; }
   .badge-year      { background: #e0f2fe; color: #0369a1; }
   .q-text { font-size: 0.95rem; margin: 10px 0; white-space: pre-wrap; }
+  .question-media { display:block; max-width:100%; max-height:460px; margin:14px auto; border:1px solid var(--border); border-radius:8px; background:#fff; object-fit:contain; }
+  .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
+  .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
+  .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-label { font-weight: 600; margin-right: 6px; }
@@ -134,13 +141,40 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function initFilters() {
+  var cards = Array.from(document.querySelectorAll('.q-card[data-year]'));
+  var panel = document.querySelector('.filter-panel');
+  if (!panel || !cards.length) return;
+  var fields = ['year','shift','difficulty','type'];
+  fields.forEach(function(field) {
+    var select = panel.querySelector('[data-filter="' + field + '"]');
+    var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
+    values.forEach(function(value) { var option = document.createElement('option'); option.value = value; option.textContent = value; select.appendChild(option); });
+    select.addEventListener('change', applyFilters);
+  });
+  panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
+    fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    applyFilters();
+  });
+  function applyFilters() {
+    var visible = 0;
+    cards.forEach(function(card) {
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      card.hidden = !show;
+      if (show) visible++;
+    });
+    panel.querySelector('[data-filter-count]').textContent = visible + ' of ' + cards.length + ' shown';
+  }
+  applyFilters();
+}
+document.addEventListener('DOMContentLoaded', initFilters);
 </script>
 
 </head>
 <body>
 <header>
   <h1>📌 Cluster: CHEM-CHEMBOND-VSEPR_MOLECULAR_GEOMETRY</h1>
-  <p>Chemical Bonding &amp; Molecular Structure · Chemistry · 12 questions</p>
+  <p>Chemical Bonding &amp; Molecular Structure · Chemistry · 4 questions</p>
 </header>
 <nav class="breadcrumb">
   <a href="../../../../index.html">🏠 Practice Home</a> &rsaquo;
@@ -151,187 +185,82 @@ function toggleAnsCell(cell) {
 <div class="container">
   <div class="stats-bar">
     <div class="stat-chip">Cluster: <strong>CHEM-CHEMBOND-VSEPR_MOLECULAR_GEOMETRY</strong></div>
-    <div class="stat-chip">Questions: <strong>12</strong></div>
+    <div class="stat-chip">Questions: <strong>4</strong></div>
   </div>
-<div class="q-card">
+  
+  <section class="filter-panel" aria-label="Practice filters">
+    <div class="filter-title">Filter questions</div>
+    <label>Year <select data-filter="year"><option value="">All years</option></select></label>
+    <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
+    <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
+    <label>Type <select data-filter="type"><option value="">All types</option></select></label>
+    <button class="btn-reset" type="button" data-filter-reset>Reset</button>
+    <span class="filter-count" data-filter-count></span>
+  </section>
+
+<div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q1</span>
-    <span class="q-id">CHEM-2021-0318-S2-Q052</span>
-    <span class="badge badge-year">2021 | 18 Mar 2021 | Shift 2</span>
+    <span class="q-id">CHEM-2022-0101-S1-Q032</span>
+    <span class="badge badge-year">2022 | 27 Jun | Shift 1</span>
     <span class="badge badge-unknown">—</span>
-    <span class="badge badge-integer">Integer</span>
+    <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">The number of species below that have two lone pairs of electrons in their central atom is ___ (Round off to the Nearest integer)</div>
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="q-text">Based upon VSEPR theory, match the shape (geometry) of the molecules in List-I with the molecules in List - II and select the most appropriate option. List-I List-II (Shape) (Molecules) A T-shaped I. XeF4 B Trigonal planar II. SF4 C Square planar III. ClF3 D See-saw IV. BF3</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(B)</span>−(I),</div><div class="option"><span class="option-label">(C)</span>−(II),</div><div class="option"><span class="option-label">(D)</span>−(III),</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q2</span>
-    <span class="q-id">CHEM-2021-0720-S1-Q052</span>
-    <span class="badge badge-year">2021 | 20 Jul 2021 | Shift 1</span>
+    <span class="q-id">CHEM-2024-0101-S2-Q034</span>
+    <span class="badge badge-year">2024 | 05 Apr | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">The number of lone pairs of electrons on the central atom in is JEE Main 2021 (20 Jul Shift 1) Question Paper JEE Main Previous Year Paper MathonGo (I), (III) (IV) (IV) (II) (III) (IV) A B CHCl3 KOH B C HCl NaOH HCl NaOH α −D β− Ga+ Ga = 31 I I− 3 Join the Most Relevant Test Series for JEE Main with Most Detailed &amp; Advanced Analysis here: https://links.mathongo.com/mWN</div>
-  <div class="options"><div class="option"><span class="option-label">(C)</span>A,  B</div></div>
+  <div class="q-text">Given below are two statements : one is labelled as Assertion</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>and the other is labelled as Reason (R). Assertion</div><div class="option"><span class="option-label">(B)</span>: NH3 and NF3 molecule have pyramidal shape with a lone pair of electrons on nitrogen atom. The resultant dipole moment of NH3 is greater than that of NF3 . Reason (R) : In NH3 , the orbital dipole due to lone pair is in the same direction as the resultant dipole moment of the N −H bonds. F is the most electronegative element. In the light of the above statements, choose the correct answer from the options given below :</div><div class="option"><span class="option-label">(C)</span>Both</div><div class="option"><span class="option-label">(D)</span>and (R) are true and (R) is the correct</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q3</span>
-    <span class="q-id">CHEM-2021-0720-S2-Q055</span>
-    <span class="badge badge-year">2021 | 20 Jul 2021 | Shift 2</span>
+    <span class="q-id">CHEM-2024-0101-S2-Q032</span>
+    <span class="badge badge-year">2024 | 30 Jan | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">Diamond has a three dimensional structure of atoms formed by covalent bonds. The structure of diamond has face centred cubic lattice where of the tetrahedral voids are also occupied by carbon atoms. The number of carbon atoms present per unit cell of diamond is ________.</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">Given below are two statements: Statement-I: Since fluorine is more electronegative than nitrogen, the net dipole moment of NF3 is greater than NH3. Statement-II: In NH3, the orbital dipole due to lone pair and the dipole moment of NH bonds are in opposite direction, but in NF3 the orbital dipole due to lone pair and dipole moments of N-F bonds are in same direction. In the light of the above statements. Choose the most appropriate from the options given below.</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is true but Statement II is false.</div><div class="option"><span class="option-label">(B)</span>Both Statement I and Statement II are false.</div><div class="option"><span class="option-label">(C)</span>Both statement I and Statement II is are true.</div><div class="option"><span class="option-label">(D)</span>Statement I is false but Statement II is are true.</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q4</span>
-    <span class="q-id">CHEM-2021-0224-S2-Q033</span>
-    <span class="badge badge-year">2021 | 24 Feb 2021 | Shift 2</span>
+    <span class="q-id">CHEM-2024-0101-S1-Q032</span>
+    <span class="badge badge-year">2024 | 31 Jan | Shift 1</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">The correct shape and bond angles respectively in ion are: (1) T-shaped; and (2) Distorted trigonal planar; and (3) Trigonal planar; (4) Linear;</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">The linear combination of atomic orbitals to form molecular orbitals takes place only when the combining atomic orbitals A. have the same energy B. have the minimum overlap C. have same symmetry about the molecular axis D. have different symmetry about the molecular axis Choose the most appropriate from the options given below:</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>A, B, C only</div><div class="option"><span class="option-label">(B)</span>A and C only</div><div class="option"><span class="option-label">(C)</span>B, C, D only</div><div class="option"><span class="option-label">(D)</span>B and D only</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q5</span>
-    <span class="q-id">CHEM-2021-0827-S1-Q040</span>
-    <span class="badge badge-year">2021 | 27 Aug 2021 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">Match List - I with List - II: List-I (Species) List-II (Number of lone pairs of electrons on the central atom) (a) (i) (b) (ii) (c) (iii) (d) (iv) Choose the most appropriate answer from the options given below: (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q6</span>
-    <span class="q-id">CHEM-2021-0727-S1-Q035</span>
-    <span class="badge badge-year">2021 | 27 Jul 2021 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">Given below are two statements : Aniline is less basic than acetamide. In aniline, the lone pair of electrons on nitrogen atom is delocalised over benzene ring due to resonance and hence less available to a proton. Choose the most appropriate option ; (1) Statement is true but statement is false. (2) Statement is false but statement is true. (3) Both statement and statement are true. (4) Both statement and statement are false.</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q7</span>
-    <span class="q-id">CHEM-2022-0626-S2-Q053</span>
-    <span class="badge badge-year">2022 | 26 Jun 2022 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">Amongst and , the number of species with two lone pairs of electrons is</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q8</span>
-    <span class="q-id">CHEM-2022-0628-S2-Q034</span>
-    <span class="badge badge-year">2022 | 28 Jun 2022 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">In the structure of , the lone pair of electrons on is in. (1) Equatorial position and there are two lone pair - bond pair repulsions at . (2) equatorial position and there are three lone pair - bond pair repulsions at . (3) axial position and there are three lone pair - bond pair repulsion at . (4) axial position and there are two lone pair - bond pair repulsion at .</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q9</span>
-    <span class="q-id">CHEM-2023-0411-S2-Q035</span>
-    <span class="badge badge-year">2023 | 11 Apr 2023 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">The maximum number of lone pairs of electron on the central atom from the following species is ...... and</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q10</span>
-    <span class="q-id">CHEM-2023-0413-S2-Q033</span>
-    <span class="badge badge-year">2023 | 13 Apr 2023 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">Given below are two statements : Statement I : SO2 and H2O both possess V-shaped structure Statement II : The bond angle of SO2 is less than that of H2O. In the light of the above statements, choose the most appropriate answer from the options given below: (1) Both Statement I and Statement II are incorrect (2) Both Statement I and Statement II are correct (3) Statement I is incorrect but Statement II is correct(4) Statement I is correct but Statement II is incorrect</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q11</span>
-    <span class="q-id">CHEM-2024-0409-S2-Q034</span>
-    <span class="badge badge-year">2024 | 9 Apr 2024 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">Match List I with List II Choose the correct answer from the options given below: (1) A-II, B-III, C-IV, D-I (2) A-IV, B-I, C-II, D-III (3) A-I, B-II, C-III, D-IV (4) A-III, B-IV, C-I, D-II Q35.The correct increasing order for bond angles among and is : (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-    </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q12</span>
-    <span class="q-id">CHEM-2024-0129-S1-Q051</span>
-    <span class="badge badge-year">2024 | 29 Jan 2024 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    
-  </div>
-  <div class="q-text">Number of compounds with one lone pair of electrons on central atom amongst following is _</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
 </div></div>
 <footer>JEE Main PYQ Analysis — Practice Sets &nbsp;|&nbsp;

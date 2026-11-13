@@ -59,6 +59,13 @@
   .badge-cluster   { background: #e9ecef; color: #495057; }
   .badge-year      { background: #e0f2fe; color: #0369a1; }
   .q-text { font-size: 0.95rem; margin: 10px 0; white-space: pre-wrap; }
+  .question-media { display:block; max-width:100%; max-height:460px; margin:14px auto; border:1px solid var(--border); border-radius:8px; background:#fff; object-fit:contain; }
+  .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
+  .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
+  .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-label { font-weight: 600; margin-right: 6px; }
@@ -134,13 +141,40 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function initFilters() {
+  var cards = Array.from(document.querySelectorAll('.q-card[data-year]'));
+  var panel = document.querySelector('.filter-panel');
+  if (!panel || !cards.length) return;
+  var fields = ['year','shift','difficulty','type'];
+  fields.forEach(function(field) {
+    var select = panel.querySelector('[data-filter="' + field + '"]');
+    var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
+    values.forEach(function(value) { var option = document.createElement('option'); option.value = value; option.textContent = value; select.appendChild(option); });
+    select.addEventListener('change', applyFilters);
+  });
+  panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
+    fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    applyFilters();
+  });
+  function applyFilters() {
+    var visible = 0;
+    cards.forEach(function(card) {
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      card.hidden = !show;
+      if (show) visible++;
+    });
+    panel.querySelector('[data-filter-count]').textContent = visible + ' of ' + cards.length + ' shown';
+  }
+  applyFilters();
+}
+document.addEventListener('DOMContentLoaded', initFilters);
 </script>
 
 </head>
 <body>
 <header>
   <h1>📌 Cluster: PHY-ELECTROS-ELECTRIC_FIELD_CALC</h1>
-  <p>Electrostatics · Physics · 3 questions</p>
+  <p>Electrostatics · Physics · 4 questions</p>
 </header>
 <nav class="breadcrumb">
   <a href="../../../../index.html">🏠 Practice Home</a> &rsaquo;
@@ -151,52 +185,82 @@ function toggleAnsCell(cell) {
 <div class="container">
   <div class="stats-bar">
     <div class="stat-chip">Cluster: <strong>PHY-ELECTROS-ELECTRIC_FIELD_CALC</strong></div>
-    <div class="stat-chip">Questions: <strong>3</strong></div>
+    <div class="stat-chip">Questions: <strong>4</strong></div>
   </div>
-<div class="q-card">
+  
+  <section class="filter-panel" aria-label="Practice filters">
+    <div class="filter-title">Filter questions</div>
+    <label>Year <select data-filter="year"><option value="">All years</option></select></label>
+    <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
+    <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
+    <label>Type <select data-filter="type"><option value="">All types</option></select></label>
+    <button class="btn-reset" type="button" data-filter-reset>Reset</button>
+    <span class="filter-count" data-filter-count></span>
+  </section>
+
+<div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q1</span>
-    <span class="q-id">PHY-2021-0827-S1-Q010</span>
-    <span class="badge badge-year">2021 | 27 Aug 2021 | Shift 1</span>
+    <span class="q-id">PHY-2021-0101-S1-Q010</span>
+    <span class="badge badge-year">2021 | 27 Aug | Shift 1</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">A uniformly charged disc of radius having surface charge density is placed in the plane with its center at the origin. Find the electric field intensity along the -axis at a distance from origin: (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">A uniformly charged disc of radius R having surface charge density σ is placed in the xy plane with its center at the origin. Find the electric field intensity along the z -axis at a distance Z from origin:</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>E = 2ε0 ( 1 + Z)</div><div class="option"><span class="option-label">(B)</span>E = σ (1 + Z ) σ (Z 2+R2)1/2 2ε0 (Z 2+R2)1/2</div><div class="option"><span class="option-label">(C)</span>σ (1 Z )</div><div class="option"><span class="option-label">(D)</span>E = σ ( 1 + 1 ) E = 2ε0 − (Z 2+R2)1/2 2ε0 (Z 2+R2) Z 2</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q2</span>
-    <span class="q-id">PHY-2022-0624-S1-Q017</span>
-    <span class="badge badge-year">2022 | 24 Jun 2022 | Shift 1</span>
+    <span class="q-id">PHY-2022-0101-S1-Q015</span>
+    <span class="badge badge-year">2022 | 26 Jun | Shift 1</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">A plane electromagnetic wave travels in a medium of relative permeability and relative permittivity . If magnitude of magnetic intensity is at a point, what will be the approximate magnitude of electric field intensity at that point ? (Given : Permeability of free space , speed of light in vacuum ) (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">If Electric field intensity of a uniform plane electro magnetic wave is given as E = −301. 6 sin(kz −ωt)ˆax + 452. 4 sin(kz −ωt)ˆay V m−1. Then, magnetic intensity H of this wave in m−1 will be [Given : Speed of light in vacuum 108 s−1 , Permeability of vacuum A c = 3 × m μ0 = 4π × 10−7 N A−2 ]</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>+0. 8 sin(kz −ωt)ˆay + 0. 8 sin(kz −ωt)ˆax</div><div class="option"><span class="option-label">(B)</span>+1. 0 × 10−6 sin(kz −ωt)ˆay + 1. 5 × 10−6(kz −ωt)ˆax</div><div class="option"><span class="option-label">(C)</span>−0. 8 sin(kz −ωt)ˆay −1. 2 sin(kz −ωt)ˆax</div><div class="option"><span class="option-label">(D)</span>−1. 0 × 10−6 sin(kz −ωt)ˆay −1. 5 × 10−6 sin(kz −ωt)ˆa th</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q3</span>
-    <span class="q-id">PHY-2022-0628-S1-Q010</span>
-    <span class="badge badge-year">2022 | 28 Jun 2022 | Shift 1</span>
+    <span class="q-id">PHY-2022-0101-S1-Q010</span>
+    <span class="badge badge-year">2022 | 28 Jun | Shift 1</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">Statement-I : A point charge is brought in an electric field. The value of electric field at a point near to the charge may increase if the charge is positive. Statement-II : An electric dipole is placed in a uniform electric field. The net electric force on the dipole will not be zero. (1) Both statement-I and statement-II are true. (2) Both statement-I and statement-II are false. (3) Statement-I is true but statement-II is false. (4) Statement-I is false but statement-II is true.</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">Statement-I : A point charge is brought in an electric field. The value of electric field at a point near to the charge may increase if the charge is positive. Statement-II : An electric dipole is placed in a uniform electric field. The net electric force on the dipole will not be zero.</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>Both statement-I and statement-II are true.</div><div class="option"><span class="option-label">(B)</span>Both statement-I and statement-II are false.</div><div class="option"><span class="option-label">(C)</span>Statement-I is true but statement-II is false.</div><div class="option"><span class="option-label">(D)</span>Statement-I is false but statement-II is true.</div></div>
   <div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
+    </div>
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-header">
+    <span class="q-num">Q4</span>
+    <span class="q-id">PHY-2022-0101-S2-Q018</span>
+    <span class="badge badge-year">2022 | 29 Jun | Shift 2</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-mcq">MCQ</span>
+    
+  </div>
+  <div class="q-text">The electric field at a point associated with a light wave is given by E = 200[sin(6 × 1015)t + sin(9 × 1015)t] Vm−1 Given: h = 4. 14 × 10−15 eVs If this light falls on a metal surface having a work function of 2. 50 eV , the maximum kinetic energy of the photoelectrons will be</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>1. 90 eV</div><div class="option"><span class="option-label">(B)</span>3. 27 eV</div><div class="option"><span class="option-label">(C)</span>3. 60 eV</div><div class="option"><span class="option-label">(D)</span>3. 42 eV</div></div>
+  <div class="ans-reveal">
+      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+      <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
 </div></div>
 <footer>JEE Main PYQ Analysis — Practice Sets &nbsp;|&nbsp;

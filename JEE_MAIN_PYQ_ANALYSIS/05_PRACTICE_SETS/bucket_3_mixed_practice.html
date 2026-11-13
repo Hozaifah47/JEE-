@@ -59,6 +59,13 @@
   .badge-cluster   { background: #e9ecef; color: #495057; }
   .badge-year      { background: #e0f2fe; color: #0369a1; }
   .q-text { font-size: 0.95rem; margin: 10px 0; white-space: pre-wrap; }
+  .question-media { display:block; max-width:100%; max-height:460px; margin:14px auto; border:1px solid var(--border); border-radius:8px; background:#fff; object-fit:contain; }
+  .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
+  .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
+  .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-label { font-weight: 600; margin-right: 6px; }
@@ -134,6 +141,33 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function initFilters() {
+  var cards = Array.from(document.querySelectorAll('.q-card[data-year]'));
+  var panel = document.querySelector('.filter-panel');
+  if (!panel || !cards.length) return;
+  var fields = ['year','shift','difficulty','type'];
+  fields.forEach(function(field) {
+    var select = panel.querySelector('[data-filter="' + field + '"]');
+    var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
+    values.forEach(function(value) { var option = document.createElement('option'); option.value = value; option.textContent = value; select.appendChild(option); });
+    select.addEventListener('change', applyFilters);
+  });
+  panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
+    fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    applyFilters();
+  });
+  function applyFilters() {
+    var visible = 0;
+    cards.forEach(function(card) {
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      card.hidden = !show;
+      if (show) visible++;
+    });
+    panel.querySelector('[data-filter-count]').textContent = visible + ' of ' + cards.length + ' shown';
+  }
+  applyFilters();
+}
+document.addEventListener('DOMContentLoaded', initFilters);
 </script>
 
 </head>
@@ -147,310 +181,341 @@ function toggleAnsCell(cell) {
   Bucket 3 Mixed Practice
 </nav>
 <div class="container">
+  
+  <section class="filter-panel" aria-label="Practice filters">
+    <div class="filter-title">Filter questions</div>
+    <label>Year <select data-filter="year"><option value="">All years</option></select></label>
+    <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
+    <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
+    <label>Type <select data-filter="type"><option value="">All types</option></select></label>
+    <button class="btn-reset" type="button" data-filter-reset>Reset</button>
+    <span class="filter-count" data-filter-count></span>
+  </section>
+
   <div class="stats-bar">
     <div class="stat-chip">Total Questions: <strong>20</strong></div>
     <div class="stat-chip">Mix: <strong>PCM</strong></div>
     <div class="stat-chip">Priority: <strong>Bucket 3</strong></div>
   </div>
-  <div class="q-card">
+  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
   <div class="q-header">
     <span class="q-num">Q1</span>
-    <span class="q-id">PHY-2021-0727-S1-Q010</span>
-    <span class="badge badge-year">2021 | 27 Jul 2021 | Shift 1</span>
+    <span class="q-id">PHY-2021-0101-S1-Q001</span>
+    <span class="badge badge-year">2021 | 18 Mar | Shift 1</span>
     <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
+    <span class="badge badge-integer">Integer</span>
     <span class="badge badge-cluster">Physics · Oscillations</span>
   </div>
-  <div class="q-text">A particle starts executing simple harmonic motion of amplitude and total energy At any instant, its kinetic energy is , then its displacement is given by: (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">The time period of a simple pendulum is given by T = 2π√l . The measured value of the length of the g pendulum is 10 cm known to a 1 mm accuracy. The time for 200 oscillations of the pendulum is found to be 100 second using a clock of 1s resolution. The percentage accuracy in the determination of g using this pendulum is The value of to the nearest integer is:- x. x (1) 2% (2) 3% (3) 5% (4) 4%</div>
+  
+  <div class="options"><div class="integer-box">Enter your answer</div></div>
   <div class="ans-reveal">
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+    <div class="ans-box"><span class="ans-label">Answer:</span> Question</div>
   </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
     <span class="q-num">Q2</span>
-    <span class="q-id">MATH-2023-0415-S1-Q068</span>
-    <span class="badge badge-year">2023 | 15 Apr 2023 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Mathematics · Mathematical Reasoning</span>
-  </div>
-  <div class="q-text">Negation of is (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q3</span>
-    <span class="q-id">PHY-2023-0413-S2-Q016</span>
-    <span class="badge badge-year">2023 | 13 Apr 2023 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Physics · Waves</span>
-  </div>
-  <div class="q-text">In an electromagnetic wave, at an instant and at a particular position, the electric field is along the negative z- axis and magnetic field is along the positive x-axis. Then the direction of propagation of electromagnetic wave is: (1) positive z-axis (2) positive y-axis (3) at 45°angle from positive y -axis (4) negative y-axis</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q4</span>
-    <span class="q-id">CHEM-2022-0625-S1-Q040</span>
-    <span class="badge badge-year">2022 | 25 Jun 2022 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Chemistry · Surface Chemistry</span>
-  </div>
-  <div class="q-text">Incorrect statement for Tyndall effect is (1) The refractive indices of the dispersed phase and the dispersion medium differ greatly in magnitude. (2) The diameter of the dispersed particles is much smaller than the wavelength of the light used. (3) It is used to distinguish a true solution from a colloidal solution. (4) During projection of movies in the cinemas hall, Tyndall effect is noticed.</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q5</span>
-    <span class="q-id">CHEM-2022-0629-S1-Q041</span>
-    <span class="badge badge-year">2022 | 29 Jun 2022 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Chemistry · Surface Chemistry</span>
-  </div>
-  <div class="q-text">Which of the following is a correct statement? (1) Brownian motion destabilises sols. (2) Any amount of dispersed phase can be added to emulsion without destabilising it. (3) Mixing two oppositely charged sols in equal amount neutralises charges and stabilises colloids. (4) Presence of equal and similar charges on colloidal particles provides stability to the colloidal solution.</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q6</span>
-    <span class="q-id">CHEM-2021-0224-S1-Q036</span>
-    <span class="badge badge-year">2021 | 24 Feb 2021 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Chemistry · Equilibrium</span>
-  </div>
-  <div class="q-text">Which of the following compound gives pink colour on reaction with phthalic anhydride in conc. H2SO4 followed by treatment with NaOH? JEE Main 2021 (24 Feb Shift 1) Question Paper JEE Main Previous Year Paper MathonGo Join the Most Relevant Test Series for JEE Main with Most Detailed &amp; Advanced Analysis here: https://links.mathongo.com/mWN (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q7</span>
-    <span class="q-id">CHEM-2025-0129-S1-Q053</span>
-    <span class="badge badge-year">2025 | 29 Jan 2025 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Chemistry · Equilibrium</span>
-  </div>
-  <div class="q-text">At temperature T, compound dissociates as having degree of dissociation (small compared to unity). The correct expression for in terms of and p is 2025 (29 Jan Shift 1) JEE Main 2025 January JEE Main Previous Year Paper MathonGo (1, 1, 1) → F = ^i −^j + ^k θ1 θ2′ d = 4√3 cm θ1 = θ2 = cos−1 ( n2 2n1 ) n2 &gt; n1 27∘C ∘C 27 km/h 9 km/h 10 m/s g = 10 m/s2 List - I List - II (Complex) (Hybridisation &amp; Magnetic characters) (A) [MnBr4]2− (I) d2s3 &amp; diamagnetic (B) [FeF6]3− (II) sp3 d2 &amp; paramagnetic (C) [Co(C2O4)3]3− (III) sp3 &amp; diamagnetic (D) [Ni(CO)4] (IV) sp3 &amp; paramagnetic −(IV), (B) −(II), (C) −(I), (D) −(III) −(IV), (B) −(I), (C) −(II), (D) −(III) R = 8.3 J K−1 mol−1 AB2( g) AB2( g) ⇌AB(g) + 1 2 B2( g) x x Kp (1) (2) (3) (4)</div>
-  <div class="options"><div class="option"><span class="option-label">(A)</span>−(III), (B) −(II), (C) −(I), (D) −(IV)</div></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q8</span>
-    <span class="q-id">PHY-2021-0727-S2-Q018</span>
-    <span class="badge badge-year">2021 | 27 Jul 2021 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Physics · Waves</span>
-  </div>
-  <div class="q-text">An electron and proton are separated by a large distance. The electron starts approaching the proton with energy . The proton captures the electrons and forms a hydrogen atom in second excited state. The resulting photon is incident on a photosensitive metal of threshold wavelength What is the maximum kinetic energy of the emitted photoelectron? JEE Main 2021 (27 Jul Shift 2) Question Paper JEE Main Previous Year Paper MathonGo 100Ω 0. 1μF 250 V</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q9</span>
-    <span class="q-id">MATH-2024-0129-S1-Q066</span>
-    <span class="badge badge-year">2024 | 29 Jan 2024 | Shift 1</span>
+    <span class="q-id">MATH-2024-0101-S2-Q065</span>
+    <span class="badge badge-year">2024 | 27 Jan | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     <span class="badge badge-cluster">Mathematics · Trigonometry</span>
   </div>
-  <div class="q-text">In a , suppose is the equation of the bisector of the angle and the equation of the side is . If and the point and are respectively and , then is equal to (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">Let 𝐴 and 𝐵 be two finite sets with 𝑚 and 𝑛 elements respectively. The total number of subsets of the set 𝐴 is more than the total number of subsets of 𝐵. Then the distance of the point ( ) from the point 56 P m, n Q ( - 2, - 3 ) is</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>10</div><div class="option"><span class="option-label">(B)</span>6</div><div class="option"><span class="option-label">(C)</span>4</div><div class="option"><span class="option-label">(D)</span>8</div></div>
   <div class="ans-reveal">
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+    <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
   </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
-    <span class="q-num">Q10</span>
-    <span class="q-id">CHEM-2022-0627-S2-Q040</span>
-    <span class="badge badge-year">2022 | 27 Jun 2022 | Shift 2</span>
+    <span class="q-num">Q3</span>
+    <span class="q-id">MATH-2021-0101-S1-Q074</span>
+    <span class="badge badge-year">2021 | 31 Aug | Shift 1</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Chemistry · Surface Chemistry</span>
+    <span class="badge badge-cluster">Mathematics · Trigonometry</span>
   </div>
-  <div class="q-text">The gas produced by treating an aqueous solution of ammonium chloride with sodium nitrite is (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">⎧ 1 loge( 1+ x a ) , x &lt; 0 x 1−x b If the function f(x) = ⎨ k , x = 0 ⎩ cos2 x−sin2 x−1 , x &gt; 0 √x2+1−1 is continuous at x = 0, then 1 + 1 + 4 is equal to : a b k</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>4</div><div class="option"><span class="option-label">(B)</span>5</div><div class="option"><span class="option-label">(C)</span>−4</div><div class="option"><span class="option-label">(D)</span>−5</div></div>
   <div class="ans-reveal">
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+    <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
   </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
-    <span class="q-num">Q11</span>
-    <span class="q-id">PHY-2021-0727-S1-Q026</span>
-    <span class="badge badge-year">2021 | 27 Jul 2021 | Shift 1</span>
+    <span class="q-num">Q4</span>
+    <span class="q-id">PHY-2022-0101-S2-Q006</span>
+    <span class="badge badge-year">2022 | 26 Jun | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Physics · Waves</span>
+    <span class="badge badge-cluster">Physics · Properties of Matter</span>
   </div>
-  <div class="q-text">A particle of mass travels in a medium with a speed of and a photon of radiation of linear momentum travels in a vacuum. The wavelength of the photon is ____ times the wavelength of the particle.</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">If is the density and is coefficient of viscosity of fluid which flows with a speed in the pipe of diameter , p η v d the correct formula for Reynolds number Re is ρv</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>Re = πd ρv</div><div class="option"><span class="option-label">(B)</span>Re = ηd</div><div class="option"><span class="option-label">(C)</span>Re = ρvd</div><div class="option"><span class="option-label">(D)</span>Re = η η ρνd</div></div>
   <div class="ans-reveal">
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+    <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
   </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
-    <span class="q-num">Q12</span>
-    <span class="q-id">CHEM-2024-0404-S2-Q038</span>
-    <span class="badge badge-year">2024 | 4 Apr 2024 | Shift 2</span>
+    <span class="q-num">Q5</span>
+    <span class="q-id">MATH-2021-0101-S2-Q068</span>
+    <span class="badge badge-year">2021 | 20 Jul | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Chemistry · Surface Chemistry</span>
+    <span class="badge badge-cluster">Mathematics · Trigonometry</span>
   </div>
-  <div class="q-text">Common name of Benzene - 1, 2 - diol is - (1) catechol (2) o-cresol (3) quinol (4) resorcinol</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">Let in a right angled triangle, the smallest angle be If a triangle formed by taking the reciprocal of its sides θ. is also a right angled triangle, then sin θ is equal to:</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>√5+1</div><div class="option"><span class="option-label">(B)</span>√5−1 √2−1 4 √5−1 2</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>4</div></div>
   <div class="ans-reveal">
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+    <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
   </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
   <div class="q-header">
-    <span class="q-num">Q13</span>
-    <span class="q-id">MATH-2023-0124-S1-Q080</span>
-    <span class="badge badge-year">2023 | 24 Jan 2023 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Mathematics · Mathematical Reasoning</span>
-  </div>
-  <div class="q-text">Let 𝛺 be the sample space and 𝐴⊆𝛺 be an event. Given below are two statements: (S1): If 𝑃( 𝐴) = 0, then 𝐴= 𝜙 (S2): If 𝑃( 𝐴) = , then 𝐴= 𝛺 Then (1) only (S1) is true (2) only (S2) is true (3) both (S1) and (S2) are true (4) both (S1) and (S2) are false</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q14</span>
-    <span class="q-id">MATH-2022-0629-S1-Q067</span>
-    <span class="badge badge-year">2022 | 29 Jun 2022 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Mathematics · Mathematical Reasoning</span>
-  </div>
-  <div class="q-text">Let be such that is a tautology. Then is equal to (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q15</span>
-    <span class="q-id">CHEM-2024-0131-S1-Q043</span>
-    <span class="badge badge-year">2024 | 31 Jan 2024 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Chemistry · Equilibrium</span>
-  </div>
-  <div class="q-text">Integrated rate law equation for a first order gas phase reaction is given by (where 𝑃𝑖 is initial pressure and 𝑃𝑡 is total pressure at time 𝑡) (1) 𝑘= 2 . 303 𝑡 × log 𝑃𝑖 2𝑃𝑖- 𝑃𝑡 (2) 𝑘= 2 . 303 𝑡 × log 2𝑃𝑖 2𝑃𝑖- 𝑃𝑡 (3) 𝑘= 2 . 303 𝑡 × log 2𝑃𝑖- 𝑃𝑡 𝑃𝑖 (4) 𝑘= 2 . 303 𝑡 × 𝑃𝑖 2𝑃𝑖- 𝑃𝑡</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q16</span>
-    <span class="q-id">MATH-2022-0625-S2-Q083</span>
-    <span class="badge badge-year">2022 | 25 Jun 2022 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Mathematics · Ellipse</span>
-  </div>
-  <div class="q-text">Let the eccentricity of the hyperbola 𝑥2 𝑎2 - 𝑦2 𝑏2 = 1 be 5 4. If the equation of the normal at the point 8 √5, 12 5 on the hyperbola is 8√5𝑥+ 𝛽𝑦= 𝜆, then 𝜆- 𝛽 is equal to _____.</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q17</span>
-    <span class="q-id">PHY-2023-0410-S2-Q028</span>
-    <span class="badge badge-year">2023 | 10 Apr 2023 | Shift 2</span>
+    <span class="q-num">Q6</span>
+    <span class="q-id">PHY-2021-0101-S2-Q010</span>
+    <span class="badge badge-year">2021 | 31 Aug | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     <span class="badge badge-cluster">Physics · Oscillations</span>
   </div>
-  <div class="q-text">A square loop of side 2 . 0 cm is placed inside a long solenoid that has 50 turns per centimetre and carries a sinusoidally varying current of amplitude 2 . 5 A and angular frequency 700 rad s-1. The central axes of the loop and solenoid coincide. The amplitude of the emf induced in the loop is 𝑥× 10-4 V. The value of 𝑥 is ___________ ( Take, 𝜋= 22 7 Q29.A point object 𝑂 is placed in front of two thin symmetrical coaxial convex lenses 𝐿1 and 𝐿2 with focal length 24 cm and 9 cm respectively. The distance between two lenses is 10 cm and the object is placed 6 cm away from lens 𝐿1 as shown in the figure. The distance between the object and the image formed by the system of two lenses is _____________ cm</div>
+  <div class="q-text">A bob of mass 𝑚 suspended by a thread of length ℓ undergoes simple harmonic oscillations with time period 𝑇. If the bob is immersed in a liquid that has density 1 times that of the bob and the length of the thread is 4 increased by 1 𝑟𝑑 of the original length, then the time period of the simple harmonic oscillations will be: 3</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>3 4𝑇</div><div class="option"><span class="option-label">(B)</span>4 3𝑇</div><div class="option"><span class="option-label">(C)</span>𝑇</div><div class="option"><span class="option-label">(D)</span>3 2𝑇</div></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
+  </div>
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-header">
+    <span class="q-num">Q7</span>
+    <span class="q-id">MATH-2021-0101-S1-Q072</span>
+    <span class="badge badge-year">2021 | 24 Feb | Shift 1</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-mcq">MCQ</span>
+    <span class="badge badge-cluster">Mathematics · Trigonometry</span>
+  </div>
+  <div class="q-text">The function 4𝑥3 - 3𝑥2 1cos𝑥: 𝑓𝑥= 6 - 2sin𝑥+ 2𝑥-</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>increases in 1 2, ∞</div><div class="option"><span class="option-label">(B)</span>decreases in - ∞, 1 2</div><div class="option"><span class="option-label">(C)</span>decreases in 1 2, ∞</div><div class="option"><span class="option-label">(D)</span>increases in - ∞, 1 2</div></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
+  </div>
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-header">
+    <span class="q-num">Q8</span>
+    <span class="q-id">MATH-2023-0101-S2-Q078</span>
+    <span class="badge badge-year">2023 | 08 Apr | Shift 2</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-mcq">MCQ</span>
+    <span class="badge badge-cluster">Mathematics · Trigonometry</span>
+  </div>
+  <div class="q-text">If loge( 6x2+5x+1 ) cos−1( 2x2−3x+4 ) domain of the function 2x−1 + 3x−5 is (α, β) ∪(γ, δ) , then 18(α2 + β2 + γ 2 + δ2) is equal to</div>
+  
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+    <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
   </div>
-</div><div class="q-card">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-header">
+    <span class="q-num">Q9</span>
+    <span class="q-id">MATH-2022-0101-S2-Q072</span>
+    <span class="badge badge-year">2022 | 25 Jun | Shift 2</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-mcq">MCQ</span>
+    <span class="badge badge-cluster">Mathematics · Trigonometry</span>
+  </div>
+  <div class="q-text">The tan-1cos15𝜋 - 1 value of 4 is equal to sin𝜋 4</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>- 𝜋</div><div class="option"><span class="option-label">(B)</span>- 𝜋 4 8</div><div class="option"><span class="option-label">(C)</span>-5𝜋</div><div class="option"><span class="option-label">(D)</span>-4𝜋 12 9 1cm3sec-1</div></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
+  </div>
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-header">
+    <span class="q-num">Q10</span>
+    <span class="q-id">MATH-2023-0101-S1-Q065</span>
+    <span class="badge badge-year">2023 | 24 Jan | Shift 1</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-mcq">MCQ</span>
+    <span class="badge badge-cluster">Mathematics · Trigonometry</span>
+  </div>
+  <div class="q-text">1 1 1 1 sin2𝑡 𝑡→01 lim sin 2𝑡+ 2 sin 2𝑡+ 3 sin 2𝑡. . . . . . 𝑛 sin 2𝑡 is equal to</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>𝑛2 + 𝑛</div><div class="option"><span class="option-label">(B)</span>𝑛 𝑛𝑛+ 1</div><div class="option"><span class="option-label">(D)</span>𝑛2 2</div></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
+  </div>
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+  <div class="q-header">
+    <span class="q-num">Q11</span>
+    <span class="q-id">MATH-2024-0101-S1-Q084</span>
+    <span class="badge badge-year">2024 | 09 Apr | Shift 1</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-integer">Integer</span>
+    <span class="badge badge-cluster">Mathematics · Trigonometry</span>
+  </div>
+  <div class="q-text">Let n − 2n + n − 8n + … + n − 2n⋅n2 be π , √n4+1 (n2+1)√n4+1 √n4+16 (n2+4)√n4+16 √n4+n4 (n2+n2)√n4+n4 k using only the principal values of the inverse trigonometric functions. Then k2 is equal to ________</div>
+  
+  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> 32</div>
+  </div>
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-header">
+    <span class="q-num">Q12</span>
+    <span class="q-id">PHY-2023-0101-S1-Q015</span>
+    <span class="badge badge-year">2023 | 08 Apr | Shift 1</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-mcq">MCQ</span>
+    <span class="badge badge-cluster">Physics · Waves</span>
+  </div>
+  <div class="q-text">An organ pipe 40 cm long is open at both ends. The speed of sound in air is 360 m s−1 . The frequency of the second harmonic is _ ________ Hz.</div>
+  
+  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
+  </div>
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+  <div class="q-header">
+    <span class="q-num">Q13</span>
+    <span class="q-id">CHEM-2021-0101-S2-Q053</span>
+    <span class="badge badge-year">2021 | 26 Aug | Shift 2</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-integer">Integer</span>
+    <span class="badge badge-cluster">Chemistry · Equilibrium</span>
+  </div>
+  <div class="q-text">The equilibrium constant Kc at 298 K for the reaction A + B ⇌C + D is 100 . Starting with an equimolar solution with concentrations of A, B, C and D all equal to 1M , the equilibrium concentration of D is _____ ×10−2M . (Nearest integer)</div>
+  
+  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> 182</div>
+  </div>
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-header">
+    <span class="q-num">Q14</span>
+    <span class="q-id">MATH-2023-0101-S1-Q072</span>
+    <span class="badge badge-year">2023 | 08 Apr | Shift 1</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-mcq">MCQ</span>
+    <span class="badge badge-cluster">Mathematics · Trigonometry</span>
+  </div>
+  <div class="q-text">x→0(( lim )( )) is equal to cos3(4x) (loge(2x+1))5</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>15</div><div class="option"><span class="option-label">(B)</span>9</div><div class="option"><span class="option-label">(D)</span>18 24</div></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
+  </div>
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+  <div class="q-header">
+    <span class="q-num">Q15</span>
+    <span class="q-id">MATH-2023-0101-S1-Q081</span>
+    <span class="badge badge-year">2023 | 06 Apr | Shift 1</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-integer">Integer</span>
+    <span class="badge badge-cluster">Mathematics · Permutations &amp; Combinations</span>
+  </div>
+  <div class="q-text">The number of ways of giving distinct oranges to children such that each child gets at least one orange is 20 3 _____ 15</div>
+  
+  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> 171</div>
+  </div>
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-header">
+    <span class="q-num">Q16</span>
+    <span class="q-id">MATH-2021-0101-S1-Q064</span>
+    <span class="badge badge-year">2021 | 27 Jul | Shift 1</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-mcq">MCQ</span>
+    <span class="badge badge-cluster">Mathematics · Trigonometry</span>
+  </div>
+  <div class="q-text">If 1 then is equal to: sin θ + cos θ = 2 , 16(sin(2θ) + cos(4θ) + sin(6θ))</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>23</div><div class="option"><span class="option-label">(B)</span>−27</div><div class="option"><span class="option-label">(C)</span>−23</div><div class="option"><span class="option-label">(D)</span>27</div></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
+  </div>
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+  <div class="q-header">
+    <span class="q-num">Q17</span>
+    <span class="q-id">PHY-2024-0101-S1-Q029</span>
+    <span class="badge badge-year">2024 | 29 Jan | Shift 1</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-integer">Integer</span>
+    <span class="badge badge-cluster">Physics · Rotational Motion</span>
+  </div>
+  <div class="q-text">In a double slit experiment shown in figure, when light of wavelength 400 nm is used, dark fringe is observed at . If , the minimum distance between the slits and is . Write the value of to the P D = 0. 2 m S1 S2 α mm 10α nearest integer.</div>
+  
+  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
+  </div>
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
   <div class="q-header">
     <span class="q-num">Q18</span>
-    <span class="q-id">CHEM-2021-0720-S2-Q042</span>
-    <span class="badge badge-year">2021 | 20 Jul 2021 | Shift 2</span>
+    <span class="q-id">PHY-2022-0101-S1-Q024</span>
+    <span class="badge badge-year">2022 | 25 Jun | Shift 1</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-integer">Integer</span>
+    <span class="badge badge-cluster">Physics · Properties of Matter</span>
+  </div>
+  <div class="q-text">The velocity of upper layer of water in a river is 36 km h-1. Shearing stress between horizontal layers of water is 10-3 m-2. Depth of the river is _____ m. (Co-efficient of viscosity of water is 10-2 s) N Pa</div>
+  
+  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> 100</div>
+  </div>
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-header">
+    <span class="q-num">Q19</span>
+    <span class="q-id">PHY-2024-0101-S2-Q003</span>
+    <span class="badge badge-year">2024 | 30 Jan | Shift 2</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-mcq">MCQ</span>
+    <span class="badge badge-cluster">Physics · Rotational Motion</span>
+  </div>
+  <div class="q-text">Three blocks 𝐴, 𝐵 and 𝐶 are pulled on a horizontal smooth surface by a force of 80 N as shown in figure. The tensions 𝑇1 and 𝑇2 in the string are respectively:</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(A)</span>40N, 64N</div><div class="option"><span class="option-label">(B)</span>60N, 80N</div><div class="option"><span class="option-label">(D)</span>88N, 96N 80N, 100N</div></div>
+  <div class="ans-reveal">
+    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+    <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
+  </div>
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-header">
+    <span class="q-num">Q20</span>
+    <span class="q-id">CHEM-2024-0101-S2-Q043</span>
+    <span class="badge badge-year">2024 | 29 Jan | Shift 2</span>
     <span class="badge badge-unknown">—</span>
     <span class="badge badge-mcq">MCQ</span>
     <span class="badge badge-cluster">Chemistry · Equilibrium</span>
   </div>
-  <div class="q-text">Which one of the following gases is reported to retard photosynthesis? (1) (2) (3) (4)</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
+  <div class="q-text">Alkyl halide is converted into alkyl isocyanide by reaction with</div>
+  
+  <div class="options"><div class="option"><span class="option-label">(B)</span>NaCN NH4 CN</div><div class="option"><span class="option-label">(C)</span>KCN</div><div class="option"><span class="option-label">(D)</span>AgCN</div></div>
   <div class="ans-reveal">
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q19</span>
-    <span class="q-id">PHY-2022-0626-S2-Q026</span>
-    <span class="badge badge-year">2022 | 26 Jun 2022 | Shift 2</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Physics · Waves</span>
-  </div>
-  <div class="q-text">A set of tuning forks is arranged in a series of increasing frequencies. If each fork gives beats with respect to the preceding fork and the frequency of the last fork is twice the frequency of the first, then the frequency of last fork is _____ .</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
-  </div>
-</div><div class="q-card">
-  <div class="q-header">
-    <span class="q-num">Q20</span>
-    <span class="q-id">PHY-2021-0318-S1-Q017</span>
-    <span class="badge badge-year">2021 | 18 Mar 2021 | Shift 1</span>
-    <span class="badge badge-unknown">—</span>
-    <span class="badge badge-mcq">MCQ</span>
-    <span class="badge badge-cluster">Physics · Waves</span>
-  </div>
-  <div class="q-text">A particle is travelling times as fast as an electron. Assuming the ratio of de-Broglie wavelength of a particle to that of electron is the mass of the particle is :- (1) times the mass of (2) times the mass of (3) times the mass of (4) times the mass of</div>
-  <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
-  <div class="ans-reveal">
-    <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-    <div class="ans-box"><span class="ans-label">Answer:</span> <em>Not available</em></div>
+    <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
   </div>
 </div>
 </div>

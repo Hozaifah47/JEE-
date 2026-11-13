@@ -105,6 +105,27 @@ def qtype_badge(qtype):
     cls = {"MCQ": "badge-mcq", "Integer": "badge-integer", "Numerical": "badge-numerical"}.get(qt, "badge-unknown")
     return f'<span class="badge {cls}">{escape(qt) if qt else "—"}</span>'
 
+def option_items(options):
+    """Normalize the database's historical list/dict option formats."""
+    if isinstance(options, dict):
+        return [(key, options.get(key, "")) for key in ("A", "B", "C", "D")]
+    if isinstance(options, list):
+        return [(key, value) for key, value in zip(("A", "B", "C", "D"), options)]
+    return []
+
+def filter_controls():
+    return """
+  <section class="filter-panel" aria-label="Practice filters">
+    <div class="filter-title">Filter questions</div>
+    <label>Year <select data-filter="year"><option value="">All years</option></select></label>
+    <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
+    <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
+    <label>Type <select data-filter="type"><option value="">All types</option></select></label>
+    <button class="btn-reset" type="button" data-filter-reset>Reset</button>
+    <span class="filter-count" data-filter-count></span>
+  </section>
+"""
+
 # ─────────────────────── CSS / JS ────────────────────────────
 COMMON_CSS = """
 <style>
@@ -163,6 +184,13 @@ COMMON_CSS = """
   .badge-cluster   { background: #e9ecef; color: #495057; }
   .badge-year      { background: #e0f2fe; color: #0369a1; }
   .q-text { font-size: 0.95rem; margin: 10px 0; white-space: pre-wrap; }
+  .question-media { display:block; max-width:100%; max-height:460px; margin:14px auto; border:1px solid var(--border); border-radius:8px; background:#fff; object-fit:contain; }
+  .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
+  .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
+  .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-label { font-weight: 600; margin-right: 6px; }
@@ -238,6 +266,33 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function initFilters() {
+  var cards = Array.from(document.querySelectorAll('.q-card[data-year]'));
+  var panel = document.querySelector('.filter-panel');
+  if (!panel || !cards.length) return;
+  var fields = ['year','shift','difficulty','type'];
+  fields.forEach(function(field) {
+    var select = panel.querySelector('[data-filter="' + field + '"]');
+    var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
+    values.forEach(function(value) { var option = document.createElement('option'); option.value = value; option.textContent = value; select.appendChild(option); });
+    select.addEventListener('change', applyFilters);
+  });
+  panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
+    fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    applyFilters();
+  });
+  function applyFilters() {
+    var visible = 0;
+    cards.forEach(function(card) {
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      card.hidden = !show;
+      if (show) visible++;
+    });
+    panel.querySelector('[data-filter-count]').textContent = visible + ' of ' + cards.length + ' shown';
+  }
+  applyFilters();
+}
+document.addEventListener('DOMContentLoaded', initFilters);
 </script>
 """
 
@@ -247,7 +302,7 @@ FOOTER_HTML = """<footer>JEE Main PYQ Analysis — Practice Sets &nbsp;|&nbsp;
 FOOTER_HTML_ROOT = """<footer>JEE Main PYQ Analysis — Practice Sets</footer>"""
 
 # ─────────────────────── RENDER QUESTION ─────────────────────
-def render_question(q, num, show_cluster_badge=True):
+def render_question(q, num, show_cluster_badge=True, media_prefix="../../assets/"):
     qid   = escape(q.get("question_id", ""))
     year  = q.get("year", "")
     date  = format_date(q.get("date", ""))
@@ -255,7 +310,7 @@ def render_question(q, num, show_cluster_badge=True):
     diff  = q.get("difficulty", "")
     qtype = q.get("question_type", "MCQ")
     text  = (q.get("question_text") or "").strip()
-    opts  = q.get("options") or {}
+    opts  = option_items(q.get("options") or {})
     ans   = q.get("correct_answer", "")
     cid   = q.get("cluster_id", "")
 
@@ -267,10 +322,9 @@ def render_question(q, num, show_cluster_badge=True):
 
     # options / answer box
     opts_html = ""
-    if qtype == "MCQ" and opts:
+    if qtype == "MCQ" and any(value for _, value in opts):
         opts_html = '<div class="options">'
-        for key in ("A", "B", "C", "D"):
-            val = opts.get(key, "")
+        for key, val in opts:
             if val:
                 opts_html += f'<div class="option"><span class="option-label">({key})</span>{escape(str(val))}</div>'
         opts_html += "</div>"
@@ -286,7 +340,10 @@ def render_question(q, num, show_cluster_badge=True):
       <div class="ans-box"><span class="ans-label">Answer:</span> {ans_text}</div>
     </div>"""
 
-    return f"""<div class="q-card">
+    media = q.get("media_asset")
+    media = f"{media_prefix}{media}" if media else ""
+    media_html = f'<img class="question-media" src="{escape(media)}" alt="Figure or table from source paper" loading="lazy">' if media else ""
+    return f"""<div class="q-card" data-year="{escape(str(year))}" data-shift="{escape(str(shift))}" data-difficulty="{escape(str(diff or 'Unknown').title())}" data-type="{escape(str(qtype))}">
   <div class="q-header">
     <span class="q-num">Q{num}</span>
     <span class="q-id">{qid}</span>
@@ -296,6 +353,7 @@ def render_question(q, num, show_cluster_badge=True):
     {cluster_badge}
   </div>
   <div class="q-text">{escape(text)}</div>
+  {media_html}
   {opts_html}
   {ans_html}
 </div>"""
@@ -320,7 +378,7 @@ def build_chapter_practice(subject, chapter, questions, out_path, cluster_link_p
         c_html = ""
         for q in cqs:
             q_global += 1
-            c_html += render_question(q, q_global, show_cluster_badge=False)
+            c_html += render_question(q, q_global, show_cluster_badge=False, media_prefix="../../assets/")
 
         cluster_link = ""
         if len(cqs) >= 3:
@@ -360,6 +418,7 @@ def build_chapter_practice(subject, chapter, questions, out_path, cluster_link_p
     <div class="stat-chip">Subject: <strong>{escape(subject)}</strong></div>
     <div class="stat-chip">{bucket_label}</div>
   </div>
+  {filter_controls()}
   {clusters_html}
 </div>
 {FOOTER_HTML}
@@ -454,9 +513,10 @@ def build_cluster_practice(subject, chapter, cluster_id, questions, out_path):
     <div class="stat-chip">Cluster: <strong>{escape(cluster_id)}</strong></div>
     <div class="stat-chip">Questions: <strong>{total}</strong></div>
   </div>
+  {filter_controls()}
 """
     for i, q in enumerate(questions, 1):
-        html += render_question(q, i, show_cluster_badge=False)
+        html += render_question(q, i, show_cluster_badge=False, media_prefix="../../../../assets/")
 
     html += f"""</div>
 {FOOTER_HTML}
@@ -541,7 +601,7 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
         diff  = q.get("difficulty", "")
         qtype = q.get("question_type", "MCQ")
         text  = (q.get("question_text") or "").strip()
-        opts  = q.get("options") or {}
+        opts  = option_items(q.get("options") or {})
         ans   = q.get("correct_answer", "")
 
         if not text or len(text) < 5:
@@ -549,10 +609,9 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
 
         year_badge = f'<span class="badge badge-year">{year} | {date} | {shift}</span>' if year else ""
         opts_html = ""
-        if qtype == "MCQ" and opts:
+        if qtype == "MCQ" and any(value for _, value in opts):
             opts_html = '<div class="options">'
-            for key in ("A", "B", "C", "D"):
-                val = opts.get(key, "")
+            for key, val in opts:
                 if val:
                     opts_html += f'<div class="option"><span class="option-label">({key})</span>{escape(str(val))}</div>'
             opts_html += "</div>"
@@ -562,7 +621,10 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
             opts_html = '<div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>'
 
         ans_text = escape(str(ans)) if ans else "<em>Not available</em>"
-        qs_html += f"""<div class="q-card">
+        media = q.get("media_asset")
+        media = f"assets/{media}" if media else ""
+        media_html = f'<img class="question-media" src="{escape(media)}" alt="Figure or table from source paper" loading="lazy">' if media else ""
+        qs_html += f"""<div class="q-card" data-year="{escape(str(year))}" data-shift="{escape(str(shift))}" data-difficulty="{escape(str(diff or 'Unknown').title())}" data-type="{escape(str(qtype))}">
   <div class="q-header">
     <span class="q-num">Q{i}</span>
     <span class="q-id">{qid}</span>
@@ -572,6 +634,7 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
     {chapter_badge}
   </div>
   <div class="q-text">{escape(text)}</div>
+  {media_html}
   {opts_html}
   <div class="ans-reveal">
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
@@ -595,6 +658,7 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
   Bucket {bucket_num} Mixed Practice
 </nav>
 <div class="container">
+  {filter_controls()}
   <div class="stats-bar">
     <div class="stat-chip">Total Questions: <strong>{total}</strong></div>
     <div class="stat-chip">Mix: <strong>PCM</strong></div>
