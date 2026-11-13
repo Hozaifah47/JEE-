@@ -17,6 +17,7 @@ import json
 import os
 import re
 import random
+import unicodedata
 from collections import defaultdict
 from pathlib import Path
 from html import escape
@@ -113,6 +114,15 @@ def option_items(options):
         return [(key, value) for key, value in zip(("A", "B", "C", "D"), options)]
     return []
 
+def normalize_text(value):
+    """Normalize extracted PDF typography without losing mathematical symbols."""
+    text = unicodedata.normalize("NFKC", str(value or ""))
+    text = text.replace("\u00a0", " ").replace("\u2009", " ").replace("\u202f", " ")
+    text = re.sub(r"(?<=\d)\s+\.\s+(?=\d)", ".", text)
+    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
 def filter_controls():
     return """
   <section class="filter-panel" aria-label="Practice filters">
@@ -143,6 +153,15 @@ COMMON_CSS = """
     --integer: #6f42c1;
     --numerical: #0dcaf0;
     --cluster-bg: #e9ecef;
+  }
+  html[data-theme="dark"] {
+    --bg: #0d0d11;
+    --card: #18181c;
+    --border: #27272e;
+    --accent: #7aa2ff;
+    --text: #f5f7fb;
+    --muted: #a6adbb;
+    --cluster-bg: #22232a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg);
@@ -205,6 +224,7 @@ COMMON_CSS = """
   .btn-show:hover { background: #0a58ca; }
   .ans-box { display: none; margin-top: 8px; background: #f0fdf4; border: 1px solid #bbf7d0;
              border-radius: 6px; padding: 8px 14px; font-size: 0.9rem; }
+  html[data-theme="dark"] .ans-box { background:#12301f; border-color:#245d3a; }
   .ans-box .ans-label { font-weight: 700; color: var(--easy); margin-right: 6px; }
   /* answer key table */
   .ans-table { width: 100%; border-collapse: collapse; }
@@ -215,6 +235,18 @@ COMMON_CSS = """
   .ans-cell-hidden { cursor: pointer; user-select: none; }
   .ans-cell-hidden span.masked { background: #dee2e6; color: #dee2e6; border-radius: 4px; padding: 2px 10px; }
   .ans-cell-hidden span.revealed { display: none; font-weight: 600; color: var(--easy); }
+  html[data-theme="dark"] .ans-table tr:nth-child(even) { background:#202127; }
+  html[data-theme="dark"] .ans-cell-hidden span.masked { background:#3a3b44; color:#3a3b44; }
+  html[data-theme="dark"] .badge-easy { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .badge-moderate { background:#49300e; color:#fdba74; }
+  html[data-theme="dark"] .badge-difficult { background:#4b1d24; color:#fda4af; }
+  html[data-theme="dark"] .badge-unknown { background:#30313a; color:#c6cad4; }
+  html[data-theme="dark"] .badge-mcq { background:#172d5a; color:#9bbcff; }
+  html[data-theme="dark"] .badge-integer { background:#33225b; color:#c4b5fd; }
+  html[data-theme="dark"] .badge-numerical { background:#123d4a; color:#8be9fd; }
+  html[data-theme="dark"] .badge-year { background:#15384c; color:#8bd5ff; }
+  .theme-toggle { margin-left:auto; border:1px solid rgba(255,255,255,.25); border-radius:999px; background:rgba(0,0,0,.16); color:inherit; padding:7px 12px; cursor:pointer; font:inherit; font-size:.8rem; }
+  .theme-toggle:hover { background:rgba(255,255,255,.14); }
   /* index nav */
   .subject-section h2 { margin: 32px 0 12px; font-size: 1.2rem;
                         border-bottom: 2px solid var(--accent); padding-bottom: 6px; }
@@ -266,6 +298,23 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function initTheme() {
+  var root = document.documentElement;
+  var button = document.createElement('button');
+  button.className = 'theme-toggle';
+  button.type = 'button';
+  button.setAttribute('aria-label', 'Toggle dark mode');
+  function apply(theme) {
+    root.dataset.theme = theme;
+    button.textContent = theme === 'dark' ? '☀ Light mode' : '🌙 Dark mode';
+    localStorage.setItem('jee-theme', theme);
+  }
+  var saved = localStorage.getItem('jee-theme') || 'dark';
+  apply(saved === 'light' ? 'light' : 'dark');
+  button.addEventListener('click', function() { apply(root.dataset.theme === 'dark' ? 'light' : 'dark'); });
+  var header = document.querySelector('header');
+  if (header) header.appendChild(button);
+}
 function initFilters() {
   var cards = Array.from(document.querySelectorAll('.q-card[data-year]'));
   var panel = document.querySelector('.filter-panel');
@@ -292,7 +341,7 @@ function initFilters() {
   }
   applyFilters();
 }
-document.addEventListener('DOMContentLoaded', initFilters);
+document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilters(); });
 </script>
 """
 
@@ -309,7 +358,7 @@ def render_question(q, num, show_cluster_badge=True, media_prefix="../../assets/
     shift = shift_label(q.get("shift", ""))
     diff  = q.get("difficulty", "")
     qtype = q.get("question_type", "MCQ")
-    text  = (q.get("question_text") or "").strip()
+    text  = normalize_text(q.get("question_text"))
     opts  = option_items(q.get("options") or {})
     ans   = q.get("correct_answer", "")
     cid   = q.get("cluster_id", "")
@@ -326,7 +375,7 @@ def render_question(q, num, show_cluster_badge=True, media_prefix="../../assets/
         opts_html = '<div class="options">'
         for key, val in opts:
             if val:
-                opts_html += f'<div class="option"><span class="option-label">({key})</span>{escape(str(val))}</div>'
+                opts_html += f'<div class="option"><span class="option-label">({key})</span>{escape(normalize_text(val))}</div>'
         opts_html += "</div>"
     elif qtype in ("Integer", "Numerical"):
         opts_html = '<div class="options"><div class="integer-box">Enter your answer</div></div>'
@@ -334,7 +383,7 @@ def render_question(q, num, show_cluster_badge=True, media_prefix="../../assets/
         opts_html = '<div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>'
 
     # answer reveal
-    ans_text = escape(str(ans)) if ans else "<em>Not available</em>"
+    ans_text = escape(normalize_text(ans)) if ans else "<em>Not available</em>"
     ans_html = f"""<div class="ans-reveal">
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> {ans_text}</div>
@@ -600,7 +649,7 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
         shift = shift_label(q.get("shift", ""))
         diff  = q.get("difficulty", "")
         qtype = q.get("question_type", "MCQ")
-        text  = (q.get("question_text") or "").strip()
+        text  = normalize_text(q.get("question_text"))
         opts  = option_items(q.get("options") or {})
         ans   = q.get("correct_answer", "")
 
@@ -613,14 +662,14 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
             opts_html = '<div class="options">'
             for key, val in opts:
                 if val:
-                    opts_html += f'<div class="option"><span class="option-label">({key})</span>{escape(str(val))}</div>'
+                    opts_html += f'<div class="option"><span class="option-label">({key})</span>{escape(normalize_text(val))}</div>'
             opts_html += "</div>"
         elif qtype in ("Integer", "Numerical"):
             opts_html = '<div class="options"><div class="integer-box">Enter your answer</div></div>'
         elif qtype == "MCQ":
             opts_html = '<div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>'
 
-        ans_text = escape(str(ans)) if ans else "<em>Not available</em>"
+        ans_text = escape(normalize_text(ans)) if ans else "<em>Not available</em>"
         media = q.get("media_asset")
         media = f"assets/{media}" if media else ""
         media_html = f'<img class="question-media" src="{escape(media)}" alt="Figure or table from source paper" loading="lazy">' if media else ""
