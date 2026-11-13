@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -237,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+<div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S1-Q020</span>
@@ -248,12 +284,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">One main scale division of a vernier callipers is a cm and division of the vernier scale coincide with (n −1)th division of the main scale. The least count of the callipers in mm is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(n−1) 10na</div><div class="option"><span class="option-label">(B)</span>(n−1) 10a (n−1) 10a</div><div class="option"><span class="option-label">(C)</span>10n</div><div class="option"><span class="option-label">(D)</span>n</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(n−1) 10na</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>(n−1) 10a (n−1) 10a</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>10n</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>n</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">PHY-2021-0101-S1-Q020</span>
@@ -264,12 +301,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The vernier scale used for measurement has a positive zero error of 0. 2 mm. If while taking a measurement it was noted that 0 on the vernier scale lies between 8. 5 cm and 8. 6 cm. Vernier coincidence is 6, then the correct value of measurement is cm. (least count = 0. 01 cm )</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>8. 36 cm</div><div class="option"><span class="option-label">(B)</span>8. 54 cm</div><div class="option"><span class="option-label">(C)</span>8. 58 cm</div><div class="option"><span class="option-label">(D)</span>8. 56 cm</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>8. 36 cm</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>8. 54 cm</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>8. 58 cm</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>8. 56 cm</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="34">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2021-0101-S2-Q021</span>
@@ -280,12 +318,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The radius of a sphere is measured to be (7. 50 ± 0. 85) cm. Suppose the percentage error in its volume is x. The value of, to the nearest, is ___. x x</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 34</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2021-0101-S1-Q022</span>
@@ -296,12 +335,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Three students S1, S2 and S3 perform an experiment for determining the acceleration due to gravity (g) using a simple pendulum. They use different lengths of pendulum and record time for different number of oscillations. The observations are as shown in the table. Student No. Length of pendulum Number of oscillations Total time for Time (cm) (n) n oscillations period (s) 1. 64. 0 8 128. 0 16. 0 2. 64. 0 4 64. 0 16. 0 3. 20. 0 4 36. 0 9. 0 (Least count of length = 0. 1 m, least count for time = 0. 1 s ) If E1, E2 and E3 are the percentage errors in g for students 1, 2 and 3, respectively, then the minimum percentage error is obtained by student no.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">PHY-2021-0101-S1-Q020</span>
@@ -312,12 +352,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The pitch of the screw gauge is 1 mm and there are 100 divisions on the circular scale. When nothing is put in between the jaws, the zero of the circular scale lies 8 divisions below the reference line. When a wire is placed between the jaws, the first linear scale division is clearly visible while 72nd division on circular scale coincides with the reference line. The radius of the wire is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1. 64 mm</div><div class="option"><span class="option-label">(B)</span>0. 82 mm</div><div class="option"><span class="option-label">(C)</span>0. 90 mm</div><div class="option"><span class="option-label">(D)</span>1. 80 mm</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1. 64 mm</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>0. 82 mm</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>0. 90 mm</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1. 80 mm</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="13">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2021-0101-S1-Q030</span>
@@ -328,12 +369,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Student A and student B used two screw gauges of equal pitch and 100 equal circular divisions to measure the radius of a given wire. The actual value of the radius of the wire is 0.322 cm. The absolute value of the difference between the final circular scale readings observed by the students A and B is _______. [Figure shows position of reference O when jaws of screw gauge are closed] Given pitch = 0.1 cm.</div>
   <img class="question-media" src="../../../../assets/d13dc3b658494eda.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 13</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">PHY-2021-0101-S1-Q020</span>
@@ -344,12 +386,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In a Screw Gauge, fifth division of the circular scale coincides with the reference line when the ratchet is closed. There are 50 divisions on the circular scale, and the main scale moves by 0. 5 mm on a complete rotation. For a particular observation the reading on the main scale is 5 mm and the 20th division of the circular scale coincides with reference line. Calculate the true reading.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>5. 20 mm</div><div class="option"><span class="option-label">(B)</span>5. 00 mm</div><div class="option"><span class="option-label">(C)</span>5. 15 mm</div><div class="option"><span class="option-label">(D)</span>5. 25 mm</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>5. 20 mm</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>5. 00 mm</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>5. 15 mm</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>5. 25 mm</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">PHY-2021-0101-S1-Q020</span>
@@ -360,12 +403,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Assertion A: If in five complete rotations of the circular scale, the distance travelled on the main scale of the screw gauge is 5 mm and there are 50 total divisions on a circular scale, then the least count is 0. 001 cm. Reason R: Least Count = Pitch Total divisions on circular scale In the light of the above statements, choose the most appropriate answer from the options given below.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A is not correct but R is correct.</div><div class="option"><span class="option-label">(B)</span>Both A and R are correct and R is the correct explanation of A.</div><div class="option"><span class="option-label">(C)</span>A is correct but R is not correct.</div><div class="option"><span class="option-label">(D)</span>Both A and R are correct and R is NOT the correct explanation of A.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A is not correct but R is correct.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both A and R are correct and R is the correct explanation of A.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A is correct but R is not correct.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both A and R are correct and R is NOT the correct explanation of A.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">PHY-2021-0101-S2-Q001</span>
@@ -376,12 +420,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A physical quantity y is represented by the formula y = m2r−4 2 If the percentage errors found in y, m, r, l and g are 18, 1, 0. 5, 4 and p respectively, then find the value of x and p.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>5 and ±2</div><div class="option"><span class="option-label">(B)</span>4 and ±3</div><div class="option"><span class="option-label">(C)</span>16 and 3</div><div class="option"><span class="option-label">(D)</span>and 3 ± 2 8 ±2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>5 and ±2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4 and ±3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>16 and 3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>and 3 ± 2 8 ±2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="52">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">PHY-2021-0101-S2-Q030</span>
@@ -392,12 +437,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The diameter of a spherical bob is measured using a vernier callipers. 9 divisions of the main scale, in the vernier callipers, are equal to divisions of vernier scale. One main scale division is The main scale 10 1 mm. reading is 10 mm and 8th division of vernier scale was found to coincide exactly with one of the main scale division. If the given vernier callipers has positive zero error of 0.04 cm, then the radius of the bob is _____________ 10-2 × cm.</div>
   <img class="question-media" src="../../../../assets/ba062b7e6d8d78d5.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 52</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="18">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">PHY-2022-0101-S2-Q021</span>
@@ -408,12 +454,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For z= a2x3y 1 2, where &#x27;a&#x27; is a constant. If percentage error in measurement of &#x27;x&#x27; and &#x27;y&#x27; are 4%and 12%, respectively, then the percentage error for &#x27;z&#x27; will be _____ %.</div>
   <img class="question-media" src="../../../../assets/63aa0c974625d0f6.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 18</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">PHY-2022-0101-S1-Q030</span>
@@ -424,12 +471,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In a vernier callipers, each cm on the main scale is divided into 20 equal parts. If tenth vernier scale division coincides with nineth main scale division. Then the value of vernier constant will be _____ ×10−2 mm</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">PHY-2022-0101-S1-Q001</span>
@@ -440,12 +488,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A silver wire has a mass (0. 6 ± 0. 006)g, radius (0. 5 ± 0. 005) mm and length (4 ± 0. 04) cm. The maximum percentage error in the measurement of its density will be</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>7%</div><div class="option"><span class="option-label">(B)</span>3%</div><div class="option"><span class="option-label">(C)</span>4%</div><div class="option"><span class="option-label">(D)</span>6%</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>7%</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3%</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4%</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>6%</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="150">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">PHY-2022-0101-S2-Q030</span>
@@ -456,12 +505,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A student in the laboratory measures thickness of a wire using screw gauge. The readings are 1. 22 mm, 1. 23 mm, 1. 19 mm and 1. 20 mm. The percentage error is 121 x %. The value of x is _____.</div>
   <img class="question-media" src="../../../../assets/dc10a7ceeeaad356.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 150</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">PHY-2023-0101-S1-Q001</span>
@@ -472,12 +522,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A physical quantity P is given as P= a2b3 c√d. The percentage error in the measurement of a, b, c and d are 1 %, 2 %, 3% and 4% respectively. The percentage error in the measurement of quantity P will be</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>13%</div><div class="option"><span class="option-label">(B)</span>16%</div><div class="option"><span class="option-label">(C)</span>12%</div><div class="option"><span class="option-label">(D)</span>14%</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>13%</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>16%</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>12%</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>14%</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">PHY-2023-0101-S2-Q020</span>
@@ -488,12 +539,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In an experiment with vernier callipers of least count 0.1 mm, when two jaws are joined together the zero of vernier scale lies right to the zero of the main scale and 6th division of vernier scale coincides with the main scale division. While measuring the diameter of a spherical bob, the zero of vernier scale lies in between 3.2 cm and 3.3 cm marks and 4th division of vernier scale coincides with the main scale division. The diameter of bob is measured as</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>3.22 cm 3.18 cm</div><div class="option"><span class="option-label">(C)</span>3.26 cm</div><div class="option"><span class="option-label">(D)</span>3.25 cm</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3.22 cm 3.18 cm</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3.26 cm</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3.25 cm</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="220">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">PHY-2023-0101-S1-Q030</span>
@@ -504,12 +556,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In a screw gauge, there are 100 divisions on the circular scale and the main scale moves by 0.5 mm on a complete rotation of the circular scale. The zero of circular scale lies 6 divisions below the line of graduation when two studs are brought in contact with each other. When a wire is placed between the studs, linear scale 4 divisions are clearly visible while 46th division the circular scale coincide with the reference line. The diameter of the wire is ______ × 10-2 mm.</div>
   <img class="question-media" src="../../../../assets/77fa29298bdbcbce.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 220</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">PHY-2024-0101-S1-Q020</span>
@@ -520,12 +573,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">10 divisions on the main scale of a Vernier calliper coincide with divisions on the Vernier scale. If each 11 division on the main scale is of 5 units, the least count of the instrument is: 1 10</div>
   
-  <div class="options"><div class="option"><span class="option-label">(C)</span>2 50</div><div class="option"><span class="option-label">(D)</span>11 5 11 11</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2 50</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>11 5 11 11</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">PHY-2024-0101-S2-Q020</span>
@@ -536,12 +590,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A vernier callipers has 20 divisions on the vernier scale, which coincides with 19th division on the main scale. The least count of the instrument is 0.1 mm. One main scale division is equal to _____ mm.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>0.5</div><div class="option"><span class="option-label">(B)</span>2</div><div class="option"><span class="option-label">(C)</span>5</div><div class="option"><span class="option-label">(D)</span>1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>0.5</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>5</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">PHY-2024-0101-S2-Q020</span>
@@ -552,12 +607,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In a vernier calliper, when both jaws touch each other, zero of the vernier scale shifts towards left and its 4th division coincides exactly with a certain division on main scale. If 50 vernier scale divisions equal to 49 main scale divisions and zero error in the instrument is 0.04 mm then how many main scale divisions are there in 1 cm?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>10</div><div class="option"><span class="option-label">(B)</span>5</div><div class="option"><span class="option-label">(C)</span>20</div><div class="option"><span class="option-label">(D)</span>40</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>10</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>5</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>20</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>40</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">PHY-2024-0101-S1-Q020</span>
@@ -568,12 +624,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The diameter of a sphere is measured using a vernier caliper whose 9 divisions of main scale are equal to 10 divisions of vernier scale. The shortest division on the main scale is equal to 1 mm. The main scale reading is and second division of vernier scale coincides with a division on main scale. If mass of the sphere is 2 cm 8.635 g, the density of the sphere is: (1) 2.0 g/cm3 (2) 1.7 g/cm3 (3) g/cm3 (4) g/cm3 2.2 2.5 − − − Q21.Three vectors OP, → OQ → and OR → each of magnitude A are acting as shown in figure. The resultant of the three vectors is A√x. The value of x is ________.</div>
   <img class="question-media" src="../../../../assets/064bd5898cfdc133.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">PHY-2024-0101-S2-Q019</span>
@@ -584,12 +641,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Least count of a vernier caliper is 20 N cm. The value of one division on the main scale is 1 mm. Then the number of divisions of main scale that coincide with N divisions of vernier scale is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(2 N −1)</div><div class="option"><span class="option-label">(B)</span>( 2 N−1 ) 2 N−1 2 2 N−1 N</div><div class="option"><span class="option-label">(C)</span>( 2 )</div><div class="option"><span class="option-label">(D)</span>( 20 N )</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(2 N −1)</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>( 2 N−1 ) 2 N−1 2 2 N−1 N</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>( 2 )</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>( 20 N )</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">PHY-2024-0101-S1-Q020</span>
@@ -600,12 +658,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">One main scale division of a vernier caliper is equal to units. If nth division of main scale coincides with m (n + 1)th division of vernier scale, the least count of the vernier caliper is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(n+1) n</div><div class="option"><span class="option-label">(B)</span>(n+1) 1 →a →b |→a →b| √2|→a −→b| |→a| n|→b|</div><div class="option"><span class="option-label">(C)</span>(n+1) m</div><div class="option"><span class="option-label">(D)</span>n(n+1) m</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(n+1) n</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>(n+1) 1 →a →b |→a →b| √2|→a −→b| |→a| n|→b|</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>(n+1) m</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>n(n+1) m</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">PHY-2024-0101-S2-Q001</span>
@@ -616,8 +675,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A physical quantity Q is found to depend on quantities a, b, c by the relation Q = a4b3. The percentage error in c2 a, b and c are 3%, 4% and 5% respectively. Then, the percentage error in Q is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>66%</div><div class="option"><span class="option-label">(B)</span>43%</div><div class="option"><span class="option-label">(C)</span>34%</div><div class="option"><span class="option-label">(D)</span>14%</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>66%</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>43%</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>34%</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>14%</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>

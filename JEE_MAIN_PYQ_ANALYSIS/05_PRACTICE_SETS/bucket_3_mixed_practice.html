@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -236,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <div class="stat-chip">Mix: <strong>PCM</strong></div>
     <div class="stat-chip">Priority: <strong>Bucket 3</strong></div>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="Question">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S1-Q001</span>
@@ -247,12 +283,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The time period of a simple pendulum is given by T = 2π√l. The measured value of the length of the g pendulum is 10 cm known to a 1 mm accuracy. The time for 200 oscillations of the pendulum is found to be 100 second using a clock of 1s resolution. The percentage accuracy in the determination of g using this pendulum is The value of to the nearest integer is:- x. x (1) 2% (2) 3% (3) 5% (4) 4%</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> Question</div>
   </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">MATH-2024-0101-S2-Q065</span>
@@ -263,12 +300,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let A and B be two finite sets with m and n elements respectively. The total number of subsets of the set A is more than the total number of subsets of B. Then the distance of the point ( ) from the point 56 P m, n Q ( - 2, - 3 ) is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>10</div><div class="option"><span class="option-label">(B)</span>6</div><div class="option"><span class="option-label">(C)</span>4</div><div class="option"><span class="option-label">(D)</span>8</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>10</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>6</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>8</button></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
   </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">MATH-2021-0101-S1-Q074</span>
@@ -279,12 +317,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">⎧ 1 loge( 1+ x a ), x &lt; 0 x 1−x b If the function f(x) = ⎨ k, x = 0 ⎩ cos2 x−sin2 x−1, x &gt; 0 √x2+1−1 is continuous at x = 0, then 1 + 1 + 4 is equal to: a b k</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>4</div><div class="option"><span class="option-label">(B)</span>5</div><div class="option"><span class="option-label">(C)</span>−4</div><div class="option"><span class="option-label">(D)</span>−5</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>5</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−5</button></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
   </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2022-0101-S2-Q006</span>
@@ -295,12 +334,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If is the density and is coefficient of viscosity of fluid which flows with a speed in the pipe of diameter, p η v d the correct formula for Reynolds number Re is ρv</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Re = πd ρv</div><div class="option"><span class="option-label">(B)</span>Re = ηd</div><div class="option"><span class="option-label">(C)</span>Re = ρvd</div><div class="option"><span class="option-label">(D)</span>Re = η η ρνd</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Re = πd ρv</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Re = ηd</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Re = ρvd</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Re = η η ρνd</button></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
   </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">MATH-2021-0101-S2-Q068</span>
@@ -311,12 +351,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let in a right angled triangle, the smallest angle be If a triangle formed by taking the reciprocal of its sides θ. is also a right angled triangle, then sin θ is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>√5+1</div><div class="option"><span class="option-label">(B)</span>√5−1 √2−1 4 √5−1 2</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>√5+1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>√5−1 √2−1 4 √5−1 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4</button></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
   </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2021-0101-S2-Q010</span>
@@ -327,12 +368,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A bob of mass m suspended by a thread of length l undergoes simple harmonic oscillations with time period T. If the bob is immersed in a liquid that has density 1 times that of the bob and the length of the thread is 4 increased by 1 rd of the original length, then the time period of the simple harmonic oscillations will be: 3</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3 4T</div><div class="option"><span class="option-label">(B)</span>4 3T</div><div class="option"><span class="option-label">(C)</span>T</div><div class="option"><span class="option-label">(D)</span>3 2T</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3 4T</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4 3T</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>T</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3 2T</button></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
   </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">MATH-2021-0101-S1-Q072</span>
@@ -343,12 +385,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The function 4x3 - 3x2 1cosx: fx= 6 - 2sinx+ 2x-</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>increases in 1 2, ∞</div><div class="option"><span class="option-label">(B)</span>decreases in - ∞, 1 2</div><div class="option"><span class="option-label">(C)</span>decreases in 1 2, ∞</div><div class="option"><span class="option-label">(D)</span>increases in - ∞, 1 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>increases in 1 2, ∞</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>decreases in - ∞, 1 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>decreases in 1 2, ∞</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>increases in - ∞, 1 2</button></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
   </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">MATH-2023-0101-S2-Q078</span>
@@ -361,10 +404,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
   </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">MATH-2022-0101-S2-Q072</span>
@@ -375,12 +419,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The tan-1cos15π - 1 value of 4 is equal to sinπ 4</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>- π</div><div class="option"><span class="option-label">(B)</span>- π 4 8</div><div class="option"><span class="option-label">(C)</span>-5π</div><div class="option"><span class="option-label">(D)</span>-4π 12 9 1cm3sec-1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>- π</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>- π 4 8</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>-5π</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>-4π 12 9 1cm3sec-1</button></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
   </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">MATH-2023-0101-S1-Q065</span>
@@ -391,12 +436,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">1 1 1 1 sin2t t→01 lim sin 2t+ 2 sin 2t+ 3 sin 2t...... n sin 2t is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>n2 + n</div><div class="option"><span class="option-label">(B)</span>n nn+ 1</div><div class="option"><span class="option-label">(D)</span>n2 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>n2 + n</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>n nn+ 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>n2 2</button></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
   </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="32">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">MATH-2024-0101-S1-Q084</span>
@@ -407,12 +453,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let n − 2n + n − 8n +... + n − 2n⋅n2 be π, √n4+1 (n2+1)√n4+1 √n4+16 (n2+4)√n4+16 √n4+n4 (n2+n2)√n4+n4 k using only the principal values of the inverse trigonometric functions. Then k2 is equal to ________</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> 32</div>
   </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">PHY-2023-0101-S1-Q015</span>
@@ -425,10 +472,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
   </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="182">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2021-0101-S2-Q053</span>
@@ -439,12 +487,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The equilibrium constant Kc at 298 K for the reaction A + B ⇌C + D is 100. Starting with an equimolar solution with concentrations of A, B, C and D all equal to 1M, the equilibrium concentration of D is _____ ×10−2M. (Nearest integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> 182</div>
   </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">MATH-2023-0101-S1-Q072</span>
@@ -455,12 +504,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">x→0(( lim )( )) is equal to cos3(4x) (loge(2x+1))5</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>15</div><div class="option"><span class="option-label">(B)</span>9</div><div class="option"><span class="option-label">(D)</span>18 24</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>15</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>9</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>18 24</button></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
   </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="171">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">MATH-2023-0101-S1-Q081</span>
@@ -471,12 +521,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of ways of giving distinct oranges to children such that each child gets at least one orange is 20 3 _____ 15</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> 171</div>
   </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">MATH-2021-0101-S1-Q064</span>
@@ -487,12 +538,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If 1 then is equal to: sin θ + cos θ = 2, 16(sin(2θ) + cos(4θ) + sin(6θ))</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>23</div><div class="option"><span class="option-label">(B)</span>−27</div><div class="option"><span class="option-label">(C)</span>−23</div><div class="option"><span class="option-label">(D)</span>27</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>23</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−27</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−23</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>27</button></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
   </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">PHY-2024-0101-S1-Q029</span>
@@ -503,12 +555,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In a double slit experiment shown in figure, when light of wavelength 400 nm is used, dark fringe is observed at. If, the minimum distance between the slits and is. Write the value of to the P D = 0. 2 m S1 S2 α mm 10α nearest integer.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
   </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="100">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">PHY-2022-0101-S1-Q024</span>
@@ -519,12 +572,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The velocity of upper layer of water in a river is 36 km h-1. Shearing stress between horizontal layers of water is 10-3 m-2. Depth of the river is _____ m. (Co-efficient of viscosity of water is 10-2 s) N Pa</div>
   <img class="question-media" src="assets/5ad8dcd258ec0b52.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> 100</div>
   </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">PHY-2024-0101-S2-Q003</span>
@@ -535,12 +589,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Three blocks A, B and C are pulled on a horizontal smooth surface by a force of 80 N as shown in figure. The tensions T1 and T2 in the string are respectively:</div>
   <img class="question-media" src="assets/de010f8c097c51ff.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="option"><span class="option-label">(A)</span>40N, 64N</div><div class="option"><span class="option-label">(B)</span>60N, 80N</div><div class="option"><span class="option-label">(D)</span>88N, 96N 80N, 100N</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>40N, 64N</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>60N, 80N</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>88N, 96N 80N, 100N</button></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
   </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2024-0101-S2-Q043</span>
@@ -551,8 +606,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Alkyl halide is converted into alkyl isocyanide by reaction with</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>NaCN NH4 CN</div><div class="option"><span class="option-label">(C)</span>KCN</div><div class="option"><span class="option-label">(D)</span>AgCN</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>NaCN NH4 CN</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>KCN</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>AgCN</button></div>
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
   </div>

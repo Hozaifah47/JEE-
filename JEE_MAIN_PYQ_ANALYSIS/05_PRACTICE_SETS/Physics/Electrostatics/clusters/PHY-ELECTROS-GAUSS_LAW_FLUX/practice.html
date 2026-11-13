@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -237,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="226">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S2-Q026</span>
@@ -248,12 +284,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A point charge of +12 μC is at a distance 6 cm vertically above the centre of a square of side 12 cm as shown in figure. The magnitude of the electric flux through the square will be _______ ×103 N m2 C−1.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 226</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">PHY-2021-0101-S2-Q013</span>
@@ -264,12 +301,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements Statement I: An electric dipole is placed at the centre of a hollow sphere. The flux of electric field through the sphere is zero, but the electric field is not zero anywhere in the sphere. Statement: If is the radius of a solid metallic sphere and be the total charge on it. The electric field at II R Q any point on the spherical surface of radius r(&lt; R) is zero but the electric flux passing through this closed spherical surface of radius r is not In the light of the above statements, choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both Statement I and Statement II are true</div><div class="option"><span class="option-label">(B)</span>Statement I is false but Statement II is true</div><div class="option"><span class="option-label">(C)</span>Statement I is true but Statement II is false</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are false</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both Statement I and Statement II are true</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is false but Statement II is true</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is true but Statement II is false</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are false</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2021-0101-S2-Q012</span>
@@ -280,12 +318,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Choose the incorrect statement:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>The electric lines of force entering into a Gaussian surface provide negative flux.</div><div class="option"><span class="option-label">(B)</span>A charge q is placed at the centre of a cube. The flux through all the faces will be the same.</div><div class="option"><span class="option-label">(C)</span>In a uniform electric field net flux through a closed Gaussian surface containing no net charge, is zero.</div><div class="option"><span class="option-label">(D)</span>When an electric field is parallel to a Gaussian surface, it provides a finite non-zero flux. Choose the most appropriate answer from the options given below:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>The electric lines of force entering into a Gaussian surface provide negative flux.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A charge q is placed at the centre of a cube. The flux through all the faces will be the same.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>In a uniform electric field net flux through a closed Gaussian surface containing no net charge, is zero.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>When an electric field is parallel to a Gaussian surface, it provides a finite non-zero flux. Choose the most appropriate answer from the options given below:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="640">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2023-0101-S1-Q026</span>
@@ -296,12 +335,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Expression →E= ^i for an electric field is given by 4000 x2 V m-1. The electric flux through the cube of side 20 cm when placed in electric field (as shown in the figure) is ______ V cm.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 640</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="16">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">PHY-2024-0101-S1-Q025</span>
@@ -312,12 +352,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An infinite plane sheet of charge having uniform surface charge density +σsC/m2 is placed on x −y plane. Another infinitely long line charge having uniform linear charge density +λeC/m is placed at z = 4 m plane and parallel to -axis. If the magnitude values then at point, the ratio of magnitudes of y |σs| = 2 |λe| (0, 0, 2) electric field values due to sheet charge to that of line charge is π√n: 1. The value of n is_______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 16</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2024-0101-S2-Q010</span>
@@ -328,12 +369,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Two identical conducting spheres P and S with charge Q on each, repel each other with a force 16 N. A third identical uncharged conducting sphere is successively brought in contact with the two spheres. The new R force of repulsion between P and S is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1 N</div><div class="option"><span class="option-label">(B)</span>6 N</div><div class="option"><span class="option-label">(C)</span>12 N</div><div class="option"><span class="option-label">(D)</span>4 N</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1 N</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>6 N</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>12 N</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4 N</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="12">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">PHY-2024-0101-S1-Q025</span>
@@ -344,12 +386,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An electric field, E = 2^i+6^j+8^k passes through the surface of 4 m2 area having unit vector ^n = ( 2^i+^j+^k ). The √6 √6 electric flux for that surface is ______ Vm.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 12</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="16">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">PHY-2024-0101-S2-Q026</span>
@@ -360,12 +403,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An electric field = −1 exists in space. A cube of side 2 m is placed in the space as per figure given below. The electric flux through the cube is ______ Nm2/C.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 16</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">PHY-2024-0101-S1-Q010</span>
@@ -376,12 +420,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Two charges of 5Q and −2Q are situated at the points (3a, 0) and (−5a, 0) respectively. The electric flux through a sphere of radius 4a having centre at origin is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2Q</div><div class="option"><span class="option-label">(B)</span>5Q ε0 ε0</div><div class="option"><span class="option-label">(C)</span>7Q</div><div class="option"><span class="option-label">(D)</span>3Q ε0 ε0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2Q</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>5Q ε0 ε0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>7Q</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3Q ε0 ε0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">PHY-2024-0101-S2-Q011</span>
@@ -392,8 +437,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An (6ˆi 5ˆj 3ˆk) 30ˆi electric field is given by + + N C−1. The electric flux through a surface area m2 lying in YZ-plane(in SI unit) is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>90</div><div class="option"><span class="option-label">(B)</span>150</div><div class="option"><span class="option-label">(C)</span>180</div><div class="option"><span class="option-label">(D)</span>60</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>90</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>150</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>180</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>60</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>

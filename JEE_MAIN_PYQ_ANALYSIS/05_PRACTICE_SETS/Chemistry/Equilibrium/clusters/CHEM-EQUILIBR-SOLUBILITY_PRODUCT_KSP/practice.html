@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -237,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S2-Q056</span>
@@ -248,12 +284,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The molar solubility of Zn ( OH ) in 0.1MNaOH solution is x× 10-18M. The value of x is _____. (Nearest 2 integer) 10-20 Given: The solubility product of Zn(OH ) is 2 × 2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="50">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q055</span>
@@ -264,12 +301,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Two salts A2X and MX have the same value of solubility product of 4. 0 × 10−12. The ratio of their molar solubilizes i.e. S(A2X) = ________. S(MX) (Round off to the Nearest Integer).</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 50</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S1-Q033</span>
@@ -280,12 +318,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: One is labelled as Assertion A and the other labelled as reason R Assertion During the boiling of water having temporary hardness, is converted to A: Mg (HCO3)2 MgCO3 Reason R: The solubility product of Mg(OH)2 is greater than that of MgCO3. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both A and R are true but R is not the correct</div><div class="option"><span class="option-label">(B)</span>A is true but R is false explanation of A</div><div class="option"><span class="option-label">(C)</span>Both A and R are true and R is the correct</div><div class="option"><span class="option-label">(D)</span>A and R both are false. explanation of A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both A and R are true but R is not the correct</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A is true but R is false explanation of A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both A and R are true and R is the correct</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A and R both are false. explanation of A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S2-Q034</span>
@@ -296,12 +335,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A solution is 0. 1M in Cl− and 0. 001M in CrO2−. 4 Solid AgNO3 is gradually added to it Assuming that the addition does not change in volume and Ksp(AgCl) = 1. 7 × 10−10M2 and Ksp(Ag2 CrO4) = 1. 9 × 10−12M3. Select correct statement from the following:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>AgCl precipitates first because its Ksp is high.</div><div class="option"><span class="option-label">(B)</span>Ag2 CrO4 precipitates first as its Ksp is low.</div><div class="option"><span class="option-label">(C)</span>precipitates first because the amount of Ag+ needed is low. Ag2 CrO4</div><div class="option"><span class="option-label">(D)</span>AgCl will precipitate first as the amount of Ag+ needed to precipitate is low.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>AgCl precipitates first because its Ksp is high.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Ag2 CrO4 precipitates first as its Ksp is low.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>precipitates first because the amount of Ag+ needed is low. Ag2 CrO4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>AgCl will precipitate first as the amount of Ag+ needed to precipitate is low.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="141">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S2-Q055</span>
@@ -312,12 +352,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The solubility product of PbI2 is 8. 0 × 10−9. The solubility of lead iodide in 0. 1 molar solution of lead nitrate is x × 10−6 mol /L. The value of x is _________ (Rounded off to the nearest integer) [Given √2 = 1. 41 ]</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 141</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S2-Q032</span>
@@ -328,12 +369,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The solubility of Ca (OH)2 in water is: [Given: The solubility product of Ca (OH)2 in water = 5. 5 × 10−6 ]</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1. 77 × 10−2</div><div class="option"><span class="option-label">(B)</span>1. 77 × 10−6</div><div class="option"><span class="option-label">(C)</span>1. 11 × 10−2</div><div class="option"><span class="option-label">(D)</span>1. 11 × 10−6</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1. 77 × 10−2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1. 77 × 10−6</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1. 11 × 10−2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1. 11 × 10−6</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="108">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -344,12 +386,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A3B2 is a sparingly soluble salt of molar mass M(g mol−1) and solubility x g L−1. The solubility product 5. satisfies Ksp = a( M x ) The value of a is __________. (Integer answer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 108</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2022-0101-S2-Q034</span>
@@ -360,12 +403,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The Ksp for bismuth sulphide Bi2S3 is 1.08 × 10-73. The solubility of Bi2S3 in molL-1 at 298 K is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1.0 × 10-15</div><div class="option"><span class="option-label">(B)</span>2.7 × 10-12 10-10 10-8</div><div class="option"><span class="option-label">(C)</span>3.2 ×</div><div class="option"><span class="option-label">(D)</span>4.2 ×</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1.0 × 10-15</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2.7 × 10-12 10-10 10-8</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3.2 ×</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4.2 ×</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2023-0101-S2-Q039</span>
@@ -376,12 +420,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The solubility product of is 10−10 at. The solubility of in BaSO4 1 × 298 K BaSO4 0. 1M K2 SO4(aq) solution is ------ ×10−9 g L−1 (nearest integer). Given: Molar mass of BaSO4 is 233 g mol−1</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2023-0101-S1-Q039</span>
@@ -394,10 +439,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2023-0101-S2-Q038</span>
@@ -410,10 +456,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2024-0101-S2-Q035</span>
@@ -424,12 +471,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Solubility of calcium phosphate (molecular mass, M) in water is Wg per 100 mL at 25°C. Its solubility product at 25°C will be approximately.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>107W 3</div><div class="option"><span class="option-label">(B)</span>107W 5 M 5 M 5</div><div class="option"><span class="option-label">(C)</span>103W</div><div class="option"><span class="option-label">(D)</span>105W M M</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>107W 3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>107W 5 M 5 M 5</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>103W</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>105W M M</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2024-0101-S2-Q035</span>
@@ -440,12 +488,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: On passing HCl(g) through a saturated solution of BaCl2, at room temperature white turbidity appears. Statement II: When HCl gas is passed through a saturated solution of NaCl, sodium chloride is precipitated due to common ion effect. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both Statement I and Statement II are correct</div><div class="option"><span class="option-label">(B)</span>Statement I is correct but Statement II is incorrect</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are incorrect</div><div class="option"><span class="option-label">(D)</span>Statement I is incorrect but Statement II is correct</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both Statement I and Statement II are correct</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is correct but Statement II is incorrect</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are incorrect</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Statement I is incorrect but Statement II is correct</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2024-0101-S2-Q037</span>
@@ -456,12 +505,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For a sparingly soluble salt AB2, the equilibrium concentrations of ions and ions are 1.2 × and 0.24 × 10−3M, respectively. The solubility product of AB2 is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>6.91 × 10−12</div><div class="option"><span class="option-label">(B)</span>0.276 × 10−12 10−12 10−12</div><div class="option"><span class="option-label">(C)</span>27.65 ×</div><div class="option"><span class="option-label">(D)</span>0.069 ×</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>6.91 × 10−12</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>0.276 × 10−12 10−12 10−12</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>27.65 ×</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>0.069 ×</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="09">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2024-0101-S1-Q055</span>
@@ -472,12 +522,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The at which Mg(OH)2[ 10−11] begins to precipitate from a solution containing Mg2+ pH Ksp = 1 × 0. 10M ions is ______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 09</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2025-0101-S2-Q058</span>
@@ -488,12 +539,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The molar solubility(s) of zirconium phosphate with molecular formula (Zr4+)3(PO3− )4 is given by relation: 4 (1) ( Ksp ) 1 3 (2) ( Ksp ) 1 7 9612 6912 (3) 1 (4) 1 ( Ksp ) 7 ( Ksp ) 6 8435 5348</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2025-0101-S2-Q059</span>
@@ -504,8 +556,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Arrange the following in increasing order of solubility product: Ca(OH)2, AgBr, PbS, HgS (1) HgS &lt; AgBr &lt; PbS &lt; Ca(OH)2 (2) Ca(OH)2 &lt; AgBr &lt; HgS &lt; PbS (3) PbS &lt; HgS &lt; Ca(OH)2 &lt; AgBr (4) HgS &lt; PbS &lt; AgBr &lt; Ca(OH)2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>

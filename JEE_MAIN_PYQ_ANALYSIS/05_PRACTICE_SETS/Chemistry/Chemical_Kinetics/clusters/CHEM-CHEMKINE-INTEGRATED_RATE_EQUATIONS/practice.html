@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -237,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="655">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S2-Q059</span>
@@ -248,12 +284,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For the first order reaction A →2 B, 1 mole of reactant A gives 0. 2 moles of B after 100 minutes. The half life of the reaction is...... min. (Round off to the nearest integer). [Use: ln 2 = 0. 69, ln 10 = 2. 3 Properties of logarithms: ln xy = y ln x ln( x ) = ln x −ln y] y (Round off to the nearest integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 655</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q057</span>
@@ -264,12 +301,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For a first order reaction, the ratio of the time for 75% completion of a reaction to the time for 50% completion is ___________. (Integer answer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2022-0101-S2-Q042</span>
@@ -280,12 +318,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For a first order reaction, the time required for completion of 90% reaction is &#x27; x &#x27; times the half life of the reaction. The value of &#x27; x &#x27; is (Given: ln 10 = 2. 303 and log 2 = 0. 3010 )</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1.12</div><div class="option"><span class="option-label">(B)</span>2.43</div><div class="option"><span class="option-label">(C)</span>3.32</div><div class="option"><span class="option-label">(D)</span>33.31</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1.12</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2.43</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3.32</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>33.31</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2023-0101-S1-Q059</span>
@@ -296,12 +335,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A molecule undergoes two independent first order reactions whose respective half lives are 12 min and min. If both the reactions are occurring then the time taken for the consumption of the reactant is 3 50% ______ min. (Nearest integer)</div>
   <img class="question-media" src="../../../../assets/a00c73dc5479b2ba.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2023-0101-S1-Q048</span>
@@ -312,12 +352,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">is the time required for the reaction to undergo completion and is the time required for the t87.5 87. 5% t50 reaction to undergo 50% completion. The relation between t87.5 and t50 for a first order reaction is t87.5 = x × t50 The value of x is _________. (Nearest integer)</div>
   <img class="question-media" src="../../../../assets/a97342ad80cccaf2.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2200">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2023-0101-S2-Q060</span>
@@ -328,12 +369,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A ( g ) →2 B ( g ) + C ( g ) is a first order reaction. The initial pressure of the system was found to be 800 mm Hg which increased to 1600 mm Hg after 10 min. The total pressure of the system after 30 min will be mm Hg. (Nearest integer)</div>
   <img class="question-media" src="../../../../assets/97ba956b9280078c.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2200</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2023-0101-S1-Q045</span>
@@ -344,12 +386,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For the first order reaction A →B the half life is 30 min. The time taken for 75% completion of the reaction is mm. (Nearest integer) Given: log 2 = 0. 3010 log 3 = 0. 4771 log 5 = 0. 6989</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2024-0101-S1-Q056</span>
@@ -360,12 +403,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Time required for 99.9% completion of a first order reaction is _______ times the time required for completion of 90% reaction.(nearest integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="17">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2024-0101-S2-Q055</span>
@@ -376,12 +420,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the two different first order reactions given below A + B →C (Reaction 1 ) P →Q (Reaction 2) The ratio of the half life of Reaction 1: Reaction 2 is. If and represent the time taken to complete 5: 2 t1 t2 2/3rd and 45th of Reaction 1 and Reaction 2, respectively, then the value of the ratio t1: t2 is ______ ×10−1 (nearest integer). [Given: log10(3) = 0.477 and log10(5) = 0.699 ]</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 17</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="10">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2024-0101-S2-Q059</span>
@@ -392,12 +437,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Time required for completion of 99.9% of first order reaction is ________ times of half life (t1 ) of the / 2 reaction</div>
   <img class="question-media" src="../../../../assets/122ad1424f91fb6d.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 10</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="24">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2024-0101-S1-Q059</span>
@@ -408,8 +454,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The rate of first order reaction is 0. 04 mol L−1 s−1 at 10 minutes and 0. 03 mol L−1 s−1 at 20 minutes after initiation. Half life of the reaction is ______ minutes. (Given log 2 = 0. 3010, log 3 = 0. 4771) Round off your answer to the nearest integer.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 24</div>
     </div>

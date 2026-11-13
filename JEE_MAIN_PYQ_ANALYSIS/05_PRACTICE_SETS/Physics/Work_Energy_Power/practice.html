@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -245,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(65 questions)</span>
     &nbsp;<a href="clusters/PHY-WORKENER-WORK_DONE_VARIABLE/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="500">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S2-Q021</span>
@@ -256,12 +292,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The average translational kinetic energy of gas molecules at _________∘C becomes equal to the of an N2 K. E. electron accelerated from rest through a potential difference of 0.1 volt. (Given kB= 1.38 × 10-23 J K-1 (Fill the nearest integer).</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 500</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">PHY-2021-0101-S2-Q011</span>
@@ -272,12 +309,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A charge is moving → distance in the magnetic field →. Find the value of work done by →. Q d l B B</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1</div><div class="option"><span class="option-label">(B)</span>Infinite</div><div class="option"><span class="option-label">(C)</span>Zero</div><div class="option"><span class="option-label">(D)</span>−1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Infinite</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Zero</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2021-0101-S1-Q013</span>
@@ -288,12 +326,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A deuteron and an alpha particle having equal kinetic energy enter perpendicular into a magnetic field. Let rd rd and rα be their respective radii of circular path. The value of rα is equal to: 1</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>√2</div><div class="option"><span class="option-label">(B)</span>√2</div><div class="option"><span class="option-label">(C)</span>1</div><div class="option"><span class="option-label">(D)</span>2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>√2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>√2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="17258">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2021-0101-S2-Q024</span>
@@ -304,12 +343,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">One mole of an ideal gas at 27 °C is taken from A to B as shown in the given PV indicator diagram. The work done by the system will be _______ ×10−1 J. [Given, R = 8. 3 J mole−1 K, ln 2 = 0. 6931 ] (Round off to the nearest integer) (Round off to the nearest integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 17258</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">PHY-2021-0101-S1-Q018</span>
@@ -320,12 +360,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A nucleus with mass number 184 initially at rest emits an α− particle. If the Q value of the reaction is 5. 5 MeV, calculate the kinetic energy of the α− particle.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>5. 0 MeV</div><div class="option"><span class="option-label">(B)</span>5. 5 MeV</div><div class="option"><span class="option-label">(C)</span>0. 12 MeV</div><div class="option"><span class="option-label">(D)</span>5. 38 MeV</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>5. 0 MeV</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>5. 5 MeV</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>0. 12 MeV</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>5. 38 MeV</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2021-0101-S1-Q010</span>
@@ -336,12 +377,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">n mole of a perfect gas undergoes a cyclic process ABCA (see figure) consisting of the following processes. A→B: Isothermal expansion at temperature T so that the volume is doubled from V1 to V2 = 2V1 and pressure changes from P1 to P2 B→C: Isobaric compression at pressure P2 to initial volume V1. C→A: Isochoric change leading to change of pressure from P2 to P1 Total work done in the complete cycle ABCA is:</div>
   <img class="question-media" src="../../assets/69ccc2a5b0b67f33.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="option"><span class="option-label">(A)</span>nRTln2 - 1</div><div class="option"><span class="option-label">(B)</span>nRTln2 2 1</div><div class="option"><span class="option-label">(C)</span>nRTln2 +</div><div class="option"><span class="option-label">(D)</span>0 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>nRTln2 - 1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>nRTln2 2 1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>nRTln2 +</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>0 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="50">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">PHY-2021-0101-S1-Q023</span>
@@ -352,12 +394,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In a certain thermodynamical process, the pressure of a gas depends on its volume as kV 3. The work done when the temperature changes from 100 °C to 300 °C will be xnR where n denotes number of moles of a gas find x;</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 50</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">PHY-2021-0101-S2-Q005</span>
@@ -368,12 +411,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: In a diatomic molecule, the rotational energy at a given temperature obeys Maxwell&#x27;s distribution. Statement II: In a diatomic molecule, the rotational energy at a given temperature equals the translational kinetic energy for each molecule. In the light of the above statements, choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is false but Statement II is true.</div><div class="option"><span class="option-label">(B)</span>Statement I is true but Statement II is false.</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are true.</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are false.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is false but Statement II is true.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is true but Statement II is false.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are true.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are false.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">PHY-2021-0101-S2-Q010</span>
@@ -384,12 +428,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In a simple harmonic oscillation, what fraction of total mechanical energy is in the form of kinetic energy, when the particle is midway between mean and extreme position.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1</div><div class="option"><span class="option-label">(B)</span>3 2 4</div><div class="option"><span class="option-label">(C)</span>1</div><div class="option"><span class="option-label">(D)</span>1 3 4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3 2 4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 3 4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="450">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">PHY-2021-0101-S2-Q021</span>
@@ -400,12 +445,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A force of F = (5y + 20)ˆj N acts on a particle. The work done by this force when the particle is moved from y = 0 m to y = 10 m is ________ J.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 450</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="40">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">PHY-2021-0101-S1-Q022</span>
@@ -416,12 +462,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A uniform chain of length 3 m and mass 3 kg overhangs a smooth table with 2 m laying on the table. If K is the kinetic energy of the chain in J as it completely slips off the table, then the value of K is (Take g = 10 m s−2)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">PHY-2021-0101-S2-Q017</span>
@@ -432,12 +479,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The de-Broglie wavelength of a particle having kinetic energy E is λ. How much extra energy must be given to this particle so that the de-Broglie wavelength reduces to 75% of the initial value?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>E</div><div class="option"><span class="option-label">(B)</span>7E 9</div><div class="option"><span class="option-label">(C)</span>16E 9</div><div class="option"><span class="option-label">(D)</span>E 9</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>E</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>7E 9</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>16E 9</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>E 9</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">PHY-2021-0101-S1-Q013</span>
@@ -448,12 +496,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Two ions of masses 4 amu and 16 amu have charges +2 e and +3 e respectively. These ions pass through the region of the constant perpendicular magnetic field. The kinetic energy of both ions is the same. Then:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>lighter ion will be deflected less than heavier ion</div><div class="option"><span class="option-label">(B)</span>lighter ion will be deflected more than heavier ion</div><div class="option"><span class="option-label">(C)</span>both ions will be deflected equally</div><div class="option"><span class="option-label">(D)</span>no ion will be deflected</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>lighter ion will be deflected less than heavier ion</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>lighter ion will be deflected more than heavier ion</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>both ions will be deflected equally</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>no ion will be deflected</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">PHY-2021-0101-S2-Q007</span>
@@ -464,12 +513,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Two discs have moments of intertia I1 and I2 about their respective axes perpendicular to the plane and passing through the centre. They are rotating with angular speeds, ω1 and ω2 respectively and are brought into contact face to face with their axes of rotation coaxial. The loss in kinetic energy of the system in the process is given by: I1I2 −ω2)2 (ω1−ω2)2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(I1+I2) (ω1</div><div class="option"><span class="option-label">(B)</span>2(I1+I2) I1I2 −ω2)2 (I1−I2)2ω1ω2</div><div class="option"><span class="option-label">(C)</span>2(I1+I2) (ω1</div><div class="option"><span class="option-label">(D)</span>2(I1+I2)</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(I1+I2) (ω1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2(I1+I2) I1I2 −ω2)2 (I1−I2)2ω1ω2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2(I1+I2) (ω1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2(I1+I2)</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">PHY-2021-0101-S1-Q008</span>
@@ -480,12 +530,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In the reported figure, there is a cyclic process ABCDA on a sample of 1 mol of a diatomic gas. The temperature of the gas during the process A →B and C →D are T1 and T2( T &gt; T2) respectively. 1 Choose the correct option out of the following for work done if processes BC and DA are adiabatic.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>WAB = WDC</div><div class="option"><span class="option-label">(B)</span>WAD = WBC</div><div class="option"><span class="option-label">(C)</span>WBC + WDA &gt; 0</div><div class="option"><span class="option-label">(D)</span>WAB &lt; WCD</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>WAB = WDC</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>WAD = WBC</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>WBC + WDA &gt; 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>WAB &lt; WCD</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">PHY-2021-0101-S2-Q009</span>
@@ -496,12 +547,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">One mole of an ideal gas is taken through an adiabatic process where the temperature rises from 27°C to 37°C. If the ideal gas is composed of polyatomic molecule that has 4 vibrational modes, which of the following is true? [R mol−1k−1] = 8. 314 J</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>work done by the gas is close to 332 J</div><div class="option"><span class="option-label">(B)</span>work done on the gas is close to 582 J</div><div class="option"><span class="option-label">(C)</span>work done by the gas is close to 582 J</div><div class="option"><span class="option-label">(D)</span>work done on the gas is close to 332 J</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>work done by the gas is close to 332 J</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>work done on the gas is close to 582 J</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>work done by the gas is close to 582 J</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>work done on the gas is close to 332 J</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="9">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">PHY-2021-0101-S2-Q024</span>
@@ -512,12 +564,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In the given figure, two wheels P and Q are connected by a belt B. The radius of P is three times that of Q. In the case of the same rotational kinetic energy, the ratio of rotational inertias ( I1 ) will be x: 1. The value of I2 x will be ______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 9</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">PHY-2022-0101-S2-Q008</span>
@@ -528,12 +581,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A Carnot engine takes 5000 kcal of heat from a reservoir at 727°C and gives heat to a sink at 127°C. The work done by the engine is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3 × 106J</div><div class="option"><span class="option-label">(B)</span>Zero</div><div class="option"><span class="option-label">(C)</span>8. 4 × 106 J</div><div class="option"><span class="option-label">(D)</span>12. 6 × 106 J</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3 × 106J</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Zero</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>8. 4 × 106 J</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>12. 6 × 106 J</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">PHY-2022-0101-S2-Q012</span>
@@ -544,12 +598,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A long cylindrical volume contains a uniformly distributed charge of density ρ. The radius of cylindrical volume is R. A charge particle (q) revolves around the cylinder in a circular path. The kinetic energy of the particle is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>ρqR2</div><div class="option"><span class="option-label">(B)</span>ρqR2 4εo 2εo</div><div class="option"><span class="option-label">(C)</span>qρ</div><div class="option"><span class="option-label">(D)</span>4ε0R2 4ε0R2 qρ</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>ρqR2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>ρqR2 4εo 2εo</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>qρ</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4ε0R2 4ε0R2 qρ</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">PHY-2022-0101-S2-Q016</span>
@@ -560,12 +615,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A proton, a deuteron and an α -particle with same kinetic energy enter into a uniform magnetic field at right angle to magnetic field. The ratio of the radii of their respective circular paths is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1: √2: √2</div><div class="option"><span class="option-label">(B)</span>1: √2: 1</div><div class="option"><span class="option-label">(C)</span>√2: 1: 1</div><div class="option"><span class="option-label">(D)</span>None of these</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1: √2: √2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1: √2: 1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>√2: 1: 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>None of these</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">PHY-2022-0101-S2-Q003</span>
@@ -576,12 +632,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Arrange the four graphs in descending order of total work done; where W1, W2, W3 and W4 are the work done corresponding to figure a, b, c and d respectively.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>W3 &gt; W2 &gt; W1 &gt; W4</div><div class="option"><span class="option-label">(B)</span>W3 &gt; W2 &gt; W4 &gt; W1</div><div class="option"><span class="option-label">(C)</span>W2 &gt; W3 &gt; W4 &gt; W1</div><div class="option"><span class="option-label">(D)</span>W2 &gt; W3 &gt; W1 &gt; W4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>W3 &gt; W2 &gt; W1 &gt; W4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>W3 &gt; W2 &gt; W4 &gt; W1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>W2 &gt; W3 &gt; W4 &gt; W1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>W2 &gt; W3 &gt; W1 &gt; W4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">PHY-2022-0101-S2-Q007</span>
@@ -592,12 +649,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A flask contains argon and oxygen in the ratio of 3: 2 in mass and the mixture is kept at 27°C. The ratio of their average kinetic energy per molecule respectively</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3: 5</div><div class="option"><span class="option-label">(B)</span>9: 4</div><div class="option"><span class="option-label">(C)</span>2: 3</div><div class="option"><span class="option-label">(D)</span>1: 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3: 5</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>9: 4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2: 3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1: 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">PHY-2022-0101-S1-Q018</span>
@@ -608,12 +666,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An α particle and a carbon 12 atom has same kinetic energy K. The ratio of their de-Broglie wavelengths (λα: λC12) is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>√3: 1</div><div class="option"><span class="option-label">(B)</span>1: √3</div><div class="option"><span class="option-label">(C)</span>2: √3</div><div class="option"><span class="option-label">(D)</span>3: 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>√3: 1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1: √3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2: √3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3: 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">PHY-2022-0101-S2-Q010</span>
@@ -624,12 +683,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">According to kinetic theory of gases, A. The motion of the gas molecules freezes at 0°C. B. The mean free path of gas molecules decreases if the density of molecules is increased. C. The mean free path of gas molecules increases if temperature is increased keeping pressure constant. 3 D. Average kinetic energy per molecule per degree of freedom is 2 kBT (for monoatomic gases). Choose the most appropriate answer from the options given below</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A and C only</div><div class="option"><span class="option-label">(B)</span>B and C only</div><div class="option"><span class="option-label">(C)</span>A and B only</div><div class="option"><span class="option-label">(D)</span>C and D only</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A and C only</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>B and C only</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A and B only</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>C and D only</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">PHY-2022-0101-S2-Q029</span>
@@ -640,12 +700,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A deuteron and a proton moving with equal kinetic energy enter into to a uniform magnetic field at right angle to the field. If and are the radii of their circular paths respectively, then the ratio rd will be where rd rp rp √x: 1 x is _____.</div>
   <img class="question-media" src="../../assets/ce70a50e6220126d.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">PHY-2022-0101-S1-Q007</span>
@@ -656,12 +717,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Statement - I: When μ amount of an ideal gas undergoes adiabatic change from state (P1, V1, T1) to state μR(T2−T1) CP (P2, V2, T2), then work done is W = 1−γ, where γ = CV and R = universal gas constant. Statement - II: In the above case, when work is done on the gas, the temperature of the gas would rise.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both statement-I and statement-II are true.</div><div class="option"><span class="option-label">(B)</span>Both statement-I and statement-II are false.</div><div class="option"><span class="option-label">(C)</span>Statement-I is true but statement-II is false.</div><div class="option"><span class="option-label">(D)</span>Statement-I is false but statement-II is true. m−1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both statement-I and statement-II are true.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both statement-I and statement-II are false.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement-I is true but statement-II is false.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Statement-I is false but statement-II is true. m−1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="10">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">PHY-2022-0101-S1-Q028</span>
@@ -672,12 +734,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A singly ionized magnesium atom (A = 24) ion is accelerated to kinetic energy 5 keV, and is projected perpendicularly into a magnetic field of the magnitude 0. 5 T. The radius of path formed will be _____ cm. B</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 10</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">PHY-2022-0101-S2-Q009</span>
@@ -688,12 +751,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A sample of an ideal gas is taken through the cyclic process ABCA as shown in figure. It absorbs, 40 J of heat during the part AB, no heat during BC and rejects 60 J of heat during CA. A work of 50 J is done on the gas during the part BC. The internal energy of the gas at A is 1560 J. The work done by the gas during the part CA is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>20 J</div><div class="option"><span class="option-label">(B)</span>30 J</div><div class="option"><span class="option-label">(C)</span>−30 J</div><div class="option"><span class="option-label">(D)</span>−60 J</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>20 J</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>30 J</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−30 J</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−60 J</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">PHY-2023-0101-S1-Q008</span>
@@ -704,12 +768,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A sample of gas at temperature T is adiabatically expanded to double its volume. The work done by the gas in the process is given, (given 3 2): γ=</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>W= TR√2 - 2</div><div class="option"><span class="option-label">(B)</span>W= R√2 T - 2</div><div class="option"><span class="option-label">(C)</span>W= R T2 - √2</div><div class="option"><span class="option-label">(D)</span>W= RT2 - √2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>W= TR√2 - 2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>W= R√2 T - 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>W= R T2 - √2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>W= RT2 - √2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">PHY-2023-0101-S1-Q009</span>
@@ -720,12 +785,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The average kinetic energy of a molecule of the gas is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>proportional to absolute temperature</div><div class="option"><span class="option-label">(B)</span>proportional to volume</div><div class="option"><span class="option-label">(C)</span>proportional to pressure</div><div class="option"><span class="option-label">(D)</span>dependent on the nature of the gas</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>proportional to absolute temperature</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>proportional to volume</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>proportional to pressure</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>dependent on the nature of the gas</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="40">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">PHY-2023-0101-S1-Q021</span>
@@ -736,12 +802,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A small particle moves to position 5 ^i- 2 ^j+ ^k from its initial position 2 ^i+ 3 ^j- 4 ^k under the action of force ^i+ ^j+ ^k 5 2 7 N. The value of work done will be ______ J.</div>
   <img class="question-media" src="../../assets/c42e4b8d17aa2478.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">PHY-2023-0101-S1-Q016</span>
@@ -752,12 +819,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The kinetic energy of an electron, α- particle and a proton are given as 4K, 2K and K respectively. The de- Broglie wavelength associated with electron ( λe), α- particle ( λα) and the proton (λp) are as follows:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>λα= λp&gt; λe</div><div class="option"><span class="option-label">(B)</span>λα&lt; λp&lt; λe</div><div class="option"><span class="option-label">(C)</span>λα= λp&lt; λe</div><div class="option"><span class="option-label">(D)</span>λα&gt; λp&gt; λe</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>λα= λp&gt; λe</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>λα&lt; λp&lt; λe</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>λα= λp&lt; λe</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>λα&gt; λp&gt; λe</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">PHY-2023-0101-S2-Q005</span>
@@ -770,10 +838,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">PHY-2023-0101-S2-Q011</span>
@@ -784,12 +853,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Work done by a Carnot engine operating between temperatures 127°C and 27°C is 2 kJ. The amount of heat transferred to the engine by the reservoir is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>8 kJ</div><div class="option"><span class="option-label">(B)</span>2. 67 kJ</div><div class="option"><span class="option-label">(D)</span>2 kJ 4 kJ</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>8 kJ</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2. 67 kJ</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2 kJ 4 kJ</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">PHY-2023-0101-S2-Q012</span>
@@ -800,12 +870,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The temperature at which the kinetic energy of oxygen molecules becomes double than its value at 27°C is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>927°C</div><div class="option"><span class="option-label">(B)</span>327°C</div><div class="option"><span class="option-label">(C)</span>1227°C</div><div class="option"><span class="option-label">(D)</span>627°C</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>927°C</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>327°C</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1227°C</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>627°C</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">PHY-2023-0101-S2-Q010</span>
@@ -818,10 +889,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">PHY-2023-0101-S2-Q027</span>
@@ -832,12 +904,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The ratio of the de-Broglie wavelengths of proton and electron having same kinetic energy: (Assume mp = me × 1849 ) (1) 1: 43 (2) 1: 30 (3) (4) 1: 62 2: 43</div>
   <img class="question-media" src="../../assets/c769d033b94f15ce.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">PHY-2023-0101-S1-Q006</span>
@@ -850,10 +923,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   <img class="question-media" src="../../assets/fde29f20ae7403f1.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">PHY-2023-0101-S2-Q015</span>
@@ -864,12 +938,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: Out of microwaves, infrared rays and ultraviolet rays, ultraviolet rays are the most effective for the emission of electrons from a metallic surface Statement II: Above the threshold frequency, the maximum kinetic energy of photoelectrons is inversely proportional to the frequency of the incident light In the light of above statements, choose the correct answer from the options given below</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is false but Statement II is true</div><div class="option"><span class="option-label">(B)</span>Statement I is true but Statement II is false</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are true</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are false</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is false but Statement II is true</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is true but Statement II is false</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are true</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are false</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">PHY-2023-0101-S1-Q008</span>
@@ -880,12 +955,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A thermodynamic system is taken through cyclic process. The total work done in the process is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>200 J</div><div class="option"><span class="option-label">(B)</span>300 J</div><div class="option"><span class="option-label">(C)</span>100 J</div><div class="option"><span class="option-label">(D)</span>Zero</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>200 J</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>300 J</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>100 J</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Zero</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">PHY-2023-0101-S1-Q009</span>
@@ -896,12 +972,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A flask contains Hydrogen and Argon in the ratio 2: 1 by mass. The temperature of the mixture is 30°C. The ratio of average kinetic energy per molecule of the two gases ( Kargon ) is: (Given: Atomic Weight of Khydrogen Ar = 39. 9 )</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2</div><div class="option"><span class="option-label">(B)</span>1</div><div class="option"><span class="option-label">(C)</span>39. 9</div><div class="option"><span class="option-label">(D)</span>39.9 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>39. 9</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>39.9 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="40">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">PHY-2023-0101-S1-Q022</span>
@@ -912,12 +989,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A spherical body of mass 2 kg starting from rest acquires a kinetic energy of 10000 J at the end of 5th second. The force acted on the body is _____ N.</div>
   <img class="question-media" src="../../assets/855d479c88ae81f6.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="44">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">PHY-2023-0101-S2-Q026</span>
@@ -928,12 +1006,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An α particle, a proton and an electron have the same kinetic energy. Which one of the following is correct in case of their de-Broglie wavelength: (1) λα &gt; λp &gt; λe (2) λα &lt; λp &lt; λe (3) = = (4) &gt; &lt; λα λp λe λα λp λe</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 44</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">PHY-2023-0101-S1-Q005</span>
@@ -946,10 +1025,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">PHY-2023-0101-S1-Q003</span>
@@ -960,12 +1040,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A stone is projected at angle 30° to the horizontal. The ratio of kinetic energy of the stone at point of projection to its kinetic energy at the highest point of flight will be:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1: 2</div><div class="option"><span class="option-label">(B)</span>1: 4</div><div class="option"><span class="option-label">(C)</span>4: 1</div><div class="option"><span class="option-label">(D)</span>4: 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1: 2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1: 4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4: 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4: 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">PHY-2023-0101-S1-Q009</span>
@@ -976,12 +1057,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Surface tension of a soap bubble is 2. 0 × 10−2 N m−1. Work done to increase the radius of soap bubble from 3. 5 cm to 7 cm will be: [Take π = 22 7 ]</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>0. 72 × 10−4 J</div><div class="option"><span class="option-label">(B)</span>5. 76 × 10−4 J</div><div class="option"><span class="option-label">(C)</span>18. 48 × 10−4 J</div><div class="option"><span class="option-label">(D)</span>9. 24 × 10−4 J</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>0. 72 × 10−4 J</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>5. 76 × 10−4 J</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>18. 48 × 10−4 J</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>9. 24 × 10−4 J</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">PHY-2023-0101-S2-Q012</span>
@@ -992,12 +1074,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A flask contains hydrogen and oxygen in the ratio of 2: 1 by mass at temperature 27 °C. The ratio of average kinetic energy per molecule of hydrogen and oxygen respectively is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2: 1</div><div class="option"><span class="option-label">(B)</span>1: 1</div><div class="option"><span class="option-label">(C)</span>1: 4</div><div class="option"><span class="option-label">(D)</span>4: 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2: 1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1: 1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1: 4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4: 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">PHY-2024-0101-S1-Q009</span>
@@ -1008,12 +1091,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">3 The pressure and volume of an ideal gas are related as PV 2 = K (Constant). The work done when the gas is taken from state AP1, V1, T1 to state BP2, V2, T2 is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2 ( P1V1 - P2V2 )</div><div class="option"><span class="option-label">(B)</span>2 ( P2V2 - P1V1 )</div><div class="option"><span class="option-label">(C)</span>2√P1V1 −√P2V2</div><div class="option"><span class="option-label">(D)</span>2P2√V2 −P1√V1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2 ( P1V1 - P2V2 )</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2 ( P2V2 - P1V1 )</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2√P1V1 −√P2V2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2P2√V2 −P1√V1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">PHY-2024-0101-S1-Q012</span>
@@ -1026,10 +1110,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">PHY-2024-0101-S2-Q008</span>
@@ -1040,12 +1125,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A sample of gas at temperature T is adiabatically expanded to double its volume. Adiabatic constant for the gas is γ = 3/2. The work done by the gas in the process is: (μ = 1 mole)</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>RT[1 −2√2]</div><div class="option"><span class="option-label">(B)</span>RT[√2 −2]</div><div class="option"><span class="option-label">(C)</span>RT[2 −√2]</div><div class="option"><span class="option-label">(D)</span>RT[2√2 −1]</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>RT[1 −2√2]</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>RT[√2 −2]</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>RT[2 −√2]</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>RT[2√2 −1]</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">PHY-2024-0101-S1-Q005</span>
@@ -1056,12 +1142,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A body of mass 50 kg is lifted to a height of 20 m from the ground in the two different ways as shown in the figures. The ratio of work done against the gravity in both the respective cases, will be:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1: 2</div><div class="option"><span class="option-label">(B)</span>√3: 2</div><div class="option"><span class="option-label">(C)</span>2: 1</div><div class="option"><span class="option-label">(D)</span>1: 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1: 2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>√3: 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2: 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1: 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">PHY-2024-0101-S2-Q022</span>
@@ -1072,12 +1159,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A hollow sphere is rolling on a plane surface about its axis of symmetry. The ratio of rotational kinetic energy to its total kinetic energy is x. The value of is _____. 5 x</div>
   <img class="question-media" src="../../assets/6b769cdedd4248a8.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">PHY-2024-0101-S1-Q005</span>
@@ -1088,12 +1176,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A bullet of mass 50 g is fired with a speed 100 m/s on a plywood and emerges with 40 m/s. The percentage loss of kinetic energy is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>84%</div><div class="option"><span class="option-label">(B)</span>16%</div><div class="option"><span class="option-label">(C)</span>32%</div><div class="option"><span class="option-label">(D)</span>44%</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>84%</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>16%</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>32%</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>44%</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">PHY-2024-0101-S2-Q008</span>
@@ -1104,12 +1193,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A total of 48 J heat is given to one mole of helium kept in a cylinder. The temperature of helium increases by 2∘C. The work done by the gas is: Given, R = 8.3 J K−1 mol−1.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>24.9 J</div><div class="option"><span class="option-label">(B)</span>72.9 J</div><div class="option"><span class="option-label">(C)</span>48 J</div><div class="option"><span class="option-label">(D)</span>23.1 J</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>24.9 J</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>72.9 J</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>48 J</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>23.1 J</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">PHY-2024-0101-S2-Q009</span>
@@ -1120,12 +1210,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement (I): The mean free path of gas molecules is inversely proportional to square of molecular diameter. Statement (II): Average kinetic energy of gas molecules is directly proportional to absolute temperature of gas. In the light of the above statements, choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is true but Statement II is false</div><div class="option"><span class="option-label">(B)</span>Both Statement I and Statement II are false</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are true</div><div class="option"><span class="option-label">(D)</span>Statement I is false but Statement II is true</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is true but Statement II is false</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both Statement I and Statement II are false</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are true</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Statement I is false but Statement II is true</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">PHY-2024-0101-S1-Q008</span>
@@ -1136,12 +1227,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A sample of 1 mole gas at temperature is adiabatically expanded to double its volume. If adiabatic constant T for the gas is γ = 3, then the work done by the gas in the process is: 2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>R T [2 −√2]</div><div class="option"><span class="option-label">(B)</span>R T [2 + √2]</div><div class="option"><span class="option-label">(C)</span>RT [2 −√2]</div><div class="option"><span class="option-label">(D)</span>RT[2 + √2]</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>R T [2 −√2]</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>R T [2 + √2]</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>RT [2 −√2]</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>RT[2 + √2]</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">PHY-2024-0101-S2-Q007</span>
@@ -1152,12 +1244,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A real gas within a closed chamber at 27∘C undergoes the cyclic process as shown in figure. The gas obeys PV 3 = RT equation for the path A to B. The net work done in the complete cycle is (assuming R = 8 J/molK ):</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>20 J</div><div class="option"><span class="option-label">(B)</span>205 J</div><div class="option"><span class="option-label">(C)</span>−20 J</div><div class="option"><span class="option-label">(D)</span>225 J −78∘C</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>20 J</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>205 J</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−20 J</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>225 J −78∘C</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">PHY-2024-0101-S2-Q008</span>
@@ -1168,12 +1261,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The temperature of a gas is and the average translational kinetic energy of its molecules is K. The temperature at which the average translational kinetic energy of the molecules of the same gas becomes 2 K is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>127∘C</div><div class="option"><span class="option-label">(B)</span>117∘C −78∘C</div><div class="option"><span class="option-label">(C)</span>−39∘C</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>127∘C</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>117∘C −78∘C</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−39∘C</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="58">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">PHY-2024-0101-S2-Q022</span>
@@ -1184,12 +1278,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A force (3x2 + 2x −5)N displaces a body from x = 2 m to x = 4 m. Work done by this force is ________ J.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 58</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">PHY-2024-0101-S1-Q009</span>
@@ -1200,12 +1295,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The average kinetic energy of a monatomic molecule is 0. 414 eV at temperature: (Use KB = 1. 38 × 10−23 J mol−1 K−1 )</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3000 K</div><div class="option"><span class="option-label">(B)</span>3200 K</div><div class="option"><span class="option-label">(C)</span>1600 K</div><div class="option"><span class="option-label">(D)</span>1500 K 10−6</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3000 K</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3200 K</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1600 K</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1500 K 10−6</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">PHY-2024-0101-S2-Q009</span>
@@ -1216,12 +1312,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The total kinetic energy of 1 mole of oxygen at 27°C is: mol-1 K-1 [Use universal gas constant (R) = 8.31 J ]</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>6845.5 J 5942.0 J</div><div class="option"><span class="option-label">(C)</span>6232.5 J</div><div class="option"><span class="option-label">(D)</span>5670.5 J</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>6845.5 J 5942.0 J</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>6232.5 J</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>5670.5 J</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">PHY-2024-0101-S1-Q008</span>
@@ -1232,12 +1329,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A thermodynamic system is taken from an original state A to an intermediate state B by a linear process as shown in the figure. Its volume is then reduced to the original value from B to C by an isobaric process. The total work done by the gas from A to B and B to C would be:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>33800 J</div><div class="option"><span class="option-label">(B)</span>2200 J</div><div class="option"><span class="option-label">(C)</span>600 J</div><div class="option"><span class="option-label">(D)</span>800 J</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>33800 J</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2200 J</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>600 J</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>800 J</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">PHY-2024-0101-S2-Q008</span>
@@ -1248,12 +1346,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A small liquid drop of radius R is divided into 27 identical liquid drops. If the surface tension is T, then the work done in the process will be:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>8πR2T</div><div class="option"><span class="option-label">(B)</span>3πR2T</div><div class="option"><span class="option-label">(C)</span>1 πR2T</div><div class="option"><span class="option-label">(D)</span>4πR2T 8</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>8πR2T</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3πR2T</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1 πR2T</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4πR2T 8</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">PHY-2024-0101-S1-Q007</span>
@@ -1264,12 +1363,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An artillery piece of mass M1 fires a shell of mass M2 horizontally. Instantaneously after the firing, the ratio of kinetic energy of the artillery and that of the shell is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>M1</div><div class="option"><span class="option-label">(B)</span>M2 ( M1 + M2 ) M1</div><div class="option"><span class="option-label">(C)</span>M2</div><div class="option"><span class="option-label">(D)</span>M1 ( M1 + M2 ) M2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>M1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>M2 ( M1 + M2 ) M1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>M2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>M1 ( M1 + M2 ) M2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">PHY-2025-0101-S2-Q027</span>
@@ -1280,8 +1380,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A ball having kinetic energy KE, is projected at an angle of 60∘ from the horizontal. What will be the kinetic energy of ball at the highest point of its flight? (1) (KE) (2) (KE) 8 2 (3) (KE) (4) (KE) 16 4</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
@@ -1292,7 +1393,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(34 questions)</span>
     &nbsp;<a href="clusters/PHY-WORKENER-CONSERVATION_OF_ENERGY/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="16">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">PHY-2021-0101-S2-Q022</span>
@@ -1303,12 +1404,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An engine is attached to a wagon through a shock absorber of length 1.5 m. The system with a total mass of 40, 000 kg is moving with a speed of 72 km h-1 when the brakes are applied to bring it to rest. In the process of the system being brought to rest, the spring of the shock absorber gets compressed by 1.0 m. If 90% of energy of the wagon is lost due to friction, the spring constant is _________ × 105 N m-1.</div>
   <img class="question-media" src="../../assets/d660ec3ea22cd452.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 16</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">PHY-2021-0101-S1-Q011</span>
@@ -1319,12 +1421,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For what value of displacement the kinetic energy and potential energy of a simple harmonic oscillation become equal?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>x = 0</div><div class="option"><span class="option-label">(B)</span>x = ±A</div><div class="option"><span class="option-label">(C)</span>x = ± A</div><div class="option"><span class="option-label">(D)</span>x = A √2 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>x = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x = ±A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>x = ± A</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>x = A √2 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">PHY-2021-0101-S1-Q025</span>
@@ -1335,12 +1438,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider two identical springs each of spring constant k and negligible mass compared to the mass M as shown. Fig. shows one of them and Fig. shows their series combination. The ratios of time period of 1 2 oscillation of the two SHM is Tb = √x, where value of x is ______. Ta (Round off to the Nearest Integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">PHY-2021-0101-S1-Q021</span>
@@ -1351,12 +1455,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In a spring gun having spring constant 100 N m−1 a small ball B of mass 100 g is put in its barrel (as shown in figure) by compressing the spring through 0. 05 m. There should be a box placed at a distance d on the ground so that the ball falls in it. If the ball leaves the gun horizontally at a height of 2 m above the ground. The value of d is m. s−2) (g = 10 m</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">PHY-2021-0101-S1-Q022</span>
@@ -1367,12 +1472,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The potential energy (U) of a diatomic molecule is a function dependent on r (interatomic distance) as U = α −β −3 where, α and β are positive constants. The equilibrium distance between two atoms will be r10 r5 ( 2α ) a b where ______. β, a =</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">PHY-2021-0101-S1-Q002</span>
@@ -1383,12 +1489,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If two similar springs each of spring constant K1 are joined in series, the new spring constant and time period would be changed by a factor: 1 2√2 1 √2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2,</div><div class="option"><span class="option-label">(B)</span>4,</div><div class="option"><span class="option-label">(C)</span>1, 2√2</div><div class="option"><span class="option-label">(D)</span>1, √2 4 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2,</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4,</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1, 2√2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1, √2 4 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="243">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">PHY-2021-0101-S2-Q026</span>
@@ -1399,12 +1506,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">27 similar drops of mercury are maintained at 10 V each. All these spherical drops combine into a single big drop. The potential energy of the bigger drop is ___________ times that of a smaller drop.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 243</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">PHY-2021-0101-S1-Q023</span>
@@ -1415,12 +1523,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A body of mass (2M) splits into four masses {m, M −m, m, M −m}, which are rearranged to form a square as shown in the figure. The ratio of M m for which, the gravitational potential energy of the system becomes maximum is x: 1. The value of x is ________. KW−1</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">PHY-2021-0101-S2-Q004</span>
@@ -1431,12 +1540,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below is the plot of a potential energy function U(x) for a system, in which a particle is in one dimensional motion, while a conservative force F(x) acts on it. Suppose that Emech = 8 J, the incorrect statement for this system is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>at x &gt; x4, K. E. is constant throughout the</div><div class="option"><span class="option-label">(B)</span>at x &lt; x1, K. E. is smallest and the particle is region. moving at the slowest speed.</div><div class="option"><span class="option-label">(C)</span>at x = x2, K. E. is greatest and the particle is</div><div class="option"><span class="option-label">(D)</span>at x = x3, K. E. = 4 J moving at the fastest speed.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>at x &gt; x4, K. E. is constant throughout the</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>at x &lt; x1, K. E. is smallest and the particle is region. moving at the slowest speed.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>at x = x2, K. E. is greatest and the particle is</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>at x = x3, K. E. = 4 J moving at the fastest speed.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">PHY-2021-0101-S2-Q011</span>
@@ -1447,12 +1557,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An object of mass 0. 5 kg is executing simple harmonic motion. It amplitude is 5 cm and time period (T) is T 0. 2 s. What will be the potential energy of the object at an instant t = 4 s starting from mean position. Assume that the initial phase of the oscillation is zero.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>0. 62 J</div><div class="option"><span class="option-label">(B)</span>6. 2 × 10−3 J</div><div class="option"><span class="option-label">(C)</span>1. 2 × 103 J</div><div class="option"><span class="option-label">(D)</span>6. 2 × 103 J</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>0. 62 J</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>6. 2 × 10−3 J</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1. 2 × 103 J</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>6. 2 × 103 J</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">PHY-2021-0101-S1-Q024</span>
@@ -1463,12 +1574,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A particle of mass 1 kg is hanging from a spring of force constant 100 N m−1. The mass is pulled slightly downward and released so that it executes free simple harmonic motion with time period T. The time when the kinetic energy and potential energy of the system will become equal, is T. The value of n is ________. n</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">PHY-2021-0101-S2-Q011</span>
@@ -1479,12 +1591,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For a body executing S.H.M.:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Potential energy is always equal to its K. E.</div><div class="option"><span class="option-label">(B)</span>Average potential and kinetic energy over any given time interval are always equal.</div><div class="option"><span class="option-label">(C)</span>Sum of the kinetic and potential energy at any point of time is constant.</div><div class="option"><span class="option-label">(D)</span>Average K. E. in one time period is equal to average potential energy in one time period. Choose the most appropriate option from the options given below:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Potential energy is always equal to its K. E.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Average potential and kinetic energy over any given time interval are always equal.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Sum of the kinetic and potential energy at any point of time is constant.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Average K. E. in one time period is equal to average potential energy in one time period. Choose the most appropriate option from the options given below:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q78</span>
     <span class="q-id">PHY-2022-0101-S2-Q004</span>
@@ -1495,12 +1608,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Potential energy as a function of r is given by U = r10 A −B r5, where r is the interatomic distance, A and B are positive constants. The equilibrium distance between the two atoms will be:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>( A ) 1 5</div><div class="option"><span class="option-label">(B)</span>( B ) 1 5 B A</div><div class="option"><span class="option-label">(C)</span>( 2A ) 1 5</div><div class="option"><span class="option-label">(D)</span>( B ) 1 5 B 2A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>( A ) 1 5</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>( B ) 1 5 B A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>( 2A ) 1 5</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>( B ) 1 5 B 2A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q79</span>
     <span class="q-id">PHY-2022-0101-S2-Q009</span>
@@ -1511,12 +1625,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Two massless springs with spring constants and, carry and masses at their free ends. These 2k 9k 50 g 100 g two masses oscillate vertically such that their maximum velocities are equal. Then, the ratio of their respective amplitudes will be:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3: 2</div><div class="option"><span class="option-label">(B)</span>1: 2</div><div class="option"><span class="option-label">(C)</span>3: 1</div><div class="option"><span class="option-label">(D)</span>2: 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3: 2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1: 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3: 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2: 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q80</span>
     <span class="q-id">PHY-2022-0101-S2-Q020</span>
@@ -1527,12 +1642,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In Bohr&#x27;s atomic model of hydrogen, let K, P and E are the kinetic energy, potential energy and total energy of the electron respectively. Choose the correct option when the electron undergoes transitions to a higher level:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>All K, P and E increase.</div><div class="option"><span class="option-label">(B)</span>K decreases, P and E increase.</div><div class="option"><span class="option-label">(C)</span>decreases, and increase.</div><div class="option"><span class="option-label">(D)</span>increases, and decrease P K E K P E</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>All K, P and E increase.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>K decreases, P and E increase.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>decreases, and increase.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>increases, and decrease P K E K P E</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q81</span>
     <span class="q-id">PHY-2022-0101-S2-Q007</span>
@@ -1543,12 +1659,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Four spheres each of mass m form a square of side d (as shown in figure). A fifth sphere of mass M is situated at the centre of square. The total gravitational potential energy of the system is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>−Gm [(4 + √2)m + 4√2M]</div><div class="option"><span class="option-label">(B)</span>−Gm [(4 + √2)M + 4√2m] d d</div><div class="option"><span class="option-label">(C)</span>−Gm [3m2 + 4√2M]</div><div class="option"><span class="option-label">(D)</span>−Gm [6m2 + 4√2M] d d</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>−Gm [(4 + √2)m + 4√2M]</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−Gm [(4 + √2)M + 4√2m] d d</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−Gm [3m2 + 4√2M]</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−Gm [6m2 + 4√2M] d d</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q82</span>
     <span class="q-id">PHY-2022-0101-S2-Q004</span>
@@ -1559,12 +1676,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Water falls from a 40 m high dam at the rate of 9 × 104 kg per hour. Fifty percentage of gravitational potential energy can be converted into electrical energy. Using this hydro electric energy number of 100 W lamps, that can be lit, is (Take g = 10 ms−2 )</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>25</div><div class="option"><span class="option-label">(B)</span>50</div><div class="option"><span class="option-label">(C)</span>100</div><div class="option"><span class="option-label">(D)</span>18</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>25</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>50</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>100</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>18</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q83</span>
     <span class="q-id">PHY-2023-0101-S1-Q024</span>
@@ -1575,12 +1693,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The amplitude of a particle executing SHM is 3 cm. The displacement at which its kinetic energy will be 25% more than the potential energy is: ______ cm.</div>
   <img class="question-media" src="../../assets/f95c8ae66878019e.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q84</span>
     <span class="q-id">PHY-2023-0101-S1-Q008</span>
@@ -1591,12 +1710,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: If E be the total energy of a satellite moving around the earth, then its potential energy will be E. 2 Statement II: The kinetic energy of a satellite revolving in an orbit is equal to the half the magnitude of total energy E. In the light of the above statements, choose the most appropriate answer from the options given below.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is correct but Statement II is incorrect</div><div class="option"><span class="option-label">(B)</span>Statement I is incorrect but Statement II is correct</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are correct</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are incorrect</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is correct but Statement II is incorrect</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is incorrect but Statement II is correct</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are correct</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are incorrect</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q85</span>
     <span class="q-id">PHY-2023-0101-S1-Q007</span>
@@ -1607,12 +1727,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Two satellites A and B move round the earth in the same orbit. The mass of A is twice the mass of B. The quantity which is same for the two satellites will be</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Speed</div><div class="option"><span class="option-label">(B)</span>Kinetic energy</div><div class="option"><span class="option-label">(C)</span>Total energy</div><div class="option"><span class="option-label">(D)</span>Potential energy</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Speed</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Kinetic energy</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Total energy</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Potential energy</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q86</span>
     <span class="q-id">PHY-2023-0101-S1-Q014</span>
@@ -1623,12 +1744,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A particle is executing simple harmonic motion (SHM). The ratio of potential energy and kinetic energy of the particle when its displacement is half of its amplitude will be</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1: 1</div><div class="option"><span class="option-label">(B)</span>1: 3</div><div class="option"><span class="option-label">(C)</span>2: 1</div><div class="option"><span class="option-label">(D)</span>1: 4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1: 1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1: 3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2: 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1: 4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q87</span>
     <span class="q-id">PHY-2023-0101-S1-Q010</span>
@@ -1641,10 +1763,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   <img class="question-media" src="../../assets/a27e28457baacbc2.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q88</span>
     <span class="q-id">PHY-2023-0101-S1-Q013</span>
@@ -1657,10 +1780,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   <img class="question-media" src="../../assets/045435302e21f08f.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q89</span>
     <span class="q-id">PHY-2023-0101-S2-Q010</span>
@@ -1671,12 +1795,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A particle executes SHM of amplitude A. The distance from the mean position when its kinetic energy becomes equal to its potential energy is: 1</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>√2A</div><div class="option"><span class="option-label">(B)</span>2A</div><div class="option"><span class="option-label">(C)</span>√2A</div><div class="option"><span class="option-label">(D)</span>1 2A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>√2A</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>√2A</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 2A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q90</span>
     <span class="q-id">PHY-2023-0101-S2-Q004</span>
@@ -1687,12 +1812,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A body of mass 200 g is tied to a spring of spring constant 12. 5 N m−1, while the other end of spring is fixed at point O. If the body moves about O in a circular path on a smooth horizontal surface with constant angular speed 5 rad s−1, then the ratio of extension in the spring to its natural length will be:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1: 2</div><div class="option"><span class="option-label">(B)</span>1: 1</div><div class="option"><span class="option-label">(C)</span>2: 3</div><div class="option"><span class="option-label">(D)</span>2: 5</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1: 2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1: 1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2: 3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2: 5</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q91</span>
     <span class="q-id">PHY-2023-0101-S1-Q006</span>
@@ -1705,10 +1831,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q92</span>
     <span class="q-id">PHY-2023-0101-S1-Q011</span>
@@ -1719,12 +1846,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements. One is labelled as Assertion A and the other is labelled as Reason R. Assertion A: If dQ and dW represent the heat supplied to the system and the work done on the system respectively. Then according to the first law of thermodynamics dQ = dU −dW. Reason R: First law of thermodynamics is based on law of conservation of energy. In the light of the above statements, choose the correct answer from the option given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A is correct but R is not correct</div><div class="option"><span class="option-label">(B)</span>A is not correct but R is correct</div><div class="option"><span class="option-label">(C)</span>Both A and R are correct and R is the correct</div><div class="option"><span class="option-label">(D)</span>Both A and R are correct but R is not the correct explanation of A explanation of A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A is correct but R is not correct</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A is not correct but R is correct</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both A and R are correct and R is the correct</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both A and R are correct but R is not the correct explanation of A explanation of A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q93</span>
     <span class="q-id">PHY-2023-0101-S1-Q010</span>
@@ -1735,12 +1863,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The maximum potential energy of a block executing simple harmonic motion is 25 J. A is amplitude of oscillation. At A 2, the kinetic energy of the block is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>37.5 J</div><div class="option"><span class="option-label">(B)</span>9.75 J</div><div class="option"><span class="option-label">(C)</span>18.75 J</div><div class="option"><span class="option-label">(D)</span>12.5 J</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>37.5 J</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>9.75 J</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>18.75 J</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>12.5 J</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q94</span>
     <span class="q-id">PHY-2024-0101-S1-Q003</span>
@@ -1751,12 +1880,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If G be the gravitational constant and u be the energy density then which of the following quantity have the dimensions as that of the √uG:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>pressure gradient per unit mass</div><div class="option"><span class="option-label">(B)</span>Gravitational potential</div><div class="option"><span class="option-label">(C)</span>Energy per unit mass</div><div class="option"><span class="option-label">(D)</span>Force per unit mass</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>pressure gradient per unit mass</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Gravitational potential</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Energy per unit mass</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Force per unit mass</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q95</span>
     <span class="q-id">PHY-2024-0101-S1-Q019</span>
@@ -1767,12 +1897,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An electron rotates in a circle around a nucleus having positive charge Ze. Correct relation between total energy (E) of electron to its potential energy (U) is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>E = U</div><div class="option"><span class="option-label">(B)</span>2E = U</div><div class="option"><span class="option-label">(C)</span>2E = 3U</div><div class="option"><span class="option-label">(D)</span>E = 2U</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>E = U</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2E = U</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2E = 3U</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>E = 2U</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q96</span>
     <span class="q-id">PHY-2024-0101-S1-Q001</span>
@@ -1783,12 +1914,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">To find the spring constant (k) of a spring experimentally, a student commits 2% positive error in the measurement of time and 1% negative error in measurement of mass. The percentage error in determining value of k is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>5%</div><div class="option"><span class="option-label">(B)</span>1%</div><div class="option"><span class="option-label">(D)</span>3% 4%</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>5%</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1%</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3% 4%</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q97</span>
     <span class="q-id">PHY-2024-0101-S2-Q024</span>
@@ -1799,12 +1931,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An object of mass 0.2 kg executes simple harmonic motion along x axis with frequency of ( 25 )Hz. At the π position x = 0.04 m the object has kinetic energy 0.5 J and potential energy 0.4 J. The amplitude of oscillation is _____ cm.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q98</span>
     <span class="q-id">PHY-2024-0101-S1-Q005</span>
@@ -1815,12 +1948,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The potential energy function (in J ) of a particle in a region of space is given as U = (2x2 + 3y3 + 2z). Here x, y and z are in meter. The magnitude of x - component of force (in N ) acting on the particle at point P(1, 2, 3) m is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2</div><div class="option"><span class="option-label">(B)</span>6</div><div class="option"><span class="option-label">(D)</span>4 8</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>6</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4 8</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q99</span>
     <span class="q-id">PHY-2024-0101-S1-Q019</span>
@@ -1831,8 +1965,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The ratio of the magnitude of the kinetic energy to the potential energy of an electron in the 5th excited state of a hydrogen atom is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>4</div><div class="option"><span class="option-label">(B)</span>1 4</div><div class="option"><span class="option-label">(C)</span>2 1</div><div class="option"><span class="option-label">(D)</span>1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
@@ -1843,7 +1978,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(10 questions)</span>
     &nbsp;<a href="clusters/PHY-WORKENER-COLLISIONS_1D_2D/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q100</span>
     <span class="q-id">PHY-2021-0101-S2-Q004</span>
@@ -1854,12 +1989,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An object of mass m1 collides with another object of mass m2, which is at rest. After the collision the objects move with equal speeds in opposite direction. The ratio of the masses m2: m1 is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3: 1</div><div class="option"><span class="option-label">(B)</span>2: 1</div><div class="option"><span class="option-label">(C)</span>1: 2</div><div class="option"><span class="option-label">(D)</span>1: 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3: 1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2: 1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1: 2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1: 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q101</span>
     <span class="q-id">PHY-2021-0101-S2-Q023</span>
@@ -1870,12 +2006,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A system consists of two types of gas molecules A and B having the same number density 2 × 1025 m−3. The diameter of A and B are 10A and 5A respectively. They suffer collisions at room temperature. The ratio of average distance covered by the molecule A to that of B between two successive collisions is ___________ ×10−2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q102</span>
     <span class="q-id">PHY-2021-0101-S1-Q004</span>
@@ -1886,12 +2023,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Body P having mass M moving with speed u has head-on collision elastically with another body Q having mass m initially at rest. If m ≪M, body Q will have a maximum speed equal to 2u after collision. Reason R: During elastic collision, the momentum and kinetic energy are both conserved. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A is correct but R is not correct.</div><div class="option"><span class="option-label">(B)</span>A is not correct but R is correct.</div><div class="option"><span class="option-label">(C)</span>Both A and R are correct and R is the correct</div><div class="option"><span class="option-label">(D)</span>Both A and R are correct but R is NOT the correct explanation of A explanation of A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A is correct but R is not correct.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A is not correct but R is correct.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both A and R are correct and R is the correct</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both A and R are correct but R is NOT the correct explanation of A explanation of A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q103</span>
     <span class="q-id">PHY-2021-0101-S1-Q004</span>
@@ -1902,12 +2040,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A body of mass M moving at speed V0 collides elastically with a mass m at rest. After the collision, the two masses move at angles θ1 and θ2 with respect to the initial direction of motion of the body of mass M.. The M largest possible value of the ratio m, for which the angles θ1 and θ2 will be equal, is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3</div><div class="option"><span class="option-label">(B)</span>4</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q104</span>
     <span class="q-id">PHY-2022-0101-S1-Q006</span>
@@ -1918,12 +2057,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">What percentage of kinetic energy of a moving particle is transferred to a stationary particle when it strikes the stationary particle of 5 times its mass? (Assume the collision to be head-on elastic collision)</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>50. 0%</div><div class="option"><span class="option-label">(B)</span>66. 6%</div><div class="option"><span class="option-label">(C)</span>55. 6%</div><div class="option"><span class="option-label">(D)</span>33. 3%</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>50. 0%</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>66. 6%</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>55. 6%</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>33. 3%</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q105</span>
     <span class="q-id">PHY-2023-0101-S1-Q010</span>
@@ -1934,12 +2074,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of air molecules per cm3 is increased from 3 × 1019 to 12 × 1019. The ratio of collision frequency of air molecules before and after the increase in number respectively is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>0.75</div><div class="option"><span class="option-label">(B)</span>1.25</div><div class="option"><span class="option-label">(C)</span>0.50</div><div class="option"><span class="option-label">(D)</span>0.25</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>0.75</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1.25</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>0.50</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>0.25</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q106</span>
     <span class="q-id">PHY-2023-0101-S2-Q006</span>
@@ -1952,10 +2093,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q107</span>
     <span class="q-id">PHY-2024-0101-S1-Q012</span>
@@ -1966,12 +2108,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the collision frequency of hydrogen molecules in a closed chamber at 27∘C is Z, then the collision frequency of the same system at 127∘C is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>√3 z</div><div class="option"><span class="option-label">(B)</span>2 Z 2 √3</div><div class="option"><span class="option-label">(C)</span>3 Z</div><div class="option"><span class="option-label">(D)</span>4 Z 4 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>√3 z</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2 Z 2 √3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3 Z</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4 Z 4 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q108</span>
     <span class="q-id">PHY-2024-0101-S2-Q009</span>
@@ -1982,12 +2125,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If n is the number density and d is the diameter of the molecule, then the average distance covered by a molecule between two successive collisions (i.e. mean free path) is represented by:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>√2nπd2</div><div class="option"><span class="option-label">(B)</span>1 √2nπd2</div><div class="option"><span class="option-label">(C)</span>1</div><div class="option"><span class="option-label">(D)</span>1 √2nπd2 √2n2π2d2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>√2nπd2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 √2nπd2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 √2nπd2 √2n2π2d2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q109</span>
     <span class="q-id">PHY-2025-0101-S2-Q026</span>
@@ -1998,8 +2142,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements. One is labelled as Assertion (A) and the other is labelled as Reason (R). Assertion (A): Three identical spheres of same mass undergo one dimensional motion as shown in figure with initial velocities vA = 5 m/s, vB = 2 m/s, vC = 4 m/s. If we wait sufficiently long for elastic collision to happen, then vA = 4 m/s, vB = 2 m/s, vC = 5 m/s will be the final velocities. Reason (R): In an elastic collision between identical masses, two objects exchange their velocities. In the light of the above statements, choose the correct answer from the options given below: (1) (A) is false but (R) is true (2) Both (A) and (R) are true but (R) is NOT the correct explanation of (A) (3) Both (A) and (R) are true and (R) is the correct (4) (A) is true but (R) is false explanation of (A)</div>
   <img class="question-media" src="../../assets/31fdcbd0d8e93754.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>

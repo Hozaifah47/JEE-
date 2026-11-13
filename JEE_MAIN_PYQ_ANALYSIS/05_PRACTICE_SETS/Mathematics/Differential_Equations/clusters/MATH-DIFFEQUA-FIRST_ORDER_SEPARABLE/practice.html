@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -237,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">MATH-2021-0101-S2-Q077</span>
@@ -248,12 +284,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If y= y( x) is the solution curve of the differential equation x2 dy+ y- 1 xdx= 0; x&gt; 0 and y( 1 ) = 1, then y 1 is equal to: 2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3 + e</div><div class="option"><span class="option-label">(B)</span>3 - e</div><div class="option"><span class="option-label">(C)</span>3 - 1</div><div class="option"><span class="option-label">(D)</span>3 + 1 2 √e √e</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3 + e</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3 - e</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3 - 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3 + 1 2 √e √e</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">MATH-2021-0101-S2-Q076</span>
@@ -264,12 +301,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let C1 be the curve obtained by the solution of differential equation 2xy dx = y2 −x2, x &gt; 0. Let the curve C2 be the solution of 2xy = dy. If both the curves pass through (1, 1), then the area (in sq. units) enclosed x2−y2 dx by the curves C1 and C2 is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>π −1</div><div class="option"><span class="option-label">(B)</span>π −1</div><div class="option"><span class="option-label">(D)</span>π 2 π + 1 4 + 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>π −1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>π −1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>π 2 π + 1 4 + 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">MATH-2021-0101-S1-Q077</span>
@@ -280,12 +318,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Which of the following is true for y(x) that satisfies the differential equation dy = xy −1 + x −y; y(0) = 0 dx e−1 1 −e−1</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>y</div><div class="option"><span class="option-label">(B)</span>= 2 −1</div><div class="option"><span class="option-label">(C)</span>y</div><div class="option"><span class="option-label">(D)</span>= e 2 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>y</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>= 2 −1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>y</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>= e 2 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">MATH-2021-0101-S1-Q079</span>
@@ -296,12 +335,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The differential equation satisfied by the system of parabolas y2 = 4a(x + a) is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2</div><div class="option"><span class="option-label">(B)</span>2 y( dy ) −2x( dy ) −y = 0 y( dy ) −2x( dy ) + y = 0 dx dx dx dx</div><div class="option"><span class="option-label">(C)</span>y( dy ) 2 + 2x( dy ) −y = 0</div><div class="option"><span class="option-label">(D)</span>y( dy ) + 2x( dy ) −y = 0 dx dx dx dx</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2 y( dy ) −2x( dy ) −y = 0 y( dy ) −2x( dy ) + y = 0 dx dx dx dx</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>y( dy ) 2 + 2x( dy ) −y = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>y( dy ) + 2x( dy ) −y = 0 dx dx dx dx</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">MATH-2021-0101-S2-Q077</span>
@@ -312,12 +352,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation dy = (y + 1)((y + 1)ex2/2 −x), 0 &lt; x &lt; 2. 1, with dx y</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>= 0. Then the value of dy at x = 1 is equal to −e3/2 dx 2e2</div><div class="option"><span class="option-label">(B)</span>(e2+1)2</div><div class="option"><span class="option-label">(C)</span>− (1+e2)2 e5/2 5e1/2</div><div class="option"><span class="option-label">(D)</span>(1+e2)2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>= 0. Then the value of dy at x = 1 is equal to −e3/2 dx 2e2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>(e2+1)2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>− (1+e2)2 e5/2 5e1/2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>(1+e2)2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">MATH-2021-0101-S1-Q077</span>
@@ -328,12 +369,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation x tan( y )dy = (y tan( y ) −x)dx, 1 π x x 1 −1 ≤x ≤1, y( 2 ) = 6. Then the area of the region bounded by the curves x = 0, x = √2 and y = y(x) in the upper half plane is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1 (π −1)</div><div class="option"><span class="option-label">(B)</span>1 (π −3) 8 12</div><div class="option"><span class="option-label">(C)</span>1 (π −2)</div><div class="option"><span class="option-label">(D)</span>1 (π −1) 4 6</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1 (π −1)</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 (π −3) 8 12</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1 (π −2)</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 (π −1) 4 6</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">MATH-2021-0101-S1-Q078</span>
@@ -344,12 +386,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation ex√1 −y2 dx + ( y )dy = 0, y</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>= −1 x Then the value of (y</div><div class="option"><span class="option-label">(B)</span>)2 is equal to:</div><div class="option"><span class="option-label">(C)</span>1 −4e3</div><div class="option"><span class="option-label">(D)</span>1 −4e6</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>= −1 x Then the value of (y</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>)2 is equal to:</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1 −4e3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 −4e6</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">MATH-2021-0101-S2-Q089</span>
@@ -360,12 +403,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let a curve y = y(x) be given by the solution of the differential equation 1 (√e2x −1)dy cos( 2 cos−1(e−x))dx =. If it intersects y -axis at y = −1, and the intersection point of the curve with x− axis is (α, 0), then eα is equal to</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">MATH-2021-0101-S1-Q075</span>
@@ -376,12 +420,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation cosec2 xdy + 2dx = (1 + y cos 2x) cosec2 xdx, with y( π ) = 0. Then, the value of (y(0) + 1)2 is equal to: 4</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>e1/2</div><div class="option"><span class="option-label">(B)</span>e−1/2</div><div class="option"><span class="option-label">(C)</span>e−1</div><div class="option"><span class="option-label">(D)</span>e</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>e1/2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>e−1/2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>e−1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>e</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">MATH-2021-0101-S1-Q090</span>
@@ -392,12 +437,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation ((x 2)e( y+1 ) 1))dx + x+2 + (y + = (x + 2)dy, y(1) = 1. If the domain of y = y(x) is an open interval (α, β), then |α + β| is equal to ___________.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">MATH-2021-0101-S1-Q077</span>
@@ -408,12 +454,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The population P= Pt at time t of a certain species follows the differential equation dP dt= 0.5P- 450. If P0 = 850, then the time at which population becomes zero is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>loge9 2loge18</div><div class="option"><span class="option-label">(C)</span>loge18</div><div class="option"><span class="option-label">(D)</span>1 2loge18 x- 3 y- 4 z- 5</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>loge9 2loge18</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>loge18</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 2loge18 x- 3 y- 4 z- 5</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">MATH-2021-0101-S2-Q088</span>
@@ -424,12 +471,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the curve, y = y(x) represented by the solution of the differential equation (2xy2 −y)dx + x dy = 0, passes through the intersection of the lines, 2x −3y = 1 and 3x + 2y = 8, then |y(1)| is equal to ___.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">MATH-2021-0101-S1-Q077</span>
@@ -440,12 +488,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y= y( x) be the solution of the differential equation dy dx= 1 + xey- x, - √2 &lt; x&lt; √2, y0 = 0, then the minimum value of yx, x∈-√2, √2 is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2 - √3 - loge2</div><div class="option"><span class="option-label">(B)</span>2 + √3 + loge2</div><div class="option"><span class="option-label">(C)</span>1 + √3 - loge√3 - 1</div><div class="option"><span class="option-label">(D)</span>1 - √3 - loge√3 - 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2 - √3 - loge2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2 + √3 + loge2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1 + √3 - loge√3 - 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 - √3 - loge√3 - 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">MATH-2021-0101-S2-Q077</span>
@@ -456,12 +505,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let = y(x) be the solution of the differential equation = (y + x3 cos x)dx with y(π) = 0, then y( π ) is y xdy 2 equal to: π2 π2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>4 + π 2</div><div class="option"><span class="option-label">(B)</span>2 + π 4</div><div class="option"><span class="option-label">(C)</span>π2 −π</div><div class="option"><span class="option-label">(D)</span>π2 −π 2 4 4 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>4 + π 2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2 + π 4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>π2 −π</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>π2 −π 2 4 4 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">MATH-2021-0101-S1-Q077</span>
@@ -472,12 +522,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be a solution curve of the differential equation (y + 1) tan2 xdx + tan xdy + ydx = 0, x ∈(0, π ). If lim xy(x) = 1, then the value of y( π ) is: 2 x→0+ 4</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>π + 1</div><div class="option"><span class="option-label">(B)</span>π −1 4 4</div><div class="option"><span class="option-label">(C)</span>π</div><div class="option"><span class="option-label">(D)</span>−π 4 4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>π + 1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>π −1 4 4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>π</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−π 4 4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">MATH-2021-0101-S2-Q077</span>
@@ -488,12 +539,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y(x) be the solution of the differential equation 2x2 dy + (ey −2x)dx = 0, x &gt; 0. If y(e) = 1, then y</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>is equal to:</div><div class="option"><span class="option-label">(B)</span>loge(2e)</div><div class="option"><span class="option-label">(C)</span>loge 2</div><div class="option"><span class="option-label">(D)</span>2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>is equal to:</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>loge(2e)</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>loge 2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">MATH-2021-0101-S1-Q088</span>
@@ -504,12 +556,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The difference between degree and order of a differential equation that represents the family of curves given by y2 = a(x + √a ), a &gt; 0 is _______. 2</div>
   <img class="question-media" src="../../../../assets/4e44aa126324591e.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">MATH-2021-0101-S2-Q076</span>
@@ -520,12 +573,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the solution curve of the differential equation (2x −10y3)dy + ydx = 0, passes through the points (0, 1) and (2, β), then β is a root of the equation?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>y5 −2y −2 = 0</div><div class="option"><span class="option-label">(B)</span>y5 −y2 −1 = 0</div><div class="option"><span class="option-label">(C)</span>2y5 −y2 −2 = 0</div><div class="option"><span class="option-label">(D)</span>2y5 −2y −1 = 0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>y5 −2y −2 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>y5 −y2 −1 = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2y5 −y2 −2 = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2y5 −2y −1 = 0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">MATH-2021-0101-S1-Q077</span>
@@ -536,12 +590,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be solution of the differential equation loge( dy ) = 3x + 4y, with y(0) = 0. If dx y(−2 loge 2) = α loge 2, then the value of α is equal to: 3</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>−1 4</div><div class="option"><span class="option-label">(B)</span>4 1</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>−1 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>−1 4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4 1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−1 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">MATH-2021-0101-S1-Q088</span>
@@ -552,12 +607,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If y = y(x), y ∈[0, π 2 ) is the solution of the differential equation sec y dx −sin(x + y) −sin(x −y) = 0, with y(0) = 0, then 5y′( π ) is equal to _____. 2 → → →</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">MATH-2021-0101-S2-Q077</span>
@@ -568,12 +624,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let = y(x) be the solution of the differential equation (x −x3)dy = (y + yx2 −3x4)dx, &gt; 2 If y</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>= 3, y x then y</div><div class="option"><span class="option-label">(B)</span>is equal to:</div><div class="option"><span class="option-label">(C)</span>4</div><div class="option"><span class="option-label">(D)</span>12</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>= 3, y x then y</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>is equal to:</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>12</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">MATH-2021-0101-S2-Q088</span>
@@ -584,12 +641,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let be the solution of the differential equation eαx+ydx; If and y = y(x) dy = α ∈N. y(loge 2) = loge 2 y(0) = loge( 1 ), then the value of α is equal to ___. 2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">MATH-2022-0101-S1-Q077</span>
@@ -600,12 +658,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If is the solution of the differential equation dx y3(y 1)ey,; then is equal x = x(y) y dy = 2x + + x</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>= 0 x(e) to</div><div class="option"><span class="option-label">(B)</span>ee(e3 −1)</div><div class="option"><span class="option-label">(C)</span>e3(ee −1)</div><div class="option"><span class="option-label">(D)</span>ee −1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>= 0 x(e) to</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>ee(e3 −1)</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>e3(ee −1)</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>ee −1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">MATH-2022-0101-S1-Q077</span>
@@ -616,12 +675,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the solution curve y= yx of the differential equation y2 dx+ x2 - xy+ y2dy= 0, which passes through the point and intersects the line at the point √3α, then value of is equal to 1, 1 y= √3x α, loge√3α</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>π</div><div class="option"><span class="option-label">(B)</span>π 2 4</div><div class="option"><span class="option-label">(C)</span>π</div><div class="option"><span class="option-label">(D)</span>π 6 12</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>π</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>π 2 4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>π</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>π 6 12</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">MATH-2022-0101-S2-Q078</span>
@@ -632,12 +692,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If y= yx is the solution of the differential equation dx- 2xy+ 3y2 = 0 such that ye= 3, then y1 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1</div><div class="option"><span class="option-label">(B)</span>2 3 3</div><div class="option"><span class="option-label">(C)</span>3</div><div class="option"><span class="option-label">(D)</span>3 2 →r· ^i+ ^j- ^k= →r· ^i- ^j+ ^k=</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2 3 3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3 2 →r· ^i+ ^j- ^k= →r· ^i- ^j+ ^k=</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="12">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">MATH-2022-0101-S1-Q089</span>
@@ -648,12 +709,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the solution curve y = y(x) of the differential equation (4 + x2)dy −2x(x2 + 3y + 4)dx = 0 pass through the origin. Then y(2) is equal to _____.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 12</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="42">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">MATH-2022-0101-S1-Q090</span>
@@ -664,12 +726,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let −{ π 3π 3π 7π }. Let,, be the solution curve of the differential equation S = (0, 2π) 2, 4, 2, 4 y = y(x) x ∈S dy = 1, y( π ) = 1. If the sum of abscissas of all the points of intersection of the curve y = y(x) with dx 1+sin 2x 4 2 the curve y = √2 sin x is kπ 12, then k is equal to _____.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 42</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">MATH-2022-0101-S2-Q076</span>
@@ -680,12 +743,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If y = y(x) is the solution of the differential equation x dx + 2y = xex, y</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>= 0 then the local maximum value of the function z(x) = x2y(x) −ex, x ∈R is</div><div class="option"><span class="option-label">(B)</span>1 −e</div><div class="option"><span class="option-label">(C)</span>0</div><div class="option"><span class="option-label">(D)</span>1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>= 0 then the local maximum value of the function z(x) = x2y(x) −ex, x ∈R is</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 −e</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">MATH-2022-0101-S2-Q076</span>
@@ -696,12 +760,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the solution curve of the differential equation ((tan−1 y) −x)dy = (1 + y2)dx passes through the point (1, 0) then the abscissa of the point on the curve whose ordinate is tan</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>is</div><div class="option"><span class="option-label">(B)</span>2</div><div class="option"><span class="option-label">(C)</span>2 e</div><div class="option"><span class="option-label">(D)</span>3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>is</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2 e</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">MATH-2022-0101-S1-Q075</span>
@@ -712,12 +777,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the solution curve y = y(x) of the differential equation, [ x + e x y ]x dy = x + [ x + e x y ]y pass √x2−y2 dx √x2−y2 through the points (1, 0) and (2α, α), α &gt; 0. Then α is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2 1 exp( π 6 + √e −1)</div><div class="option"><span class="option-label">(B)</span>1 2 exp( π 3 + √e −1)</div><div class="option"><span class="option-label">(C)</span>exp( π + √e + 1)</div><div class="option"><span class="option-label">(D)</span>2 exp( π + √e −1) 6 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2 1 exp( π 6 + √e −1)</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 2 exp( π 3 + √e −1)</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>exp( π + √e + 1)</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2 exp( π + √e −1) 6 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">MATH-2022-0101-S1-Q076</span>
@@ -728,12 +794,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation x(1 −x2) dy + (3x2y −y −4x3) = 0, x &gt; 1 with. Then is equal to dx y</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>= −2 y</div><div class="option"><span class="option-label">(C)</span>−18</div><div class="option"><span class="option-label">(D)</span>−12</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>= −2 y</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−18</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−12</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">MATH-2022-0101-S2-Q076</span>
@@ -744,12 +811,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let x = x(y) be the solution of the differential equation 2ye y2 x dx + (y2 −4xe y2 x )dy = 0 such that x</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>= 0. Then, x(e) is equal to</div><div class="option"><span class="option-label">(B)</span>e loge</div><div class="option"><span class="option-label">(D)</span>−e loge</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>= 0. Then, x(e) is equal to</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>e loge</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−e loge</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">MATH-2022-0101-S1-Q078</span>
@@ -760,12 +828,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let dy √y2 the solution curve of the differential equation x dx −y = + 16x2, y</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>= 3 be y = y(x). Then y</div><div class="option"><span class="option-label">(B)</span>is equal to</div><div class="option"><span class="option-label">(C)</span>15</div><div class="option"><span class="option-label">(D)</span>11</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>= 3 be y = y(x). Then y</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>is equal to</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>15</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>11</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">MATH-2022-0101-S2-Q076</span>
@@ -776,12 +845,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If y = y(x) is the solution of the differential equation (1 + e2x) dy + 2(1 + y2)ex = 0 and y(0) = 0, then 6(y′(0) 2 ) dx + (y(logc √3)) is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2</div><div class="option"><span class="option-label">(B)</span>−2</div><div class="option"><span class="option-label">(C)</span>−4</div><div class="option"><span class="option-label">(D)</span>−1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="14">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">MATH-2022-0101-S2-Q089</span>
@@ -792,12 +862,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x), x &gt; 1, be the solution of the differential equation (x −1) dy + 2xy = 1, with y(2) = 1+e4. eα+1 dx x−1 2e4 If y(3) = βeα. then the value of α + β is equal to ______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 14</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">MATH-2023-0101-S1-Q076</span>
@@ -808,12 +879,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The area enclosed by the closed curve C given by the differential equation dy dx+ x+ a = 0, y1 = 0 is 4π. Let P y- 2 and Q be the points of intersection of the curve C and the y-axis. If normals at P and Q on the curve C intersect x-axis at points R and S respectively, then the length of the line segment RS is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>2√3 2√3 3</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>4√3 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2√3 2√3 3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4√3 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">MATH-2023-0101-S1-Q077</span>
@@ -824,12 +896,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If y= yx is the solution curve of the differential equation dy dx+ ytanx= xsecx, 0 ≤x≤ π 3, y0 = 1, then π y 6 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>π √3 2</div><div class="option"><span class="option-label">(B)</span>π √3 2√3 12 - 2 loge e√3 12 + 2 loge e</div><div class="option"><span class="option-label">(C)</span>π √3 2√3</div><div class="option"><span class="option-label">(D)</span>π √3 2 12 - 2 loge e 12 + 2 loge e√3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>π √3 2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>π √3 2√3 12 - 2 loge e√3 12 + 2 loge e</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>π √3 2√3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>π √3 2 12 - 2 loge e 12 + 2 loge e√3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">MATH-2023-0101-S2-Q084</span>
@@ -840,12 +913,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the solution curve f(x, y) = 0 of the differential equation (1 + loge x) dx −x loge x = ey, x &gt; 0, passes dy through the points (1, 0) and (a, 2), then aa is equal to (1) e2e2 (2) ee2 (3) e√2e2 (4) e2e√2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">MATH-2023-0101-S1-Q084</span>
@@ -856,12 +930,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the solution curve of the differential equation (y −2 loge x)dx + (x loge x2)dy = 0, x &gt; 1 passes through the points (e, 4 ) and (e4, α), then is equal to _______ 3 α</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">MATH-2023-0101-S1-Q075</span>
@@ -872,12 +947,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let be a solution curve of the differential equation, x2y2dx= xdy, If the line y= yx 1 - ydx+ x= 1 intersects the curve y= yx at y= 2 and the line x= 2 intersects the curve y= yx at y= α, then a value of α is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1 - 3e2</div><div class="option"><span class="option-label">(B)</span>1 + 3e2 23e2 23e2</div><div class="option"><span class="option-label">(C)</span>3e2 + 1</div><div class="option"><span class="option-label">(D)</span>3e2 - 1 23e2 23e2 - 1 + 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1 - 3e2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 + 3e2 23e2 23e2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3e2 + 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3e2 - 1 23e2 23e2 - 1 + 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="348">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">MATH-2023-0101-S2-Q084</span>
@@ -888,12 +964,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let be the solution of the differential equation dy 5 (x5+1)2. If, then y = y(x) dx + x(x5+1) y = x7, x &gt; 0 y(1) = 2 y(2) is equal to (1) 637 (2) 679 128 128 (3) 128 693 (4) 697 128</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 348</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="211">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">MATH-2023-0101-S1-Q083</span>
@@ -904,12 +981,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x), y &gt; 0, be a solution curve of the differential equation (1 + x2)dy = y(x −y)dx. If y(0) = 1 y(2√2) and = β, then (1) e3β−1 = e(3 + 2√2) (2) e3β−1 = e(5 + √2) (3) eβ−1 = e−2(3 + 2√2) (4) eβ−1 = e−2(5 + √2)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 211</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="36">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">MATH-2023-0101-S1-Q084</span>
@@ -920,12 +998,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y1(x) and y = y2(x) be the solution curves the differential equation dx = y + 7 with initial conditions y1(0) = 0 and y2(0) = 1 respectively. Then the curves y = y1(x) and y = y2(x) intersect at (1) no point (2) two points (3) one point (4) infinite number of points</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 36</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">MATH-2023-0101-S2-Q090</span>
@@ -936,12 +1015,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If y= y( x) is the solution of the differential equation dy dx+ 4x 1y= x+ 2, x&gt; 1 such that x2 - x2 - 1 5 2 y(2) = 2 9loge2 + √3 and y√2 = αloge√α+ β+ β- √γ, α, β, γ∈N, then αβγ is equal to</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">MATH-2023-0101-S1-Q075</span>
@@ -952,12 +1032,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let = x(y) be the solution of the differential equation x 2(y + 2) loge(y + 2)dx + (x + 4 −2 loge(y + 2))dy = 0, y &gt; −1 with x(e4 −2) = 1. Then x(e9 −2) is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3</div><div class="option"><span class="option-label">(B)</span>4</div><div class="option"><span class="option-label">(C)</span>32</div><div class="option"><span class="option-label">(D)</span>10 9 9 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>32</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>10 9 9 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">MATH-2023-0101-S1-Q075</span>
@@ -968,12 +1049,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let be the solution of the differential equation y = y( x) x3 dy + ( xy – 1 ) dx = 0, x &gt; 0, y 1 = 3 - e. Then y1 is equal to 2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1</div><div class="option"><span class="option-label">(B)</span>e</div><div class="option"><span class="option-label">(D)</span>2 - e 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>e</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2 - e 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="122">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">MATH-2023-0101-S2-Q084</span>
@@ -984,12 +1066,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation (x2– 3y2)dx + 3 xy dy = 0, y(1) = 1. Then 6y2(e) is equal to (1) 3e2 (2) e2 3e2 (3) 2e2 (4) 2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 122</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="495">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">MATH-2023-0101-S1-Q084</span>
@@ -1000,12 +1083,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution curve of the differential equation dy = y (1 + x2(1 + loge x)), x &gt; 0, y(1) = 3. y2(x) dx x Then is equal to: 9 x2 x2 (1) 5−2x3(2+loge x3) (2) 2x3(2+loge x3)−3 (3) x2 (4) x2 3x3(1+loge x2)−2 7−3x3(2+loge x2) →a,→b →b (→b ×→c) →b−→c →d</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 495</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">MATH-2023-0101-S2-Q083</span>
@@ -1016,12 +1100,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(t) be a solution of the differential equation dy dt + αy = γe−βt Where, α &gt; 0, β &gt; 0 and γ &gt; 0. Then Limt→∞ y(t) (1) is 0 (2) does not exist (3) is 1 (4) is −1</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1120">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">MATH-2023-0101-S1-Q084</span>
@@ -1032,12 +1117,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = f(x) be the solution of the differential equation y(x + 1)dx −x2dy = 0, y(1) = e. Then lim x→0+ is equal to (1) 0 (2) 1 e 1 (3) e2 (4) e2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1120</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="461">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">MATH-2023-0101-S2-Q084</span>
@@ -1048,12 +1134,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation x loge x dy + y = x2 loge x, (x &gt; 1). If y(2) = 2, dx then y(e) is equal to 4+e2 1+e2 (1) 4 (2) 4 (3) 2+e2 (4) 1+e2 2 2 →b ×→b +→b =→0</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 461</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">MATH-2023-0101-S1-Q076</span>
@@ -1064,12 +1151,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let dy 3x5tan-1x3 x3 - tan-1x3 the solution curve y= y( x) of the differential equation dx- 3 y= 2x exp pass through 1 + x6 2 √( 1 + x) 6 the origin. Then is equal to: y( 1 )</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>exp4 - π</div><div class="option"><span class="option-label">(B)</span>expπ- 4 4√2 4√2</div><div class="option"><span class="option-label">(C)</span>exp1 - π</div><div class="option"><span class="option-label">(D)</span>exp4 + π 4√2 4√2 → →</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>exp4 - π</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>expπ- 4 4√2 4√2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>exp1 - π</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>exp4 + π 4√2 4√2 → →</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="23">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">MATH-2023-0101-S2-Q084</span>
@@ -1080,12 +1168,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The solution of the differential equation dy = −( x2+3y2 ), y(1) = 0 is dx 3x2+y2 (1) loge|x + y| − xy = 0 (2) loge|x + y| + xy = 0 (x+y)2 (x+y)2 (3) loge|x + y| + 2xy = 0 (4) loge|x + y| − 2xy = 0 (x+y)2 (x+y)2 → → → →</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 23</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="45">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">MATH-2023-0101-S2-Q084</span>
@@ -1096,12 +1185,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation (3y2 −5x2)ydx + 2x(x2 −y2)dy = 0 such that. Then (y(2))3 is equal to: y(1) = 1 −12y(2) (1) 64 (2) 32√2 (3) 32 (4) 16√2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 45</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">MATH-2024-0101-S1-Q077</span>
@@ -1112,12 +1202,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let be the solution of the differential equation dy y3 1. Then, 1 y1 2 y= yx dx= 2xx+ −xx+ y−1, y0 = √2 + √2 equals:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>4</div><div class="option"><span class="option-label">(B)</span>3 4 + √e 3 −√e</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>1 1 + √e 2 −√e</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3 4 + √e 3 −√e</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 1 + √e 2 −√e</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="14">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">MATH-2024-0101-S1-Q089</span>
@@ -1128,12 +1219,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If x= xt is the solution of the differential equation t+ 1dx= 2x+ t+ 14dt, x0 = 2, then x1 equals ________</div>
   <img class="question-media" src="../../../../assets/ca3bc7eb4d87fafb.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 14</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">MATH-2024-0101-S1-Q077</span>
@@ -1144,12 +1236,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the solution of the differential equation (x4 2x3 3x2 −(2x2 y = y(x) + + + 2x + 2)dy + 2x + 3)dx = 0 satisfies y(−1) = −π, then y(0) is equal to: 4</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>π</div><div class="option"><span class="option-label">(B)</span>−π</div><div class="option"><span class="option-label">(C)</span>0 2</div><div class="option"><span class="option-label">(D)</span>π 2 4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>π</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−π</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>0 2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>π 2 4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">MATH-2024-0101-S1-Q088</span>
@@ -1160,12 +1253,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the solution of the differential equation dy satisfy. Then ( π ) y = y(x) dx −y = 1 + 4 sin x y(π) = 1 y 2 + 10 is equal to ______ − − → →</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">MATH-2024-0101-S2-Q077</span>
@@ -1176,12 +1270,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation (x2 + + (2x3y + 8xy −2)dx = 0. If y(0) = 0, then y</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>is equal to</div><div class="option"><span class="option-label">(B)</span>π</div><div class="option"><span class="option-label">(C)</span>2π →a 32 ^k,→b →c →d</div><div class="option"><span class="option-label">(D)</span>π 8</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>is equal to</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>π</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2π →a 32 ^k,→b →c →d</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>π 8</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="31">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">MATH-2024-0101-S2-Q088</span>
@@ -1192,12 +1287,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation (x + y + 2)2dx = dy, y(0) = −2. Let the maximum and minimum values of the function y = y(x) in [0, π ] be α and β, respectively. If π)2 β2 δ√3, ∈Z, then equals 3 ______ (3α + + = γ + γ, δ γ + δ</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 31</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">MATH-2024-0101-S1-Q077</span>
@@ -1208,12 +1304,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If y = y(x) is the solution of the differential equation dy + 2y = sin(2x), y(0) = 3, then y ( π ) is equal to: dx 4 8</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>eπ/8</div><div class="option"><span class="option-label">(B)</span>eπ/4</div><div class="option"><span class="option-label">(C)</span>e−π/4</div><div class="option"><span class="option-label">(D)</span>e−π/8</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>eπ/8</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>eπ/4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>e−π/4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>e−π/8</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">MATH-2024-0101-S2-Q076</span>
@@ -1224,12 +1321,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The differential equation of the family of circles passing through the origin and having centre at the line y = x is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(x2 −y2 + 2xy)dx = (x2 −y2 −2xy)dy</div><div class="option"><span class="option-label">(B)</span>(x2 + y2 + 2xy)dx = (x2 + y2 −2xy)dy →a,→b, →c |→a| |→b| →a →b →c</div><div class="option"><span class="option-label">(C)</span>(x2 + y2 −2xy)dx = (x2 + y2 + 2xy)dy</div><div class="option"><span class="option-label">(D)</span>(x2 −y2 + 2xy)dx = (x2 −y2 + 2xy)dy →b →c 27|→c −→a|2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(x2 −y2 + 2xy)dx = (x2 −y2 −2xy)dy</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>(x2 + y2 + 2xy)dx = (x2 + y2 −2xy)dy →a,→b, →c |→a| |→b| →a →b →c</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>(x2 + y2 −2xy)dx = (x2 + y2 + 2xy)dy</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>(x2 −y2 + 2xy)dx = (x2 −y2 + 2xy)dy →b →c 27|→c −→a|2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="18">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">MATH-2024-0101-S2-Q089</span>
@@ -1240,12 +1338,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation dy + 2x y = xe (1+x2); y(0) = 0. dx (1+x2)2 − 1 Then the area enclosed by the curve f(x) = y(x)e (1+x2) and the line y −x = 4 is__________ y−2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 18</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">MATH-2024-0101-S1-Q077</span>
@@ -1256,12 +1355,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation (1 + x2) dy + y = etan−1 x, y</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>= 0. Then y(0) is dx</div><div class="option"><span class="option-label">(B)</span>2 1 (eπ/2 −1)</div><div class="option"><span class="option-label">(C)</span>2 1 (1 −eπ/2)</div><div class="option"><span class="option-label">(D)</span>1 (1 −eπ/2)</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>= 0. Then y(0) is dx</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2 1 (eπ/2 −1)</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2 1 (1 −eπ/2)</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 (1 −eπ/2)</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">MATH-2024-0101-S1-Q078</span>
@@ -1272,12 +1372,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation (2x loge x) dy + 2y = 3 loge x, x &gt; 0 and (e−1) dx x y = 0. Then, y(e) is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>−3</div><div class="option"><span class="option-label">(B)</span>−3 e 2e</div><div class="option"><span class="option-label">(C)</span>−2</div><div class="option"><span class="option-label">(D)</span>−2 3e e</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>−3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−3 e 2e</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−2 3e e</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">MATH-2024-0101-S2-Q076</span>
@@ -1288,12 +1389,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Suppose the solution of the differential equation dy = (2+α)x−βy+2 represents a circle passing through dx βx−2αy−(βγ−4α) origin. Then the radius of this circle is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2</div><div class="option"><span class="option-label">(B)</span>√17</div><div class="option"><span class="option-label">(C)</span>1</div><div class="option"><span class="option-label">(D)</span>√17 2 2 → →</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>√17</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>√17 2 2 → →</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">MATH-2024-0101-S2-Q089</span>
@@ -1304,12 +1406,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α|x| = |y|exy−β, α, β ∈N be the solution of the differential equation x dy −y dx + xy(x dy + y dx) = 0, y(1) = 2. Then α + β is equal to ________</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">MATH-2024-0101-S1-Q075</span>
@@ -1320,12 +1423,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The solution curve, of the differential equation 2y dx + 3 = 5 dx, passing through the point (0, 1) is a conic, whose vertex lies on the line:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2x + 3y = 9</div><div class="option"><span class="option-label">(B)</span>2x + 3y = −9</div><div class="option"><span class="option-label">(C)</span>2x + 3y = −6</div><div class="option"><span class="option-label">(D)</span>2x + 3y = 6</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2x + 3y = 9</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2x + 3y = −9</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2x + 3y = −6</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2x + 3y = 6</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">MATH-2024-0101-S1-Q076</span>
@@ -1336,12 +1440,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The solution of the differential equation (x2 + y2)dx −5xy dy = 0, y</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>= 0, is: 6 6</div><div class="option"><span class="option-label">(B)</span>x2 −2y2 = x</div><div class="option"><span class="option-label">(C)</span>x2 −4y2 = x</div><div class="option"><span class="option-label">(D)</span>x2 −4y2 5 = x2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>= 0, is: 6 6</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x2 −2y2 = x</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>x2 −4y2 = x</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>x2 −4y2 5 = x2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">MATH-2024-0101-S1-Q077</span>
@@ -1352,12 +1457,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let x = x(t) and y = y(t) be solutions of the differential equations dx + ax = 0 and dy + by = 0 dt dt respectively, a, b ∈R. Given that x(0) = 2; y(0) = 1 and 3 y</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>= 2 x</div><div class="option"><span class="option-label">(B)</span>, the value of t, for which x(t) = y(t), is:</div><div class="option"><span class="option-label">(C)</span>log 2 2</div><div class="option"><span class="option-label">(D)</span>log4 3 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>= 2 x</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>, the value of t, for which x(t) = y(t), is:</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>log 2 2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>log4 3 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="29">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">MATH-2024-0101-S1-Q088</span>
@@ -1368,12 +1474,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the solution of the differential equation (2x + 3y −2)dx + (4x + 6y −7)dy = 0, y(0) = 3, is αx + βy + 3 loge |2x + 3y −γ| = 6, then α + 2β + 3γ is equal to ______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 29</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">MATH-2024-0101-S2-Q076</span>
@@ -1384,12 +1491,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If y = y ( x ) is the solution curve of the differential equation x2 - 4dy - y2 - 3ydx = 0, x &gt; 2, y</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>= 3 and 2 the slope of the curve is never zero, then the value of y ( 10 ) equals:</div><div class="option"><span class="option-label">(B)</span>3</div><div class="option"><span class="option-label">(C)</span>3 1 1 + 2√2 1 + ( 8 ) 4</div><div class="option"><span class="option-label">(D)</span>3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>= 3 and 2 the slope of the curve is never zero, then the value of y ( 10 ) equals:</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3 1 1 + 2√2 1 + ( 8 ) 4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">MATH-2024-0101-S1-Q089</span>
@@ -1400,12 +1508,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the solution curve y = y(x) of the differential equation (1 + y2)(1 + loge x)dx + xdy = 0, x &gt; 0 passes through the point (1, 1) and y(e) = α−tan( 2 3 ), then α + 2β is β+tan( 3 ) 2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="97">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">MATH-2024-0101-S1-Q089</span>
@@ -1416,12 +1525,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let y = y(x) be the solution of the differential equation (1 −x2)dy = [xy + (x3 + 2)√3(1 −x2)]dx, −1 &lt; x &lt; 1, y(0) = 0. If y( 1 ) = m, m and n are coprime numbers, then m + n is equal to __________. 2 n</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 97</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">MATH-2024-0101-S1-Q075</span>
@@ -1432,12 +1542,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The solution curve of the differential equation y dy= dx xlogex- logey+ 1, x&gt; 0, y&gt; 0 passing through the point ( e, 1 ) is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>y</div><div class="option"><span class="option-label">(B)</span>y y2 loge x= x loge x=</div><div class="option"><span class="option-label">(C)</span>loge y= x y</div><div class="option"><span class="option-label">(D)</span>2loge y= x y+ 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>y</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>y y2 loge x= x loge x=</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>loge y= x y</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2loge y= x y+ 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">MATH-2024-0101-S2-Q077</span>
@@ -1448,12 +1559,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The temperature Tt of a body at time t= 0 is 160° F and it decreases continuously as per the differential equation dT dt= −KT−80, where K is positive constant. If T15 = 120° F, then T45 is equal to 85° 95°</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>F</div><div class="option"><span class="option-label">(B)</span>F</div><div class="option"><span class="option-label">(C)</span>90° F</div><div class="option"><span class="option-label">(D)</span>80° F</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>F</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>F</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>90° F</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>80° F</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="9">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">MATH-2024-0101-S2-Q088</span>
@@ -1464,8 +1576,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let be the solution of the differential equation sec2xdx+ e2ytan2x+ π yπ 0. y= yx tanxdy= 0, 0 &lt; x&lt; 2, 4 = If y π = α, then e8α is equal to ______. 6</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 9</div>
     </div>

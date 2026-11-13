@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -237,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">MATH-2021-0101-S2-Q081</span>
@@ -248,12 +284,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If for the complex numbers z satisfying |z- 2 - 2i| ≤1, the maximum value of |3iz+ 6| is attained at a+ ib, then a+ b is equal to _____.</div>
   <img class="question-media" src="../../../../assets/b11d23d6a7837adb.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">MATH-2021-0101-S1-Q062</span>
@@ -264,12 +301,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let a complex number z, |z| ≠1, satisfy log 1 (|z|−1)2 ≤2. Then, the largest value of |z| is equal to √2 _________.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>8</div><div class="option"><span class="option-label">(B)</span>7</div><div class="option"><span class="option-label">(C)</span>6</div><div class="option"><span class="option-label">(D)</span>5 (31/4 51/8) 60</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>8</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>7</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>6</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>5 (31/4 51/8) 60</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">MATH-2021-0101-S1-Q080</span>
@@ -280,12 +318,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A pack of cards has one card missing. Two cards are drawn randomly and are found to be spades. The probability that the missing card is not a spade, is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>4 3</div><div class="option"><span class="option-label">(B)</span>867 52</div><div class="option"><span class="option-label">(C)</span>39</div><div class="option"><span class="option-label">(D)</span>22 50 425 ̄ Q81.Let z and w be two complex numbers such that w = zz −2z + 2, z+i = 1 and Re (w) has minimum value. z−3i Then, the minimum value of n ∈N for which wn is real, is equal to _______.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>4 3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>867 52</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>39</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>22 50 425 ̄ Q81.Let z and w be two complex numbers such that w = zz −2z + 2, z+i = 1 and Re (w) has minimum value. z−3i Then, the minimum value of n ∈N for which wn is real, is equal to _______.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">MATH-2021-0101-S2-Q061</span>
@@ -296,12 +335,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The least value of |z| where z is complex number which satisfies the inequality e( (|z|+3)(|z|−1) loge 2) ||z|+1| ≥log√2 5√7 + 9i, i = √−1, is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3</div><div class="option"><span class="option-label">(B)</span>√5</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>8</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>√5</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>8</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">MATH-2021-0101-S1-Q072</span>
@@ -312,12 +352,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The system of equations kx + y + z = 1, x + ky + z = k and x + y + zk = k2 has no solution if k is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>0 1</div><div class="option"><span class="option-label">(C)</span>−1</div><div class="option"><span class="option-label">(D)</span>−2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>0 1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="904">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">MATH-2021-0101-S1-Q086</span>
@@ -328,12 +369,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The maximum value of z in the following equation z = 6xy + y2, where 3x + 4y ≤100 and 4x + 3y ≤75 for x ≥0 and y ≥0 is</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 904</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">MATH-2021-0101-S1-Q074</span>
@@ -344,12 +386,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α, β, γ be the real roots of the equation, x3 + ax2 + bx + c = 0, ( a, b, c ∈R and a, b ≠0 ). If the system of equations (in, u, v, w ) given by αu + βv + γw = 0, βu + γv + αw = 0, γu + αv + βw = 0 has non-trivial solution, then the value of a2 is b</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>5</div><div class="option"><span class="option-label">(B)</span>3</div><div class="option"><span class="option-label">(C)</span>1</div><div class="option"><span class="option-label">(D)</span>0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>5</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">MATH-2021-0101-S1-Q081</span>
@@ -360,12 +403,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let z1, z2 be the roots of the equation z2 + az + 12 = 0 and z1, z2 form an equilateral triangle with origin. Then, the value of is |a|</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">MATH-2021-0101-S2-Q061</span>
@@ -376,12 +420,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let a complex number be w = 1 −√3i. Let another complex number z be such that |zw| = 1 and π. Then the area of the triangle (in sq. units) with vertices origin, and is equal to arg(z) −arg(w) = 2 z w</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>4</div><div class="option"><span class="option-label">(B)</span>1 2</div><div class="option"><span class="option-label">(C)</span>4 1</div><div class="option"><span class="option-label">(D)</span>2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">MATH-2021-0101-S1-Q061</span>
@@ -392,12 +437,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If α and β are the distinct roots of the equation x2 +</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>4 1 x + 3 1 = 0, then the value of 2 α96(α12 −1) + β96(β12 −1) is equal to: 325 324</div><div class="option"><span class="option-label">(B)</span>56 ×</div><div class="option"><span class="option-label">(C)</span>56 ×</div><div class="option"><span class="option-label">(D)</span>52 × 324</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>4 1 x + 3 1 = 0, then the value of 2 α96(α12 −1) + β96(β12 −1) is equal to: 325 324</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>56 ×</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>56 ×</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>52 × 324</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">MATH-2021-0101-S1-Q063</span>
@@ -408,12 +454,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If z and ω are two complex numbers such that |zω| = 1 and arg(z) −arg(ω) = 3π 2, then arg( 1+3 ̄zω 1−2 ̄zω ) is: (Here denotes the principal argument of complex number ) arg(z) z</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>π</div><div class="option"><span class="option-label">(B)</span>−3π 4 4</div><div class="option"><span class="option-label">(C)</span>−π 4</div><div class="option"><span class="option-label">(D)</span>3π 4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>π</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−3π 4 4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−π 4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3π 4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">MATH-2021-0101-S1-Q069</span>
@@ -424,12 +471,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The values of λ and μ such that the system of equations x + y + z = 6, 3x + 5y + 5z = 26 and x + 2y + λz = μ has no solution, are:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>λ = 3, μ = 5</div><div class="option"><span class="option-label">(B)</span>λ = 3, μ ≠10</div><div class="option"><span class="option-label">(C)</span>λ ≠2, μ = 10</div><div class="option"><span class="option-label">(D)</span>λ = 2, μ ≠10</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>λ = 3, μ = 5</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>λ = 3, μ ≠10</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>λ ≠2, μ = 10</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>λ = 2, μ ≠10</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">MATH-2021-0101-S2-Q061</span>
@@ -440,12 +488,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let a, b, c be in arithmetic progression. Let the centroid of the triangle with vertices (a, c), (2, b) and (a, b) be ( 10 3, 7 3 ). If α, β are the roots of the equation ax2 + bx + 1 = 0, then the value of α2 + β2 −αβ is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>−71</div><div class="option"><span class="option-label">(B)</span>69 256 256</div><div class="option"><span class="option-label">(C)</span>71</div><div class="option"><span class="option-label">(D)</span>−69 256 256 n+1C2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>−71</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>69 256 256</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>71</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−69 256 256 n+1C2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">MATH-2021-0101-S2-Q081</span>
@@ -456,12 +505,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of the real roots of the equation (x + 1)2 + x −5 = 27 is ________. 4 21 21</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">MATH-2021-0101-S1-Q063</span>
@@ -472,12 +522,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The total number of positive integral solutions (x, y, z) such that xyz = 24 is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>45</div><div class="option"><span class="option-label">(B)</span>30</div><div class="option"><span class="option-label">(C)</span>36</div><div class="option"><span class="option-label">(D)</span>24</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>45</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>30</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>36</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>24</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">MATH-2021-0101-S1-Q079</span>
@@ -488,12 +539,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The coefficients a, b and c of the quadratic equation, ax2 + bx + c = 0 are obtained by throwing a dice three times. The probability that this equation has equal roots is: 1 1</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>72</div><div class="option"><span class="option-label">(B)</span>36</div><div class="option"><span class="option-label">(C)</span>1</div><div class="option"><span class="option-label">(D)</span>5 54 216</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>72</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>36</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>5 54 216</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">MATH-2021-0101-S1-Q085</span>
@@ -504,12 +556,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let A = ⎣ y z x ⎦, where x, y and z are real numbers such that x + y + z &gt; 0 and xyz = 2. If A2 = I3, z x y then the value of x3 + y3 + z3 is</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="21">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">MATH-2021-0101-S1-Q086</span>
@@ -520,12 +573,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the system of equations kx + y + 2z = 1 3x −y −2z = 2 −2x −2y −4z = 3 has infinitely many solutions, then k is equal to ______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 21</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">MATH-2021-0101-S1-Q074</span>
@@ -536,12 +590,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of real roots of the equation e6x- e4x- 2e3x- 12e2x+ ex+ 1 = 0 is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2</div><div class="option"><span class="option-label">(B)</span>4</div><div class="option"><span class="option-label">(C)</span>6</div><div class="option"><span class="option-label">(D)</span>1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>6</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">MATH-2021-0101-S1-Q081</span>
@@ -552,12 +607,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If α, β are roots of the equation x2 + 5√2x+ 10 = 0, α&gt; β and Pn= αn- βn for each positive integer n, then the value of P17P20 + 5√2P17P19 is equal to P18P19 + 5√2P18 2</div>
   <img class="question-media" src="../../../../assets/39a0122455257753.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="13">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">MATH-2021-0101-S1-Q082</span>
@@ -568,12 +624,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let 1−i√3 1 3 (z2 1 3 (z3 1 3 (z21 1 3 z = 2, i = √−1. Then the value of 21 + (z + z ) + + z2 ) + + z3 ) +... + + z21 ) is______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 13</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">MATH-2021-0101-S2-Q061</span>
@@ -584,12 +641,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If (√3 i)100 299(p iq), + = + then p and q are roots of the equation: −(√3 1)x (√3 1)x</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>x2 + + √3 = 0</div><div class="option"><span class="option-label">(B)</span>x2 + + + √3 = 0</div><div class="option"><span class="option-label">(C)</span>x2 + (√3 −1)x −√3 = 0</div><div class="option"><span class="option-label">(D)</span>x2 −(√3 −1)x −√3 = 0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>x2 + + √3 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x2 + + + √3 = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>x2 + (√3 −1)x −√3 = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>x2 −(√3 −1)x −√3 = 0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="18">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">MATH-2021-0101-S2-Q081</span>
@@ -600,12 +658,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let λ ≠0 be in R. If α and β are the roots of the equation x2 −x + 2λ = 0, and α and γ are the roots of the equation 3x2 −10x + 27λ = 0, then βγ is equal to ________. λ</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 18</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">MATH-2021-0101-S1-Q082</span>
@@ -616,12 +675,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The sum of 162th power of the roots of the equation x3 −2x2 + 2x −1 = 0 is ______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">MATH-2021-0101-S2-Q061</span>
@@ -632,12 +692,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A natural number has prime factorization given by n = 2x3y5z, where y and z are such that y + z = 5 and y−1 + z−1 = 5, &gt;. Then the number of odd divisors of, including 1, is: 6 y z n</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>12</div><div class="option"><span class="option-label">(B)</span>6</div><div class="option"><span class="option-label">(C)</span>11</div><div class="option"><span class="option-label">(D)</span>6x</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>12</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>6</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>11</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>6x</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">MATH-2021-0101-S2-Q068</span>
@@ -648,12 +709,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the following system of equations: x + 2y −3z = a 2x + 6y −11z = b x −2y + 7z = c where a, b and c are real constants. Then the system of equations:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>has a unique solution when</div><div class="option"><span class="option-label">(B)</span>has no solution for all and 5a = 2b + c a, b c</div><div class="option"><span class="option-label">(C)</span>has infinite number of solutions when</div><div class="option"><span class="option-label">(D)</span>has a unique solution for all a, b and c 5a = 2b + c</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>has a unique solution when</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>has no solution for all and 5a = 2b + c a, b c</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>has infinite number of solutions when</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>has a unique solution for all a, b and c 5a = 2b + c</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="48">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">MATH-2021-0101-S2-Q082</span>
@@ -664,12 +726,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let be those complex numbers which satisfy and √−1. If the ̄ z |z + 5| ≤4 z(1 + i) + z(1 −i) ⩾−10, i = maximum value of |z + 1|2 is α + β√2, then the value of (α + β) is</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 48</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">MATH-2021-0101-S1-Q088</span>
@@ -680,12 +743,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of distinct real roots of the equation 3x4 + 4x3 −12x2 + 4 = 0 is _________.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">MATH-2021-0101-S2-Q081</span>
@@ -696,12 +760,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let z1 and z2 be two complex numbers such that arg(z1 −z2) = π and z1, z2 satisfy the equation 4 |z −3| =Re (z). Then the imaginary part z1 + z2 is equal to</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">MATH-2021-0101-S1-Q061</span>
@@ -712,12 +777,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α, be two roots of the equation x2 + (20)1/4x + (5)1/2 = 0. Then α8 + β8 is equal to β</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>10</div><div class="option"><span class="option-label">(B)</span>100</div><div class="option"><span class="option-label">(C)</span>50</div><div class="option"><span class="option-label">(D)</span>160</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>10</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>100</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>50</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>160</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">MATH-2021-0101-S1-Q062</span>
@@ -728,12 +794,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let C be the set of all complex numbers. Let {z |z–3–2i|2 8}, S1 = ∈C = S2 = z ∈C| Re(z) ≥5 and ̄ S3 = {z ∈C| |z–z| ≥8}. Then the number of elements in S1 ∩S2 ∩S3 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1</div><div class="option"><span class="option-label">(B)</span>0</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>Infinite</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Infinite</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">MATH-2021-0101-S2-Q062</span>
@@ -744,12 +811,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let be the set of all complex numbers. Let S1 = {z: |z −2| ≤1} and ̄ S2 = {z ∈C: z(1 + i) + z(1 −i) ≥4}. Then, the maximum value of z −5 2 for z ∈S1 ∩S2 is equal to: 2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3+2√2</div><div class="option"><span class="option-label">(B)</span>5+2√2 3+2√2 4 5+2√2 2</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3+2√2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>5+2√2 3+2√2 4 5+2√2 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">MATH-2021-0101-S2-Q081</span>
@@ -760,12 +828,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of real roots of the equation e4x −e3x −4e2x −ex + 1 = 0 is equal to</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">MATH-2021-0101-S2-Q082</span>
@@ -776,12 +845,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the real part of the complex number z = 3+2i cos θ, θ ∈(0, π ) is zero, then the value of sin2 3θ + cos2 θ is 1−3i cos θ 2 equal to ______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">MATH-2021-0101-S1-Q075</span>
@@ -792,12 +862,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of real roots of the equation e4x + 2e3x −ex −6 = 0 is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>0</div><div class="option"><span class="option-label">(B)</span>1</div><div class="option"><span class="option-label">(C)</span>4</div><div class="option"><span class="option-label">(D)</span>2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">MATH-2021-0101-S2-Q061</span>
@@ -808,12 +879,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The sum of the roots of the equation, x+ 1 - 2log23 + 2x+ 2log410 - 2-x= 0, is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>log214</div><div class="option"><span class="option-label">(B)</span>log212</div><div class="option"><span class="option-label">(C)</span>log213</div><div class="option"><span class="option-label">(D)</span>log211</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>log214</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>log212</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>log213</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>log211</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">MATH-2021-0101-S2-Q063</span>
@@ -824,12 +896,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If z is a complex number such that is purely imaginary, then the minimum value of |z- ( 3 + 3 i) | is: z- 1</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3√2</div><div class="option"><span class="option-label">(B)</span>2√2</div><div class="option"><span class="option-label">(C)</span>2√2 - 1</div><div class="option"><span class="option-label">(D)</span>6√2 a1 + a2 +... + a10 100 a11</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3√2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2√2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2√2 - 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>6√2 a1 + a2 +... + a10 100 a11</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">MATH-2022-0101-S1-Q070</span>
@@ -840,12 +913,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of values of α for which the system of equations x + y + z = α αx + 2αy + 3z = −1 x + 3αy + 5z = 4 is inconsistent, is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>0</div><div class="option"><span class="option-label">(B)</span>1</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>3 (tan−1 x)3 (cot−1 x)3 kπ3,</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3 (tan−1 x)3 (cot−1 x)3 kπ3,</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">MATH-2022-0101-S2-Q072</span>
@@ -856,12 +930,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of distinct real roots of the equation x7 −7x −2 = 0 is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>5</div><div class="option"><span class="option-label">(B)</span>7</div><div class="option"><span class="option-label">(D)</span>1 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>5</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>7</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">MATH-2022-0101-S2-Q062</span>
@@ -872,12 +947,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let a, b∈R be such that the equation ax2 - 2bx+ 15 = 0 has repeated root α and if α and β are the roots of the equation x2 - 2bx+ 21 = 0, then α2 + β2 is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>37</div><div class="option"><span class="option-label">(B)</span>58</div><div class="option"><span class="option-label">(C)</span>68</div><div class="option"><span class="option-label">(D)</span>92 z1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>37</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>58</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>68</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>92 z1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">MATH-2022-0101-S2-Q063</span>
@@ -888,12 +964,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let z1 and z2 be two complex numbers such that ̄z1 = i ̄z2 and arg ̄z2 = π, then the argument of z1 is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>π</div><div class="option"><span class="option-label">(B)</span>3π arg z2 = 4 arg z2 = - 4</div><div class="option"><span class="option-label">(C)</span>arg z1 = π</div><div class="option"><span class="option-label">(D)</span>arg z1 = - 3π 4 4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>π</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3π arg z2 = 4 arg z2 = - 4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>arg z1 = π</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>arg z1 = - 3π 4 4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">MATH-2022-0101-S1-Q078</span>
@@ -904,12 +981,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the two lines l1: x−2 = y+1, z = 2 and l2: x−1 = 2y+3 = z+5 are perpendicular, then an angle between 1−x 3 2y−1 −2 1 α 2 the lines l2 and l3: 3 = −4 = 4 z is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>cos−1( 29 )</div><div class="option"><span class="option-label">(B)</span>sec−1( 29 ) 4 4</div><div class="option"><span class="option-label">(C)</span>cos−1( 2 )</div><div class="option"><span class="option-label">(D)</span>cos−1( 2 ) 29 √29</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>cos−1( 29 )</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>sec−1( 29 ) 4 4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>cos−1( 2 )</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>cos−1( 2 ) 29 √29</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="36">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">MATH-2022-0101-S1-Q081</span>
@@ -920,12 +998,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The sum of the cubes of all the roots of the equation x4 −3x3 −2x2 + 3x + 1 = 0 is _____.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 36</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">MATH-2022-0101-S2-Q069</span>
@@ -936,12 +1015,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the system of equations. Has infinitely many solutions, αx + y + z = 5, x + 2y + 3z = 4, x + 3y + 5z = β then the ordered pair (α, β) is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(1, −3)</div><div class="option"><span class="option-label">(B)</span>(−1, 3)</div><div class="option"><span class="option-label">(C)</span>(1, 3)</div><div class="option"><span class="option-label">(D)</span>(−1, −3)</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(1, −3)</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>(−1, 3)</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>(1, 3)</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>(−1, −3)</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="100">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">MATH-2022-0101-S2-Q087</span>
@@ -952,12 +1032,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">⎡ 0 1 0 ⎤ Let X = 0 0 1, Y = αl + βX + γX 2 and Z = α2I −αβX + (β2 −αγ)X 2, α, β, γ ∈R. ⎣ ⎦ 0 0 0 ⎡ 1 −2 1 ⎤ 5 5 5 If Y−1 = 0 5 1 −2 5, then (α −β + γ)2 is equal to ______. ⎣ 1 ⎦ 0 0 5</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 100</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">MATH-2022-0101-S1-Q062</span>
@@ -968,12 +1049,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If x = ∑∞ an, y = ∑∞ bn, z = ∑∞ cn, where a, b, c are in A.P. and |a| &lt; 1, |b| &lt; 1, |c| &lt; 1, abc ≠0, n=0 n=0 n=0 then</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>x, y, z are in A.P.</div><div class="option"><span class="option-label">(B)</span>x, y, z are in G.P.</div><div class="option"><span class="option-label">(C)</span>x 1, 1 y, 1 z are in A.P.</div><div class="option"><span class="option-label">(D)</span>x 1 + 1 y + 1 z = 1 −(a + b + c)</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>x, y, z are in A.P.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x, y, z are in G.P.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>x 1, 1 y, 1 z are in A.P.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>x 1 + 1 y + 1 z = 1 −(a + b + c)</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="45">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">MATH-2022-0101-S1-Q088</span>
@@ -984,12 +1066,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the sum of all the roots of the equation e2x −11ex −45e−x + 81 = 0 is loge, then is equal to _____. 2 P P</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 45</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="98">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">MATH-2022-0101-S2-Q081</span>
@@ -1000,12 +1083,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α, β be the roots of the equation x2 −4λx + 5 = 0 and α, γ be the roots of the equation x2 −(3√2 + 2√3)x + 7 + 3λ√3 = 0. If β + γ = 3√2, then (α + 2β + γ)2 is equal to</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 98</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="40">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">MATH-2022-0101-S1-Q082</span>
@@ -1016,12 +1100,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of elements in the set { ∈C ∈Z and } is _____. z = a + ib: a, b 1 &lt; |z −3 + 2i| &lt; 4</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">MATH-2022-0101-S2-Q080</span>
@@ -1032,12 +1117,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the plane pass through and is perpendicular to the planes ax + by + cz = d (2, 3, −5) 2x + y −5z = 10 and 3x + 5y −7z = 12 If a, b, c, d are integers d &gt; 0 and gcd(|a|, |b|, |c|, d) = 1 then the value of a + 7b + c + 20d is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>18</div><div class="option"><span class="option-label">(B)</span>20</div><div class="option"><span class="option-label">(C)</span>24</div><div class="option"><span class="option-label">(D)</span>22 ̄ Q81.Sum of squares of modulus of all the complex numbers z satisfying z = iz2 + z2 −z is equal to</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>18</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>20</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>24</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>22 ̄ Q81.Sum of squares of modulus of all the complex numbers z satisfying z = iz2 + z2 −z is equal to</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">MATH-2022-0101-S1-Q061</span>
@@ -1048,12 +1134,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α and β be the roots of the equation x2 + (2i −1) = 0. Then, the value of α8 + β8 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>50</div><div class="option"><span class="option-label">(B)</span>250</div><div class="option"><span class="option-label">(C)</span>1250</div><div class="option"><span class="option-label">(D)</span>1550 {an}∞ ∑∞ an</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>50</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>250</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1250</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1550 {an}∞ ∑∞ an</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">MATH-2022-0101-S2-Q062</span>
@@ -1064,12 +1151,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let (z) represent the principal argument of the complex number z. The, |z| = 3 and arg(z −1) −arg(z + 1) = π intersect:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Exactly at one point 4</div><div class="option"><span class="option-label">(B)</span>Exactly at two points</div><div class="option"><span class="option-label">(C)</span>Nowhere</div><div class="option"><span class="option-label">(D)</span>At infinitely many points. 5 12 22 35 51 70</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Exactly at one point 4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Exactly at two points</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Nowhere</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>At infinitely many points. 5 12 22 35 51 70</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">MATH-2023-0101-S1-Q066</span>
@@ -1080,12 +1168,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the orthocentre of the triangle, whose vertices are 1, 2, 2, 3 and 3, 1 is α, β, then the quadratic equation whose roots are α+ 4β and 4α+ β, is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>x2 - 19x+ 90 = 0</div><div class="option"><span class="option-label">(B)</span>x2 - 18x+ 80 = 0</div><div class="option"><span class="option-label">(C)</span>x2 - 22x+ 120 = 0</div><div class="option"><span class="option-label">(D)</span>x2 - 20x+ 99 = 0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>x2 - 19x+ 90 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x2 - 18x+ 80 = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>x2 - 22x+ 120 = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>x2 - 20x+ 99 = 0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">MATH-2023-0101-S1-Q061</span>
@@ -1096,12 +1185,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The sum of all the roots of the equation x2 - 8x+ 15 - 2x+ 7 = 0 is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>9 - √3</div><div class="option"><span class="option-label">(B)</span>9 + √3</div><div class="option"><span class="option-label">(C)</span>11 - √3</div><div class="option"><span class="option-label">(D)</span>11 + √3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>9 - √3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>9 + √3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>11 - √3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>11 + √3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">MATH-2023-0101-S2-Q077</span>
@@ -1112,12 +1202,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For the system of equations x + y + z = 6 x + 2y + αz = 10 x + 3y + 5z = β, which one of the following is NOT true?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>System has no solution for α = 3, β = 24</div><div class="option"><span class="option-label">(B)</span>System has a unique solution for α = −3, β = 14</div><div class="option"><span class="option-label">(C)</span>System has infinitely many solutions for</div><div class="option"><span class="option-label">(D)</span>System has a unique solution for α = 3, β ≠14 α = 3, β = 14</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>System has no solution for α = 3, β = 24</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>System has a unique solution for α = −3, β = 14</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>System has infinitely many solutions for</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>System has a unique solution for α = 3, β ≠14 α = 3, β = 14</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">MATH-2023-0101-S1-Q061</span>
@@ -1128,12 +1219,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α, β, γ be the three roots of the equation x3 + bx + c = 0 if βγ = 1 = −α then b3 + 2c3 −3α3 −6β3 −8γ 3 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>155</div><div class="option"><span class="option-label">(B)</span>21</div><div class="option"><span class="option-label">(C)</span>169 8</div><div class="option"><span class="option-label">(D)</span>8 19</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>155</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>21</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>169 8</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>8 19</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">MATH-2023-0101-S1-Q062</span>
@@ -1144,12 +1236,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If for z = α + iβ, |z + 2| = z + 4(1 + i), then α + β and αβ are the roots of the equation</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>x2 + 3x −4 = 0</div><div class="option"><span class="option-label">(B)</span>x2 + 7x + 12 = 0</div><div class="option"><span class="option-label">(C)</span>x2 + x −12 = 0</div><div class="option"><span class="option-label">(D)</span>x2 + 2x −3 = 0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>x2 + 3x −4 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x2 + 7x + 12 = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>x2 + x −12 = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>x2 + 2x −3 = 0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">MATH-2023-0101-S2-Q061</span>
@@ -1162,10 +1255,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">MATH-2023-0101-S2-Q062</span>
@@ -1176,12 +1270,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let A = {θ ∈(0, 2π): 1+2i sin θ is purely imaginary} Then the sum of the elements is in A is 1−i sin θ</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>4π</div><div class="option"><span class="option-label">(B)</span>3π</div><div class="option"><span class="option-label">(C)</span>π</div><div class="option"><span class="option-label">(D)</span>2π</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>4π</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3π</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>π</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2π</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">MATH-2023-0101-S2-Q072</span>
@@ -1192,12 +1287,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If α &gt; β &gt; 0 are the roots of the equation + bx + 1 = 0, and 1−cos(x2+bx+a) 1 lim ( ) 2 = 1 ( 1 −1 ), then k is equal to x→1 2(1−αx)2 k β α</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>α</div><div class="option"><span class="option-label">(B)</span>2β α</div><div class="option"><span class="option-label">(C)</span>2α</div><div class="option"><span class="option-label">(D)</span>β</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>α</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2β α</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2α</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>β</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">MATH-2023-0101-S1-Q061</span>
@@ -1208,12 +1304,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the complex number z= x+ iy be such that 2z- 3i is purely imaginary. If x+ y2 = 0, then y4 + y2 - y is 2z+ i equal to 2 3</div>
   
-  <div class="options"><div class="option"><span class="option-label">(C)</span>3 3</div><div class="option"><span class="option-label">(D)</span>2 4 4 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3 3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2 4 4 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">MATH-2023-0101-S1-Q075</span>
@@ -1224,12 +1321,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An arc PQ of a circle subtends a right angle at its centre O. The mid point of the arc PQ is R. If →OP= →u, →OR= →v →OQ= α→u+ β→v, and then α, β2, are the roots of the equation</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>x2 + x- 2 = 0</div><div class="option"><span class="option-label">(B)</span>x2 - x- 2 = 0</div><div class="option"><span class="option-label">(C)</span>3x2 - 2x- 1 = 0</div><div class="option"><span class="option-label">(D)</span>3x2 + 2x- 1 = 0 ^i- ^j+</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>x2 + x- 2 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x2 - x- 2 = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3x2 - 2x- 1 = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3x2 + 2x- 1 = 0 ^i- ^j+</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">MATH-2023-0101-S1-Q062</span>
@@ -1240,12 +1338,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let be the point obtained by the rotation of about the origin through a right angle in the w1 z1 = 5 + 4i anticlockwise direction, and w2 be the point obtained by the rotation of z2 = 3 + 5i about the origin through a right angle in the clockwise direction. Then the principal argument w1 - w2 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>tan-18</div><div class="option"><span class="option-label">(B)</span>tan-133 π- 9 -π+ 5</div><div class="option"><span class="option-label">(C)</span>-π+ tan-18</div><div class="option"><span class="option-label">(D)</span>π- tan-133 9 5</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>tan-18</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>tan-133 π- 9 -π+ 5</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>-π+ tan-18</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>π- tan-133 9 5</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="51">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">MATH-2023-0101-S1-Q081</span>
@@ -1256,12 +1355,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If a21 + b21 + a17 + b17 a and b are the roots of the equation x2 - 7x- 1 = 0, then the value of b19 is equal to a19 +</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 51</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">MATH-2023-0101-S2-Q077</span>
@@ -1272,12 +1372,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">x + 1 x x If x x + λ x = 9 (103x + 81), then λ, λ are the roots of the equation 8 3 x x x + λ2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>4x2 + 24x −27 = 0</div><div class="option"><span class="option-label">(B)</span>4x2 −24x −27 = 0</div><div class="option"><span class="option-label">(C)</span>4x2 + 24x + 27 = 0</div><div class="option"><span class="option-label">(D)</span>4x2 −24x + 27 = 0 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>4x2 + 24x −27 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4x2 −24x −27 = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4x2 + 24x + 27 = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4x2 −24x + 27 = 0 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">MATH-2023-0101-S1-Q061</span>
@@ -1288,12 +1389,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let be the roots of the quadratic equation x2 √6x. Then α23+β23+α14+β14 is equal to α, β + + 3 = 0 α15+β15+α10+β10</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>81</div><div class="option"><span class="option-label">(B)</span>9</div><div class="option"><span class="option-label">(C)</span>72</div><div class="option"><span class="option-label">(D)</span>729</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>81</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>9</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>72</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>729</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">MATH-2023-0101-S2-Q061</span>
@@ -1304,12 +1406,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α, β be the roots of the equation x2 - √2x+ 2 = 0 Then α14 + β14 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>-64</div><div class="option"><span class="option-label">(B)</span>-64√2</div><div class="option"><span class="option-label">(C)</span>-128</div><div class="option"><span class="option-label">(D)</span>-128√2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>-64</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>-64√2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>-128</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>-128√2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">MATH-2023-0101-S2-Q066</span>
@@ -1320,12 +1423,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let ( α, β) be the centroid of the triangle formed by the lines 15x- y= 82, 6x- 5y= - 4 and 9x+ 4y= 17. Then α+ 2β and 2α- β are the roots of the equation</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>x2 - 7x+ 12 = 0</div><div class="option"><span class="option-label">(B)</span>x2 - 14x+ 48 = 0</div><div class="option"><span class="option-label">(C)</span>x2 - 13x+ 42 = 0</div><div class="option"><span class="option-label">(D)</span>x2 - 10x+ 25 = 0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>x2 - 7x+ 12 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x2 - 14x+ 48 = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>x2 - 13x+ 42 = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>x2 - 10x+ 25 = 0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">MATH-2023-0101-S1-Q061</span>
@@ -1336,12 +1440,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of real roots of the equation, is x|x| −5|x + 2| + 6 = 0</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>5</div><div class="option"><span class="option-label">(B)</span>4</div><div class="option"><span class="option-label">(D)</span>6 3 ̄ Q62.If the set {Re ( z−z+zz ): z ∈C, Re z = 3} is equal to the interval (α, β], then 24(β −α) is equal to ̄</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>5</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>6 3 ̄ Q62.If the set {Re ( z−z+zz ): z ∈C, Re z = 3} is equal to the interval (α, β], then 24(β −α) is equal to ̄</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">MATH-2023-0101-S1-Q061</span>
@@ -1352,12 +1457,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let p, q∈R and (1 - √3i) 200 = 2199 (p+ iq), i= √-1. Then, p+ q+ q2 and p- q+ q2 are roots of the equation.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>x2 + 4x- 1 = 0</div><div class="option"><span class="option-label">(B)</span>x2 - 4x+ 1 = 0</div><div class="option"><span class="option-label">(C)</span>x2 + 4x+ 1 = 0</div><div class="option"><span class="option-label">(D)</span>x2 - 4x- 1 = 0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>x2 + 4x- 1 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x2 - 4x+ 1 = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>x2 + 4x+ 1 = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>x2 - 4x- 1 = 0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">MATH-2023-0101-S2-Q077</span>
@@ -1368,12 +1474,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the system of equations x + 2y + 3z = 3, 4x + 3y −4z = 4 and 8x + 4y −λz = 9 + μ has infinitely many solutions, then the ordered pair (λ, μ) is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>( 72, 21 )</div><div class="option"><span class="option-label">(B)</span>( −72, −21 ) 5 5 5 5</div><div class="option"><span class="option-label">(C)</span>( 72, −21 )</div><div class="option"><span class="option-label">(D)</span>( −72, 21 ) 5 5 5 5</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>( 72, 21 )</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>( −72, −21 ) 5 5 5 5</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>( 72, −21 )</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>( −72, 21 ) 5 5 5 5</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">MATH-2023-0101-S2-Q061</span>
@@ -1386,10 +1493,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">MATH-2023-0101-S2-Q062</span>
@@ -1400,12 +1508,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let z be a complex number such that z−2i = 2, z ≠−i. Then z lies on the circle of radius 2 and centre z+i</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(2, 0)</div><div class="option"><span class="option-label">(B)</span>(0, 2)</div><div class="option"><span class="option-label">(C)</span>(0, 0)</div><div class="option"><span class="option-label">(D)</span>(0, −2)</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(2, 0)</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>(0, 2)</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>(0, 0)</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>(0, −2)</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">MATH-2023-0101-S1-Q061</span>
@@ -1416,12 +1525,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let λ ≠0 be a real number. Let α, β be the roots of the equation 14x2 −31x + 3λ = 0 and α, γ be the roots of the equation 35x2 −53x + 4λ = 0. Then 3α and 4α are the roots of the equation: β γ</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>7x2 + 245x −250 = 0</div><div class="option"><span class="option-label">(B)</span>7x2 −245x + 250 = 0</div><div class="option"><span class="option-label">(C)</span>49x2 −245x + 250 = 0</div><div class="option"><span class="option-label">(D)</span>49x2 + 245x + 250 = 0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>7x2 + 245x −250 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>7x2 −245x + 250 = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>49x2 −245x + 250 = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>49x2 + 245x + 250 = 0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">MATH-2023-0101-S1-Q062</span>
@@ -1432,12 +1542,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For two non-zero complex number z1 and z2, if Re (z1z2) = 0 and Re (z1 + z2) = 0, then which of the following are possible?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Im (z1) &gt; 0 and Im (z2) &gt; 0</div><div class="option"><span class="option-label">(B)</span>Im (z1) &lt; 0 and Im (z2) &gt; 0</div><div class="option"><span class="option-label">(C)</span>Im (z1) &gt; 0 and Im (z2) &lt; 0</div><div class="option"><span class="option-label">(D)</span>Im (z1) &lt; 0 and Im (z2) &lt; 0 Choose the correct answer from the options given below:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Im (z1) &gt; 0 and Im (z2) &gt; 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Im (z1) &lt; 0 and Im (z2) &gt; 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Im (z1) &gt; 0 and Im (z2) &lt; 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Im (z1) &lt; 0 and Im (z2) &lt; 0 Choose the correct answer from the options given below:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">MATH-2023-0101-S1-Q075</span>
@@ -1448,12 +1559,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the following system of questions αx + 2y + z = 1 2αx + 3y + z = 1 3x + αy + 2z = β For some ∈R. Then which of the following is NOT correct. α, β</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>It has no solution if α = −1 and β ≠2</div><div class="option"><span class="option-label">(B)</span>It has no solution for α = −1 and for all β ∈R</div><div class="option"><span class="option-label">(C)</span>It has no solution for α = 3 and for all β ≠2</div><div class="option"><span class="option-label">(D)</span>It has a solution for all α ≠−1 and β = 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>It has no solution if α = −1 and β ≠2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>It has no solution for α = −1 and for all β ∈R</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>It has no solution for α = 3 and for all β ≠2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>It has a solution for all α ≠−1 and β = 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">MATH-2023-0101-S2-Q061</span>
@@ -1466,10 +1578,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="240">
   <div class="q-header">
     <span class="q-num">Q78</span>
     <span class="q-id">MATH-2023-0101-S2-Q082</span>
@@ -1480,12 +1593,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let q be the maximum integral value of p in [0, 10] for which the roots of the equation x2 −px + 4 5 p = 0 are rational. Then the area of the region {(x, y): 0 ≤y ≤(x −q)2, 0 ≤x ≤q} is (1) 243 (2) 25 (3) 125 3 (4) 164</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 240</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q79</span>
     <span class="q-id">MATH-2023-0101-S1-Q061</span>
@@ -1496,12 +1610,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of real roots of the equation √x2 - 4x+ 3 + √x2 - 9 = √4x2 - 14x+ 6, is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>0</div><div class="option"><span class="option-label">(B)</span>1</div><div class="option"><span class="option-label">(C)</span>3</div><div class="option"><span class="option-label">(D)</span>2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q80</span>
     <span class="q-id">MATH-2023-0101-S2-Q062</span>
@@ -1512,12 +1627,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The complex number z = π i−1 π is equal to: cos 3 +i sin 3</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>√2i(cos 5π 12 −i sin 5π 12 )</div><div class="option"><span class="option-label">(B)</span>cos 12 π −i sin 12 π</div><div class="option"><span class="option-label">(C)</span>√2(cos π π )</div><div class="option"><span class="option-label">(D)</span>√2(cos 5π 5π ) 12 + i sin 12 12 + i sin 12</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>√2i(cos 5π 12 −i sin 5π 12 )</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>cos 12 π −i sin 12 π</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>√2(cos π π )</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>√2(cos 5π 5π ) 12 + i sin 12 12 + i sin 12</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q81</span>
     <span class="q-id">MATH-2024-0101-S2-Q061</span>
@@ -1528,12 +1644,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α and β be the roots of the equation px2 + qx−r= 0, where p≠0. If p, q and r be the consecutive terms of a non-constant G.P and α+ 1 β= 1 3 4, then the value of α−β2 is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>80</div><div class="option"><span class="option-label">(B)</span>9 9</div><div class="option"><span class="option-label">(C)</span>20</div><div class="option"><span class="option-label">(D)</span>8 3 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>80</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>9 9</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>20</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>8 3 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q82</span>
     <span class="q-id">MATH-2024-0101-S2-Q062</span>
@@ -1544,12 +1661,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If z is a complex number such that z≤1, then the minimum value of z+ 23 + 4i is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2</div><div class="option"><span class="option-label">(B)</span>5 2</div><div class="option"><span class="option-label">(C)</span>3</div><div class="option"><span class="option-label">(D)</span>3 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>5 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q83</span>
     <span class="q-id">MATH-2024-0101-S1-Q061</span>
@@ -1560,12 +1678,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If 2 and 6 are the roots of the equation ax2 + bx + 1 = 0, then the quadratic equation, whose roots are 1 1 2a+b and 6a+b, is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2x2 + 11x + 12 = 0</div><div class="option"><span class="option-label">(B)</span>x2 + 8x + 12 = 0</div><div class="option"><span class="option-label">(C)</span>4x2 + 14x + 12 = 0</div><div class="option"><span class="option-label">(D)</span>x2 + 10x + 16 = 0 ( ̄z)2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2x2 + 11x + 12 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x2 + 8x + 12 = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4x2 + 14x + 12 = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>x2 + 10x + 16 = 0 ( ̄z)2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q84</span>
     <span class="q-id">MATH-2024-0101-S1-Q061</span>
@@ -1576,12 +1695,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the following two statements: Statement I: For any two non-zero complex numbers z1, z2, z1 z2 (|z1| + |z2|) |z1| + |z2| ≤2 (|z1| + |z2|), and Statement II: If are three distinct complex numbers and are three positive real numbers such that x, y, z a, b, c a = b = c, then a2 + b2 + c2 = 1. |y−z| |z−x| |x−y| y−z z−x x−y Between the above two statements,</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is correct but Statement II is</div><div class="option"><span class="option-label">(B)</span>both Statement I and Statement II are correct. incorrect.</div><div class="option"><span class="option-label">(C)</span>both Statement I and Statement II are incorrect.</div><div class="option"><span class="option-label">(D)</span>Statement I is incorrect but Statement II is correct.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is correct but Statement II is</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>both Statement I and Statement II are correct. incorrect.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>both Statement I and Statement II are incorrect.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Statement I is incorrect but Statement II is correct.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q85</span>
     <span class="q-id">MATH-2024-0101-S1-Q069</span>
@@ -1592,12 +1712,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">11x + y + λz = −5 If the system of equations 2x + 3y + 5z = 3 has infinitely many solutions, then λ4 −μ is equal to: 8x −19y −39z = μ</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>51</div><div class="option"><span class="option-label">(B)</span>45</div><div class="option"><span class="option-label">(C)</span>47</div><div class="option"><span class="option-label">(D)</span>49</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>51</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>45</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>47</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>49</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q86</span>
     <span class="q-id">MATH-2024-0101-S1-Q080</span>
@@ -1608,12 +1729,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The coefficients a, b, c in the quadratic equation ax2 + bx + c = 0 are chosen from the set {1, 2, 3, 4, 5, 6, 7, 8}. The probability of this equation having repeated roots is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1</div><div class="option"><span class="option-label">(B)</span>1 128 64</div><div class="option"><span class="option-label">(C)</span>3</div><div class="option"><span class="option-label">(D)</span>3 256 128</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 128 64</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3 256 128</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q87</span>
     <span class="q-id">MATH-2024-0101-S1-Q087</span>
@@ -1624,12 +1746,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of distinct real roots of the equation |x||x + 2| −5|x + 1| −1 = 0 is_______</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q88</span>
     <span class="q-id">MATH-2024-0101-S2-Q070</span>
@@ -1640,12 +1763,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">x + y + z = 4, The values of, for which the system of equations has infinitely many solutions, m, n 2x + 5y + 5z = 17, x + 2y + mz = n satisfy the equation:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>m2 + n2 −mn = 39</div><div class="option"><span class="option-label">(B)</span>m2 + n2 −m −n = 46</div><div class="option"><span class="option-label">(C)</span>m2 + n2 + m + n = 64</div><div class="option"><span class="option-label">(D)</span>m2 + n2 + mn = 68</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>m2 + n2 −mn = 39</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>m2 + n2 −m −n = 46</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>m2 + n2 + m + n = 64</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>m2 + n2 + mn = 68</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q89</span>
     <span class="q-id">MATH-2024-0101-S2-Q080</span>
@@ -1656,12 +1780,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The coefficients a, b, c in the quadratic equation ax2 + bx + c = 0 are from the set {1, 2, 3, 4, 5, 6}. If the probability of this equation having one real root bigger than the other is, then 216 p equals: p</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>57</div><div class="option"><span class="option-label">(B)</span>76</div><div class="option"><span class="option-label">(C)</span>38</div><div class="option"><span class="option-label">(D)</span>19</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>57</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>76</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>38</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>19</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q90</span>
     <span class="q-id">MATH-2024-0101-S1-Q061</span>
@@ -1672,12 +1797,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α, β be the distinct roots of the equation x2 −(t2 −5t + 6)x + 1 = 0, t ∈R and an = αn + βn. Then the minimum value of a2023+a2025 is a2024</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>−1/4</div><div class="option"><span class="option-label">(B)</span>−1/4</div><div class="option"><span class="option-label">(D)</span>−1/2 1/4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>−1/4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−1/4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−1/2 1/4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q91</span>
     <span class="q-id">MATH-2024-0101-S2-Q061</span>
@@ -1688,12 +1814,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If z1, z2 are two distinct complex number such that z1−2z2 1 = 2, then 2 −z1 ̄z2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>z1 lies on a circle of radius 1 and z2 lies on a</div><div class="option"><span class="option-label">(B)</span>both z1 and z2 lie on the same circle. both z1 and circle of radius 1.2 lie on the same circle. z2</div><div class="option"><span class="option-label">(C)</span>either z1 lies on a circle of radius 1 or z2 lies on</div><div class="option"><span class="option-label">(D)</span>either z1 lies on a circle of radius 1 or z2 lies on a 2 a circle of radius 1. circle of radius 1.2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>z1 lies on a circle of radius 1 and z2 lies on a</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>both z1 and z2 lie on the same circle. both z1 and circle of radius 1.2 lie on the same circle. z2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>either z1 lies on a circle of radius 1 or z2 lies on</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>either z1 lies on a circle of radius 1 or z2 lies on a 2 a circle of radius 1. circle of radius 1.2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="38">
   <div class="q-header">
     <span class="q-num">Q92</span>
     <span class="q-id">MATH-2024-0101-S2-Q085</span>
@@ -1704,12 +1831,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">2x + 7y + λz = 3 If the system of equations 3x + 2y + 5z = 4 has infinitely many solutions, then (λ −μ) is equal x + μy + 32z = −1 to________</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 38</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q93</span>
     <span class="q-id">MATH-2024-0101-S2-Q061</span>
@@ -1720,12 +1848,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The sum of all possible values of θ ∈[−π, 2π], for which 1−2i 1+i cos cos θ θ is purely imaginary, is equal</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>3π 2π</div><div class="option"><span class="option-label">(C)</span>5π</div><div class="option"><span class="option-label">(D)</span>4π</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3π 2π</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>5π</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4π</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q94</span>
     <span class="q-id">MATH-2024-0101-S2-Q070</span>
@@ -1736,12 +1865,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the system of equations x + 4y −z = λ, 7x + 9y + μz = −3, 5x + y + 2z = −1 has infinitely many solutions, then (2μ + 3λ) is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3</div><div class="option"><span class="option-label">(B)</span>-3</div><div class="option"><span class="option-label">(C)</span>-2</div><div class="option"><span class="option-label">(D)</span>2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>-3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>-2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q95</span>
     <span class="q-id">MATH-2024-0101-S2-Q073</span>
@@ -1752,12 +1882,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the function f(x) = 2x3 −9x2 + 12a2x + 1, a &gt; 0 has a local maximum at x = α and a local minimum at = α2, then and α2 are the roots of the equation: x α</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>x2 −6x + 8 = 0</div><div class="option"><span class="option-label">(B)</span>x2 + 6x + 8 = 0</div><div class="option"><span class="option-label">(C)</span>8x2 + 6x −1 = 0</div><div class="option"><span class="option-label">(D)</span>8x2 −6x + 1 = 0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>x2 −6x + 8 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x2 + 6x + 8 = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>8x2 + 6x −1 = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>8x2 −6x + 1 = 0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q96</span>
     <span class="q-id">MATH-2024-0101-S2-Q081</span>
@@ -1768,12 +1899,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of distinct real roots of the equation |x + 1||x + 3| −4|x + 2| + 5 = 0, is</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q97</span>
     <span class="q-id">MATH-2024-0101-S1-Q061</span>
@@ -1784,12 +1916,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α, β be the roots of the equation x2 + 2√2x −1 = 0. The quadratic equation, whose roots are α4 + β4 and 10 1 (α6 + β6), is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>x2 −190x + 9466 = 0</div><div class="option"><span class="option-label">(B)</span>x2 −180x + 9506 = 0</div><div class="option"><span class="option-label">(C)</span>x2 −195x + 9506 = 0</div><div class="option"><span class="option-label">(D)</span>x2 −195x + 9466 = 0 1 1 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>x2 −190x + 9466 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x2 −180x + 9506 = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>x2 −195x + 9506 = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>x2 −195x + 9466 = 0 1 1 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q98</span>
     <span class="q-id">MATH-2024-0101-S1-Q068</span>
@@ -1800,12 +1933,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The frequency distribution of the age of students in a class of 40 students is given below. Age 15 16 17 18 19 20 If the mean deviation about the median is 1.25, then 4x + 5y No of Students 5 8 5 12 x y is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>46</div><div class="option"><span class="option-label">(B)</span>43</div><div class="option"><span class="option-label">(C)</span>44</div><div class="option"><span class="option-label">(D)</span>47 3x + 5y + λz = 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>46</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>43</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>44</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>47 3x + 5y + λz = 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q99</span>
     <span class="q-id">MATH-2024-0101-S1-Q069</span>
@@ -1816,12 +1950,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let λ, μ ∈R. If the system of equations 7x + 11y −9z = 2 has infinitely many solutions, then μ + 2λ is 97x + 155y −189z = μ equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>24</div><div class="option"><span class="option-label">(B)</span>25</div><div class="option"><span class="option-label">(C)</span>22</div><div class="option"><span class="option-label">(D)</span>27 sin−1 x−1 R</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>24</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>25</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>22</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>27 sin−1 x−1 R</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="9">
   <div class="q-header">
     <span class="q-num">Q100</span>
     <span class="q-id">MATH-2024-0101-S1-Q081</span>
@@ -1832,12 +1967,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The sum of the square of the modulus of the elements in the set {z = a + ib: a, b ∈Z, z ∈C, |z −1| ≤1, |z −5| ≤|z −5i|} is ________</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 9</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q101</span>
     <span class="q-id">MATH-2024-0101-S2-Q061</span>
@@ -1848,12 +1984,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α, β; α &gt; β, be the roots of the equation x2 −√2x −√3 = 0. Let Pn = αn −βn, n ∈N. Then (11√3 −10√2)P10 + (11√2 + 10)P11 −11P12 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>10√3P9</div><div class="option"><span class="option-label">(B)</span>11√3P9</div><div class="option"><span class="option-label">(C)</span>10√2P9</div><div class="option"><span class="option-label">(D)</span>11√2P9</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>10√3P9</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>11√3P9</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>10√2P9</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>11√2P9</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q102</span>
     <span class="q-id">MATH-2024-0101-S2-Q062</span>
@@ -1864,12 +2001,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let z be a complex number such that the real part of z−2i is zero. Then, the maximum value of |z −(6 + 8i)| z+2i is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>12</div><div class="option"><span class="option-label">(B)</span>10</div><div class="option"><span class="option-label">(C)</span>8</div><div class="option"><span class="option-label">(D)</span>∞</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>12</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>10</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>8</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>∞</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q103</span>
     <span class="q-id">MATH-2024-0101-S2-Q061</span>
@@ -1880,12 +2018,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If α, β are the roots of the equation, x2 - x - 1 = 0 and Sn = 2023αn + 2024βn, then</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2 S12 = S11 + S10</div><div class="option"><span class="option-label">(B)</span>S12 = S11 + S10</div><div class="option"><span class="option-label">(C)</span>2 S11 = S12 + S10</div><div class="option"><span class="option-label">(D)</span>S11 = S10 + S12</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2 S12 = S11 + S10</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>S12 = S11 + S10</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2 S11 = S12 + S10</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>S11 = S10 + S12</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="20">
   <div class="q-header">
     <span class="q-num">Q104</span>
     <span class="q-id">MATH-2024-0101-S2-Q081</span>
@@ -1896,12 +2035,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the complex numbers α and 1 lie on the circles z - z02 = 4 and z - z02 = 16 respectively, where z0 = 1 + i. ̄α Then, the value of 100 | α| 2 is__________.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 20</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q105</span>
     <span class="q-id">MATH-2024-0101-S1-Q061</span>
@@ -1912,12 +2052,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If z = 2 1 −2i, is such that z + 1 = αz + + i = √−1 and α, β ∈R, then α + β is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>−4</div><div class="option"><span class="option-label">(B)</span>3</div><div class="option"><span class="option-label">(D)</span>2 −1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>−4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2 −1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="13">
   <div class="q-header">
     <span class="q-num">Q106</span>
     <span class="q-id">MATH-2024-0101-S1-Q081</span>
@@ -1928,12 +2069,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α, β be the roots of the equation x2 −x + 2 = 0 with Im (α) &gt;Im (β). Then α6 + α4 + β4 −5α2 is equal to</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 13</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q107</span>
     <span class="q-id">MATH-2024-0101-S2-Q061</span>
@@ -1944,12 +2086,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let r and θ respectively be the modulus and amplitude of the complex number z = 2 −i(2 tan 5π ), then (r, θ) 8 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(2 sec 3π, 3π )</div><div class="option"><span class="option-label">(B)</span>(2 sec 3π, 5π ) 8 8 8 8</div><div class="option"><span class="option-label">(C)</span>(2 sec 5π, 3π )</div><div class="option"><span class="option-label">(D)</span>(2 sec 11π, 11π ) 8 8 8 8</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(2 sec 3π, 3π )</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>(2 sec 3π, 5π ) 8 8 8 8</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>(2 sec 5π, 3π )</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>(2 sec 11π, 11π ) 8 8 8 8</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="49">
   <div class="q-header">
     <span class="q-num">Q108</span>
     <span class="q-id">MATH-2024-0101-S2-Q082</span>
@@ -1960,12 +2103,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let α, β be the roots of the equation x2 −√6x + 3 = 0 such that Im (α) &gt;Im (β). Let a, b be integers not divisible by 3 and n be a natural number such that α99 + α98 = 3n(a + ib), i = √−1. Then n + a + b is β equal to ___________. 643232</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 49</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="113">
   <div class="q-header">
     <span class="q-num">Q109</span>
     <span class="q-id">MATH-2024-0101-S2-Q086</span>
@@ -1976,12 +2120,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let for any three distinct consecutive terms a, b, c of an A.P, the lines ax + by + c = 0 be concurrent at the point and Q(α, β) be a point such that the system of equations + + = 6, 2x + 5y + = and P x y z αz β x + 2 y + 3 z = 4, has infinitely many solutions. Then (PQ)2 is equal to _______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 113</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q110</span>
     <span class="q-id">MATH-2024-0101-S1-Q071</span>
@@ -1992,12 +2137,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the system of linear equation x + y + z = 4μ, x + 2y + 2λz = 10μ, x + 3y + 4λ2z = μ2 + 15, where λ, μ ∈R. Which one of the following statements is NOT correct?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>The system has unique solution if λ ≠1 and</div><div class="option"><span class="option-label">(B)</span>The system is inconsistent if λ = 1 and μ ≠1 2 2 μ ≠1, 15 ≠1</div><div class="option"><span class="option-label">(C)</span>The system has infinite number of solutions if</div><div class="option"><span class="option-label">(D)</span>The system is consistent if λ 2 λ = 1 and μ = 15 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>The system has unique solution if λ ≠1 and</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>The system is inconsistent if λ = 1 and μ ≠1 2 2 μ ≠1, 15 ≠1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>The system has infinite number of solutions if</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>The system is consistent if λ 2 λ = 1 and μ = 15 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q111</span>
     <span class="q-id">MATH-2024-0101-S2-Q061</span>
@@ -2008,12 +2154,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If z is a complex number, then the number of common roots of the equation z1985 + z100 + 1 = 0 and z3 2z2 0, is equal to: + + 2z+ 1 =</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1</div><div class="option"><span class="option-label">(B)</span>2</div><div class="option"><span class="option-label">(C)</span>0</div><div class="option"><span class="option-label">(D)</span>3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q112</span>
     <span class="q-id">MATH-2024-0101-S2-Q062</span>
@@ -2024,8 +2171,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let z1 and z2 be two complex number such that z1 + z2 = 5 and z1 3 + z2 3 = 20 + 15i. Then z1 4 + z2 4 equals-</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>30√3</div><div class="option"><span class="option-label">(B)</span>75</div><div class="option"><span class="option-label">(C)</span>15√15</div><div class="option"><span class="option-label">(D)</span>25√3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>30√3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>75</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>15√15</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>25√3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>

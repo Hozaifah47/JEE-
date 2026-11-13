@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -237,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+<div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S1-Q011</span>
@@ -248,12 +284,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For changing the capacitance of a given paralle plate capacitor, a dielectric material of dielectric constant K is used, which has the same area as the plates of the capacitor. The thickness of the dielectric slab is 3 4 d, where d is the separation between the plates of parallel plate capacitor. The new capacitance ′ in terms of original C capacitance C0 is given by the following relation: 3+K 4+K</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>C ′ = 4K C0</div><div class="option"><span class="option-label">(B)</span>C ′ = 3 C0</div><div class="option"><span class="option-label">(C)</span>C ′ = 4K C0</div><div class="option"><span class="option-label">(D)</span>C ′ = 4 C0 K+3 3+K</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>C ′ = 4K C0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>C ′ = 3 C0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>C ′ = 4K C0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>C ′ = 4 C0 K+3 3+K</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">PHY-2021-0101-S2-Q028</span>
@@ -264,12 +301,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In a parallel plate capacitor set up, the plate area of capacitor is 2 m2 and the plates are separated by 1 m. If the space between the plates are filled with a dielectric material of thickness 0. 5 m and are 2 m2 (see figure) the capacitance of the set-up will be ε0 ________. (Dielectric constant of the material = 3. 2 ) (Round off to the Nearest Integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2021-0101-S1-Q026</span>
@@ -280,12 +318,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Four identical rectangular plates with length, l = 2 cm and breadth, b = 3 cm are arranged as shown in xε0 2 figure. The equivalent capacitance between A and C is d. The value of x is _______. (Round off to the Nearest Integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="161">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2021-0101-S1-Q027</span>
@@ -296,12 +335,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel plate capacitor has plate area 100 m2 and plate separation of 10 m. The space between the plates is filled up to a thickness 5 m with a material of dielectric constant of 10. The resultant capacitance of the system is x pF. The value of ε0 = 8. 85 × 10−12 F m−1. The value of x to the nearest integer is ______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 161</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">PHY-2021-0101-S1-Q015</span>
@@ -312,12 +352,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">AC voltage V (t) = 20 sin ωt of frequency 50 Hz is applied to a parallel plate capacitor. The separation between the plates is 2 mm and the area is 1 m2. The amplitude of the oscillating displacement current for the applied AC voltage is [Take ε0 = 8. 85 × 10−12 F m−1]</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>21. 14 μA</div><div class="option"><span class="option-label">(B)</span>83. 37 μA</div><div class="option"><span class="option-label">(C)</span>27. 79 μA</div><div class="option"><span class="option-label">(D)</span>55. 58 μA</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>21. 14 μA</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>83. 37 μA</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>27. 79 μA</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>55. 58 μA</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2021-0101-S1-Q013</span>
@@ -328,12 +369,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Two equal capacitors are first connected in series and then in parallel. The ratio of the equivalent capacities in the two cases will be:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1: 2</div><div class="option"><span class="option-label">(B)</span>1: 4</div><div class="option"><span class="option-label">(C)</span>4: 1</div><div class="option"><span class="option-label">(D)</span>2: 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1: 2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1: 4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4: 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2: 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="10">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">PHY-2021-0101-S1-Q029</span>
@@ -344,12 +386,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A transmitting station releases waves of wavelength 960 m. A capacitor of 2. 56 μF is used in the resonant circuit. The self-inductance of coil necessary for resonance is x × 10−8 H. find x</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 10</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">PHY-2021-0101-S2-Q011</span>
@@ -360,12 +403,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An electron with kinetic energy K1 enters between parallel plates of a capacitor at an angle α with the plates. It leaves the plates at angle with kinetic energy Then the ratio of kinetic energies will be: β K2. K1: K2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>sin2 β</div><div class="option"><span class="option-label">(B)</span>cos β cos2 α sin α</div><div class="option"><span class="option-label">(C)</span>cos β</div><div class="option"><span class="option-label">(D)</span>cos2 β cos α cos2 α</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>sin2 β</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>cos β cos2 α sin α</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>cos β</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>cos2 β cos α cos2 α</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">PHY-2021-0101-S1-Q010</span>
@@ -376,12 +420,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel plate capacitor with plate area &#x27;A&#x27; and distance of separation &#x27;d&#x27; is filled with a dielectric. What is the capacity of the capacitor when permittivity of the dielectric varies as: εx= ε0 + kx, for 0 &lt; x≤ d d 2 εx= ε0 + kd- x, for ≤x≤d 2 / kA 2 kA</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>ε0 + kd</div><div class="option"><span class="option-label">(B)</span>2ln2ε0 + kd 2 2ε0</div><div class="option"><span class="option-label">(C)</span>0</div><div class="option"><span class="option-label">(D)</span>kA ln 2ε0 2 2ε0 - kd</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>ε0 + kd</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2ln2ε0 + kd 2 2ε0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>kA ln 2ε0 2 2ε0 - kd</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">PHY-2021-0101-S2-Q012</span>
@@ -392,12 +437,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If qf is the free charge on the capacitor plates and qb is the bound charge on the dielectric slab of dielectric constant k placed between the capacitor plates, then bound charge qb can be expressed as:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>qb = qf(1 − 1 )</div><div class="option"><span class="option-label">(B)</span>qb = qi(1 −1 ) √k k</div><div class="option"><span class="option-label">(C)</span>qf(1 1 )</div><div class="option"><span class="option-label">(D)</span>qb = qf(1 + 1 ) qb = + √k k</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>qb = qf(1 − 1 )</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>qb = qi(1 −1 ) √k k</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>qf(1 1 )</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>qb = qf(1 + 1 ) qb = + √k k</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">PHY-2021-0101-S1-Q013</span>
@@ -408,12 +454,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A series LCR circuit driven by 300 V at a frequency of 50 Hz contains a resistance R = 3 kΩ, an inductor of inductive reactance XL = 250π Ω and an unknown capacitor. The value of capacitance to maximise the average power should be: (take π2 = 10)</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>400 μF</div><div class="option"><span class="option-label">(B)</span>4 μF</div><div class="option"><span class="option-label">(C)</span>40 μF</div><div class="option"><span class="option-label">(D)</span>25 μF</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>400 μF</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4 μF</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>40 μF</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>25 μF</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">PHY-2021-0101-S2-Q012</span>
@@ -424,12 +471,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel-plate capacitor with plate area A has separation d between the plates. Two dielectric slabs of dielectric constant K1 and K2 of same area A 2 and thickness d 2 are inserted in the space between the plates. The capacitance of the capacitor will be given by:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>ε0 A ( 1 K1 K2 )</div><div class="option"><span class="option-label">(B)</span>ε0 A ( 1 2( K1+K2) ) d 2 + K1+K2 d 2 + K1 K2</div><div class="option"><span class="option-label">(C)</span>ε0 A ( )</div><div class="option"><span class="option-label">(D)</span>ε0 A ( ) d 1 2 + K1+K2 K1 K2 d 2 1 + 2( K1 K1+K2) K2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>ε0 A ( 1 K1 K2 )</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>ε0 A ( 1 2( K1+K2) ) d 2 + K1+K2 d 2 + K1 K2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>ε0 A ( )</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>ε0 A ( ) d 1 2 + K1+K2 K1 K2 d 2 1 + 2( K1 K1+K2) K2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">PHY-2021-0101-S2-Q015</span>
@@ -440,12 +488,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In the given circuit the AC source has ω = 100 rad s−1. Considering the inductor and capacitor to be ideal, what will be the current I flowing through the circuit?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>5. 9 A</div><div class="option"><span class="option-label">(B)</span>6 A</div><div class="option"><span class="option-label">(C)</span>0. 94 A</div><div class="option"><span class="option-label">(D)</span>3. 16 A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>5. 9 A</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>6 A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>0. 94 A</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3. 16 A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">PHY-2021-0101-S1-Q013</span>
@@ -456,12 +505,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the combination of two capacitors C1 and C2, with C2 &gt; C1, when connected in parallel, the equivalent capacitance is 10 times the equivalent capacitance of the same connected in series. Calculate the ratio of capacitors, C2. C1</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>4 + √15</div><div class="option"><span class="option-label">(B)</span>2 + √15 15</div><div class="option"><span class="option-label">(C)</span>9</div><div class="option"><span class="option-label">(D)</span>4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>4 + √15</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2 + √15 15</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>9</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">PHY-2021-0101-S2-Q011</span>
@@ -472,12 +522,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Three capacitors C1 = 2 μF, C2 = 6 μF and C3 = 12 μF are connected as shown in the figure. Find the ratio of the charges on capacitors C1, C2 and C3 respectively.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3: 4: 4</div><div class="option"><span class="option-label">(B)</span>2: 3: 3</div><div class="option"><span class="option-label">(C)</span>2: 1: 1</div><div class="option"><span class="option-label">(D)</span>1: 2: 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3: 4: 4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2: 3: 3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2: 1: 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1: 2: 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">PHY-2021-0101-S1-Q013</span>
@@ -488,12 +539,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A capacitor of capacitance C = 1 μF is suddenly connected to a battery of 100 V through a resistance R = 100 Ω. The time taken for the capacitor to be charged to get 50 V is: (Take ln 2 = 0. 69 )</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1. 44 × 10−4 s</div><div class="option"><span class="option-label">(B)</span>3. 33 × 10−4 s</div><div class="option"><span class="option-label">(C)</span>0. 69 × 10−4 s</div><div class="option"><span class="option-label">(D)</span>0. 30 × 10−4 s</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1. 44 × 10−4 s</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3. 33 × 10−4 s</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>0. 69 × 10−4 s</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>0. 30 × 10−4 s</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">PHY-2021-0101-S1-Q014</span>
@@ -504,12 +556,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In the reported figure, a capacitor is formed by placing a compound dielectric between the plates of parallel plate capacitor. The expression for the capacity of the said capacitor will be: (Given the area of the plate = A )</div>
   <img class="question-media" src="../../../../assets/b2ff966b1d4bdec3.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="option"><span class="option-label">(A)</span>15 Kε0 A</div><div class="option"><span class="option-label">(B)</span>15 Kε0 A 34 d 6 d</div><div class="option"><span class="option-label">(C)</span>25 6 Kε0 A</div><div class="option"><span class="option-label">(D)</span>9 6 Kε0 A d d</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>15 Kε0 A</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>15 Kε0 A 34 d 6 d</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>25 6 Kε0 A</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>9 6 Kε0 A d d</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="150">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">PHY-2021-0101-S1-Q028</span>
@@ -520,12 +573,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A radioactive sample has an average life of 30 ms and is decaying. A capacitor of capacitance 200 μF is first charged and later connected with resistor R. If the ratio of the charge on the capacitor to the activity of the radioactive sample is fixed with respect to time then the value of should be R _______Ω.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 150</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">PHY-2021-0101-S2-Q002</span>
@@ -536,12 +590,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Match List I with List II. List-I List-II a Capacitance, C i M1 L1 T−3 A−1 b Permittivity of free space, ε0 ii M−1 L−3 T4 A2 c Permeability of free space, μ0 iii M−1 L−2 T4 A2 M1L1T−2A−2 d Electric field, E iv Choose the correct answer from the options given below</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(a ) → (iii ), ( b ) →(ii),</div><div class="option"><span class="option-label">(B)</span>→(iv),</div><div class="option"><span class="option-label">(C)</span>→ (i)</div><div class="option"><span class="option-label">(D)</span>(a ) → (iii ), ( b ) → (iv ), ( c ) → (ii ), ( d ) → (i)</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(a ) → (iii ), ( b ) →(ii),</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>→(iv),</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>→ (i)</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>(a ) → (iii ), ( b ) → (iv ), ( c ) → (ii ), ( d ) → (i)</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="100">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">PHY-2021-0101-S1-Q026</span>
@@ -552,12 +607,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A capacitor of 50μF is connected in a circuit as shown in figure. The charge on the upper plate of the capacitor is _________ μC.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 100</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">PHY-2021-0101-S2-Q020</span>
@@ -568,12 +624,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Statement I: To get a steady DC output from the pulsating voltage received from a full wave rectifier we can connect a capacitor across the output parallel to the load RL. Statement II: To get a steady DC output from the pulsating voltage received from a full wave rectifier we can connect an inductor in series with RL. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both Statement I and Statement II are false</div><div class="option"><span class="option-label">(B)</span>Both Statement I and Statement II are true</div><div class="option"><span class="option-label">(C)</span>Statement I is false but Statement II is true</div><div class="option"><span class="option-label">(D)</span>Statement I is true but Statement II is false</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both Statement I and Statement II are false</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both Statement I and Statement II are true</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is false but Statement II is true</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Statement I is true but Statement II is false</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">PHY-2021-0101-S2-Q023</span>
@@ -584,12 +641,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel plate capacitor of capacitance 200μF is connected to a battery of 200 V. A dielectric slab of dielectric constant 2 is now inserted into the space between plates of capacitor while the battery remain connected. The change in the electrostatic energy in the capacitor will be __________ J.</div>
   <img class="question-media" src="../../../../assets/15d2b5f907faf129.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">PHY-2022-0101-S1-Q012</span>
@@ -600,12 +658,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel plate capacitor is formed by two plates each of area 30π cm2 separated by 1 mm. A material of dielectric strength 3. 6 × 107 V m−1 is filled between the plates. If the maximum charge that can be stored on the capacitor without causing any dielectric breakdown is 7 × 10−6 C, the value of dielectric constant of the material is: [Use 1 = 9 × 109 N m2 C−2 ] 4πεo</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1. 66</div><div class="option"><span class="option-label">(B)</span>1. 75</div><div class="option"><span class="option-label">(C)</span>2. 25</div><div class="option"><span class="option-label">(D)</span>2. 33</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1. 66</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1. 75</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2. 25</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2. 33</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">PHY-2022-0101-S2-Q013</span>
@@ -616,12 +675,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the charge on a capacitor is increased by 2C, the energy stored in it increases by 44%. The original charge on the capacitor is (in ) C</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>10</div><div class="option"><span class="option-label">(B)</span>20</div><div class="option"><span class="option-label">(C)</span>30</div><div class="option"><span class="option-label">(D)</span>40</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>10</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>20</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>30</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>40</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">PHY-2022-0101-S2-Q017</span>
@@ -632,12 +692,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement-I: The reactance of an ac circuit is zero. It is possible that the circuit contains a capacitor and an inductor. Statement-II: In ac circuit, the average power delivered by the source never becomes zero. In the light of the above statements, choose the correct answer from the options given below</div>
   <img class="question-media" src="../../../../assets/a1f7ca678bb95a95.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both Statement I and Statement II are true.</div><div class="option"><span class="option-label">(B)</span>Both Statement I and Statement II are false.</div><div class="option"><span class="option-label">(C)</span>Statement I is true but Statement II is false.</div><div class="option"><span class="option-label">(D)</span>Statement I is false but Statement II is true.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both Statement I and Statement II are true.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both Statement I and Statement II are false.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is true but Statement II is false.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Statement I is false but Statement II is true.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">PHY-2022-0101-S1-Q027</span>
@@ -648,12 +709,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The equivalent capacitance between points A and B in below shown figure will be _____ μF.</div>
   <img class="question-media" src="../../../../assets/5e86282d3e64661d.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">PHY-2022-0101-S2-Q008</span>
@@ -664,12 +726,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Two metallic plates form a parallel plate capacitor. The distance between the plate is &#x27;d&#x27;. A metal sheet of thickness d and of area equal to area of each plate is introduced between the plates. What will be the ratio of the 2 new capacitance to the original capacitance of the capacitor?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1: 2</div><div class="option"><span class="option-label">(B)</span>2: 1</div><div class="option"><span class="option-label">(C)</span>1: 4</div><div class="option"><span class="option-label">(D)</span>4: 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1: 2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2: 1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1: 4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4: 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">PHY-2022-0101-S2-Q010</span>
@@ -680,12 +743,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The charge on capacitor of capacitance 15μF in the figure given below is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>60 μC</div><div class="option"><span class="option-label">(B)</span>130 μC</div><div class="option"><span class="option-label">(C)</span>260 μC</div><div class="option"><span class="option-label">(D)</span>585 μC</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>60 μC</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>130 μC</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>260 μC</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>585 μC</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">PHY-2022-0101-S2-Q011</span>
@@ -696,12 +760,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel plate capacitor with plate area A and plate separation d = 2 m has a capacitance of 4 μF. The new capacitance of the system if half of the space between them is filled with a dielectric material of dielectric constant (as shown in figure) will be K = 3</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2 μF</div><div class="option"><span class="option-label">(B)</span>32 μF</div><div class="option"><span class="option-label">(C)</span>6 μF</div><div class="option"><span class="option-label">(D)</span>8 μF</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2 μF</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>32 μF</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>6 μF</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>8 μF</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">PHY-2022-0101-S1-Q012</span>
@@ -712,12 +777,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A force of 10 N acts on a charged particle placed between two plates of a charged capacitor. If one plate of capacitor is removed, then the force acting on that particle will be.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>5 N 10 N</div><div class="option"><span class="option-label">(C)</span>20 N</div><div class="option"><span class="option-label">(D)</span>Zero</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>5 N 10 N</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>20 N</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Zero</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="125">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">PHY-2022-0101-S1-Q024</span>
@@ -728,12 +794,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A capacitor of capacitance 50 pF is charged by 100 V source. It is then connected to another uncharged identical capacitor. Electrostatic energy loss in the process is____ nJ.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 125</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="23">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">PHY-2022-0101-S2-Q025</span>
@@ -744,12 +811,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel plate capacitor is made up of stair like structure with a plate area A of each stair and that is connected with a wire of length b, as shown in the figure. The capacitance of the arrangement is x ε0 A, The 15 b value of x is _____.</div>
   <img class="question-media" src="../../../../assets/fa855b7ed77f9881.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 23</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="100">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">PHY-2022-0101-S2-Q025</span>
@@ -760,12 +828,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A capacitor C1 of capacitance 5 μF is charged to a potential of 30 V using a battery. The battery is then removed and the charged capacitor is connected to an uncharged capacitor C2 of capacitance 10 μF as shown in figure. When the switch is closed charge flows between the capacitors. At equilibrium, the charge on the capacitor C2 is _____ μC.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 100</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">PHY-2022-0101-S1-Q013</span>
@@ -776,12 +845,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel plate capacitor filled with a medium of dielectric constant, is connected across a battery and is 10 charged. The dielectric slab is replaced by another slab of dielectric constant 15. Then the energy of capacitor will</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>increase by 50%</div><div class="option"><span class="option-label">(B)</span>decrease by 15%</div><div class="option"><span class="option-label">(C)</span>increase by 25%</div><div class="option"><span class="option-label">(D)</span>increase by 33%</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>increase by 50%</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>decrease by 15%</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>increase by 25%</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>increase by 33%</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="40">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">PHY-2023-0101-S1-Q028</span>
@@ -792,12 +862,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A series LCR circuit is connected to an ac source of 220 V, 50 Hz. The circuit contain a resistance R= 100 Ω and an inductor of inductive reactance XL= 79.6 Ω. The capacitance of the capacitor needed to maximize the average rate at which energy is supplied will be ______ μF.</div>
   <img class="question-media" src="../../../../assets/36adf8c191b76c7b.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">PHY-2023-0101-S1-Q026</span>
@@ -808,12 +879,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel plate capacitor with plate area A and plate separation d is filled with a dielectric material of dielectric constant K= 4. The thickness of the dielectric material is x, where x&lt; d. Let C1 and C2 be the capacitance of the system for x= 1 3d and x= 2d, respectively. If C1 = 2 μF, the value 3 of C2 is _____ μF.</div>
   <img class="question-media" src="../../../../assets/e72e0e0987c23c0c.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">PHY-2023-0101-S2-Q017</span>
@@ -826,10 +898,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="11">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">PHY-2023-0101-S2-Q023</span>
@@ -840,12 +913,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A capacitor of capacitance is connected to an alternating source of emf given by 150. 0 μF E = 36 sin(120πt) V. The maximum value of current in the circuit is approximately equal to: (1) 2 A (2) √2 A (3) 2√2 A (4) 1 A √2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 11</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="10">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">PHY-2023-0101-S1-Q023</span>
@@ -856,12 +930,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An oscillating LC circuit consists of a 75 mH inductor and a 1. 2 μF capacitor. If the maximum charge to the capacitor is 2. 7 μC. The maximum current in the circuit will be _______ mA.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 10</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">PHY-2023-0101-S2-Q016</span>
@@ -874,10 +949,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">PHY-2023-0101-S1-Q011</span>
@@ -888,12 +964,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The equivalent capacitance of the combination shown is</div>
   <img class="question-media" src="../../../../assets/06bc9cf073b2ec69.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2 C</div><div class="option"><span class="option-label">(B)</span>5 C C 3</div><div class="option"><span class="option-label">(D)</span>4 C 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2 C</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>5 C C 3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4 C 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">PHY-2023-0101-S2-Q010</span>
@@ -904,12 +981,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The distance between two plates of a capacitor is d and its capacitance is C1, when air is the medium between the plates. If a metal sheet of thickness 2d and of the same area as plate is introduced between the plates, the 3 capacitance of the capacitor becomes C2. The ratio C2 is C1</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3: 1</div><div class="option"><span class="option-label">(B)</span>2: 1</div><div class="option"><span class="option-label">(C)</span>4: 1</div><div class="option"><span class="option-label">(D)</span>1: 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3: 1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2: 1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4: 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1: 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">PHY-2023-0101-S1-Q011</span>
@@ -920,12 +998,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel plate capacitor of capacitance 2 F is charged to a potential V. The energy stored in the capacitor is E1. The capacitor is now connected to another uncharged identical capacitor in parallel combination. The energy stored in the combination is E2. The ratio E2 is E1</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2: 1</div><div class="option"><span class="option-label">(B)</span>2: 3</div><div class="option"><span class="option-label">(C)</span>1: 2</div><div class="option"><span class="option-label">(D)</span>1: 4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2: 1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2: 3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1: 2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1: 4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">PHY-2023-0101-S2-Q016</span>
@@ -936,12 +1015,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A capacitor of capacitance C is charged to a potential V. The flux of the electric field through a closed surface enclosing the positive plate of the capacitor is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>CV</div><div class="option"><span class="option-label">(B)</span>Zero ε0</div><div class="option"><span class="option-label">(C)</span>2 CV</div><div class="option"><span class="option-label">(D)</span>CV ε0 2ε0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>CV</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Zero ε0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2 CV</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>CV ε0 2ε0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">PHY-2023-0101-S2-Q017</span>
@@ -954,10 +1034,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">PHY-2023-0101-S2-Q012</span>
@@ -968,12 +1049,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In the network shown below, the charge accumulated in the capacitor in steady state will be:</div>
   <img class="question-media" src="../../../../assets/d29ba0e38325bd8a.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="option"><span class="option-label">(A)</span>10.3 μC</div><div class="option"><span class="option-label">(B)</span>4.8 μC</div><div class="option"><span class="option-label">(C)</span>12 μC</div><div class="option"><span class="option-label">(D)</span>7.2μC</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>10.3 μC</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4.8 μC</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>12 μC</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>7.2μC</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="75">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">PHY-2023-0101-S2-Q026</span>
@@ -984,12 +1066,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In the circuit shown, the energy stored in the capacitor is n μJ. The value of n is _____.</div>
   <img class="question-media" src="../../../../assets/01a3b0009d0eb45c.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 75</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">PHY-2023-0101-S1-Q025</span>
@@ -1000,12 +1083,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In the given figure the total charge stored in the combination of capacitors is 100 μC. The value of ‘ x ’ is ______________.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">PHY-2023-0101-S2-Q016</span>
@@ -1018,10 +1102,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">PHY-2023-0101-S1-Q016</span>
@@ -1032,12 +1117,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel plate capacitor has plate area 40 cm2 and plates separation 2 mm. The space between the plates is filled with a dielectric medium of a thickness 1 mm and dielectric constant 5. The capacitance of the system is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>24ε0 F</div><div class="option"><span class="option-label">(B)</span>3 ε0 F</div><div class="option"><span class="option-label">(C)</span>10</div><div class="option"><span class="option-label">(D)</span>10 3 ε0 F 10ε0 F</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>24ε0 F</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3 ε0 F</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>10</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>10 3 ε0 F 10ε0 F</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">PHY-2023-0101-S1-Q021</span>
@@ -1048,12 +1134,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In an LC oscillator, if values of inductance and capacitance become twice and eight times, respectively, then the resonant frequency of oscillator becomes x times its initial resonant frequency ω0. The value of x is: (1) (2) 1/4 16 (3) 1/16 (4) 4</div>
   <img class="question-media" src="../../../../assets/c42e4b8d17aa2478.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">PHY-2023-0101-S2-Q018</span>
@@ -1066,10 +1153,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="40">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">PHY-2023-0101-S2-Q022</span>
@@ -1080,12 +1168,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An inductor of inductance 2 μH is connected in series with a resistance, a variable capacitor and an AC source of frequency 7 kHz. The value of capacitance for which maximum current is drawn into the circuit is 1 F x, where the value of x is ______. 22 (Take π = 7 )</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">PHY-2023-0101-S1-Q015</span>
@@ -1096,12 +1185,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In a series LR circuit with XL= R, power factor is P1. If a capacitor of capacitance C with XC= XL is added to the circuit the power factor becomes P2. The ratio of P1 to P2 will be:</div>
   <img class="question-media" src="../../../../assets/83be8c1f8ffee1c4.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="option"><span class="option-label">(B)</span>1: 3 1: √2</div><div class="option"><span class="option-label">(C)</span>1: 1</div><div class="option"><span class="option-label">(D)</span>1: 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1: 3 1: √2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1: 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1: 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="225">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">PHY-2023-0101-S1-Q024</span>
@@ -1112,12 +1202,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A capacitor of capacitance 900 μ F is charged by a 100 V battery. The capacitor is disconnected from the battery and connected to another uncharged identical capacitor such that one plate of uncharged capacitor connected to positive plate and another plate of uncharged capacitor connected to negative plate of the charged capacitor. The loss of energy in this process is measured as x× 10-2 J. The value of x is ______.</div>
   <img class="question-media" src="../../../../assets/f95c8ae66878019e.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 225</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">PHY-2023-0101-S2-Q016</span>
@@ -1130,10 +1221,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">PHY-2024-0101-S1-Q011</span>
@@ -1144,12 +1236,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Two identical capacitors have same capacitance C. One of them is charged to the potential V and other to the potential 2V. The negative ends of both are connected together. When the positive ends are also joined together, the decrease in energy of the combined system is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1 4CV2</div><div class="option"><span class="option-label">(B)</span>2CV2 1 2CV2 3 4CV2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1 4CV2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2CV2 1 2CV2 3 4CV2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">PHY-2024-0101-S1-Q014</span>
@@ -1160,12 +1253,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel plate capacitor has a capacitance C= 200 pF. It is connected to 230 V ac supply with an angular frequency 300 rad s-1. The rms value of conduction current in the circuit and displacement current in the capacitor respectively are:</div>
   <img class="question-media" src="../../../../assets/0a2a27de3c864503.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1.38 μA and 1.38 μA</div><div class="option"><span class="option-label">(B)</span>14.3 μA and 143 μA</div><div class="option"><span class="option-label">(C)</span>13.8 μA and 138 μA</div><div class="option"><span class="option-label">(D)</span>13.8 μA and 13.8 μA</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1.38 μA and 1.38 μA</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>14.3 μA and 143 μA</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>13.8 μA and 138 μA</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>13.8 μA and 13.8 μA</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="60">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">PHY-2024-0101-S2-Q026</span>
@@ -1176,12 +1270,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In an electrical circuit drawn below the amount of charge stored in the capacitor is _______ μC.</div>
   <img class="question-media" src="../../../../assets/d20c30d7d96fcb20.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 60</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">PHY-2024-0101-S1-Q016</span>
@@ -1192,12 +1287,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An alternating voltage of amplitude 40 V and frequency 4kHz is applied directly across the capacitor of 12μF. The maximum displacement current between the plates of the capacitor is nearly:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>10 A</div><div class="option"><span class="option-label">(B)</span>12 A</div><div class="option"><span class="option-label">(C)</span>8 A</div><div class="option"><span class="option-label">(D)</span>13 A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>10 A</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>12 A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>8 A</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>13 A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="86">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">PHY-2024-0101-S1-Q024</span>
@@ -1208,12 +1304,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Three capacitors of capacitances 25μF, 30μF and 45μF are connected in parallel to a supply of 100 V. Energy stored in the above combination is E. When these capacitors are connected in series to the same supply, the stored energy is 9. The value of is _____. x E x</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 86</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">PHY-2024-0101-S1-Q025</span>
@@ -1224,12 +1321,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The electric field between the two parallel plates of a capacitor of 1.5μF capacitance drops to one third of its initial value in 6.6μs when the plates are connected by a thin wire. The resistance of this wire is _____ Ω. (Given, log 3 = 1.1 )</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="93">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">PHY-2024-0101-S2-Q025</span>
@@ -1240,12 +1338,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A capacitor of 10μF capacitance whose plates are separated by 10 mm through air and each plate has area 4 cm2 is now filled equally with two dielectric media of K1 = 2, K2 = 3 respectively as shown in figure. If new force between the plates is 8 N. The supply voltage is _________ ×10−4 V. (we modified language of question to make it correct)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 93</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">PHY-2024-0101-S2-Q011</span>
@@ -1256,12 +1355,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A capacitor has air as dielectric medium and two conducting plates of area 12 cm2 and they are 0.6 cm apart. When a slab of dielectric having area 12 cm2 and 0.6 cm thickness is inserted between the plates, one of the conducting plates has to be moved by 0.2 cm to keep the capacitance same as in previous case. The dielectric constant of the slab is: (Given ε0 = 8.834 × 10−12 F/m )</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1</div><div class="option"><span class="option-label">(B)</span>1.33</div><div class="option"><span class="option-label">(C)</span>0.66</div><div class="option"><span class="option-label">(D)</span>1.50</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1.33</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>0.66</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1.50</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">PHY-2024-0101-S1-Q010</span>
@@ -1272,12 +1372,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A bulb and a capacitor are connected in series across an ac supply. A dielectric is then placed between the plates of the capacitor. The glow of the bulb:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>increases</div><div class="option"><span class="option-label">(B)</span>decreases</div><div class="option"><span class="option-label">(C)</span>remains same</div><div class="option"><span class="option-label">(D)</span>becomes zero</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>increases</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>decreases</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>remains same</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>becomes zero</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">PHY-2024-0101-S1-Q011</span>
@@ -1288,12 +1389,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A capacitor is made of a flat plate of area A and a second plate having a stair-like structure as shown in figure. If the area of each stair is A and the height is d, the capacitance of the arrangement is: 3</div>
   <img class="question-media" src="../../../../assets/9c578b2a2da45889.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="option"><span class="option-label">(A)</span>13εoA</div><div class="option"><span class="option-label">(B)</span>11εoA 18εoA 17d 11εoA 18 d</div><div class="option"><span class="option-label">(C)</span>11 d</div><div class="option"><span class="option-label">(D)</span>20 d</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>13εoA</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>11εoA 18εoA 17d 11εoA 18 d</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>11 d</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>20 d</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="400">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">PHY-2024-0101-S1-Q026</span>
@@ -1304,12 +1406,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The charge accumulated on the capacitor connected in the following circuit is ______ μC. (Given C = 150 μF)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 400</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">PHY-2024-0101-S1-Q012</span>
@@ -1320,12 +1423,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A capacitor of capacitance 100 μF is charged to a potential of 12 V and connected to a 6. 4 mH inductor to produce oscillations. The maximum current in the circuit would be:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3. 2 A</div><div class="option"><span class="option-label">(B)</span>1. 5 A</div><div class="option"><span class="option-label">(C)</span>2. 0 A</div><div class="option"><span class="option-label">(D)</span>1. 2 A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3. 2 A</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1. 5 A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2. 0 A</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1. 2 A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="36">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">PHY-2024-0101-S2-Q028</span>
@@ -1336,12 +1440,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In the given figure, the charge stored in 6μF capacitor, when points A and B are joined by a connecting wire is _______. μC</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 36</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">PHY-2024-0101-S1-Q025</span>
@@ -1352,12 +1457,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A capacitor of capacitance C and potential V has energy E. It is connected to another capacitor of capacitance 2C and potential 2V. Then the loss of energy is x 3 E, where x is _______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">PHY-2024-0101-S1-Q025</span>
@@ -1368,12 +1474,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A parallel plate capacitor with plate separation 5 mm is charged up by a battery. It is found that on introducing a dielectric sheet of thickness 2 mm, while keeping the battery connections intact, the capacitor draws more charge from the battery than before. The dielectric constant of the sheet is ____. 25%</div>
   <img class="question-media" src="../../../../assets/aff6ce89ef32aa47.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">PHY-2025-0101-S1-Q028</span>
@@ -1384,8 +1491,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Two capacitors C1 and C2 are connected in parallel to a battery. Charge-time graph is shown below for the two capacitors. The energy stored with them are U1 and U2, respectively. Which of the given statements is true? (1) C2 &gt; C1, U2 &lt; U1 (2) C1 &gt; C2, U1 &gt; U2 (3) C1 &gt; C2, U1 &lt; U2 (4) C2 &gt; C1, U2 &gt; U1</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>

@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -245,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(45 questions)</span>
     &nbsp;<a href="clusters/CHEM-CHEMBOND-MOT_DIATOMIC/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S2-Q039</span>
@@ -256,12 +292,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The INCORRECT statements below regarding colloidal solutions is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A colloidal solution shows colligative properties.</div><div class="option"><span class="option-label">(B)</span>An ordinary filter paper can stop the flow of colloidal particles.</div><div class="option"><span class="option-label">(C)</span>The flocculation power of Al3+ is more than that</div><div class="option"><span class="option-label">(D)</span>A colloidal solution shows Brownian motion of Na+ of colloidal particles.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A colloidal solution shows colligative properties.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>An ordinary filter paper can stop the flow of colloidal particles.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>The flocculation power of Al3+ is more than that</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A colloidal solution shows Brownian motion of Na+ of colloidal particles.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="15">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -272,12 +309,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">AX is a covalent diatomic molecule where A and X are second row elements of periodic table. Based on Molecular orbital theory, the bond order of is The total number of electrons in is_____. (Round AX 2. 5. AX off to the Nearest Integer).</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 15</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S2-Q035</span>
@@ -288,12 +326,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Match list-I with list-II:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Be (i) Treatment of cancer</div><div class="option"><span class="option-label">(B)</span>Mg (ii) Extraction of metals</div><div class="option"><span class="option-label">(C)</span>Ca (iii) Incendiary bombs and signals</div><div class="option"><span class="option-label">(D)</span>(iv) Windows of X-ray tubes Ra (v) Bearings for motor engines. Choose the most appropriate answer, the option given below:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Be (i) Treatment of cancer</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Mg (ii) Extraction of metals</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Ca (iii) Incendiary bombs and signals</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>(iv) Windows of X-ray tubes Ra (v) Bearings for motor engines. Choose the most appropriate answer, the option given below:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S1-Q033</span>
@@ -304,12 +343,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">According to molecular orbital theory, the species among the following that does not exist is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>He− 2</div><div class="option"><span class="option-label">(B)</span>O2− 2</div><div class="option"><span class="option-label">(C)</span>He+</div><div class="option"><span class="option-label">(D)</span>2 Be2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>He− 2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>O2− 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>He+</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2 Be2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S2-Q033</span>
@@ -320,12 +360,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In the following the correct bond order sequence is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>O2− &gt; O+ &gt; O− &gt; O2</div><div class="option"><span class="option-label">(B)</span>O+ &gt; O− &gt; O2− &gt; O2</div><div class="option"><span class="option-label">(C)</span>O+ 2 2 O− 2 O2−</div><div class="option"><span class="option-label">(D)</span>2 O− 2 O2− 2 O+ 2 &gt; O2 &gt; 2 &gt; 2 O2 &gt; 2 &gt; 2 &gt; 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>O2− &gt; O+ &gt; O− &gt; O2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>O+ &gt; O− &gt; O2− &gt; O2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>O+ 2 2 O− 2 O2−</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2 O− 2 O2− 2 O+ 2 &gt; O2 &gt; 2 &gt; 2 O2 &gt; 2 &gt; 2 &gt; 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="58">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S2-Q052</span>
@@ -336,12 +377,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An accelerated electron has a speed of 5 × 106 ms−1 with an uncertainty of 0. 02%. The uncertainty in finding its location while in motion is x × 10−9 m. The value of x is __________. (Nearest integer) [Use mass of electron = 9. 1 × 10−31 kg, h = 6. 63 × 10−34 Js, π = 3. 14]</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 58</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S2-Q034</span>
@@ -352,12 +394,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Match List- I with List- II. List- I List- II (Molecule) (Bond order)</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(i) Ne2 1</div><div class="option"><span class="option-label">(B)</span>N2 (ii) 2</div><div class="option"><span class="option-label">(C)</span>F2 (iii) 0</div><div class="option"><span class="option-label">(D)</span>O2 (iv) 3 Choose the correct answer from the options given below:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(i) Ne2 1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>N2 (ii) 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>F2 (iii) 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>O2 (iv) 3 Choose the correct answer from the options given below:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -368,12 +411,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The difference between bond orders of CO and is 2 where x = (Round off to the Nearest Integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="15">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2021-0101-S1-Q057</span>
@@ -384,12 +428,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">1. 46 g of a biopolymer dissolved in a 100 mL water at 300 K exerted an osmotic pressure of 2. 42 × 10−3 bar The molar mass of the biopolymer is −× 104 g mol−1. (Round off to the Nearest Integer) [Use: R = 0. 083 L bar mol−1 K−1]</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 15</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2021-0101-S2-Q034</span>
@@ -400,12 +445,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Match List - I with List II: List-I List-II a Li i photoelectric cell b Na ii absorbent of CO2 c K iii coolant in fast breeder nuclear reactor d Cs iv treatment of cancer v bearings for motor engines Choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(a ) -( v ),( b )-( i ),( c )-( ii ),( d )-( iv)</div><div class="option"><span class="option-label">(B)</span>(a ) -( v ),( b )-( ii ),( c )-( iv ),( d )-( i)</div><div class="option"><span class="option-label">(C)</span>(a ) - ( iv ), ( b ) - ( iii ), ( c ) - ( i ), ( d ) - ( ii)</div><div class="option"><span class="option-label">(D)</span>(a ) - ( v ), ( b ) - ( iii ), ( c ) - ( ii ), ( d ) - ( i)</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(a ) -( v ),( b )-( i ),( c )-( ii ),( d )-( iv)</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>(a ) -( v ),( b )-( ii ),( c )-( iv ),( d )-( i)</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>(a ) - ( iv ), ( b ) - ( iii ), ( c ) - ( i ), ( d ) - ( ii)</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>(a ) - ( v ), ( b ) - ( iii ), ( c ) - ( ii ), ( d ) - ( i)</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="10">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2021-0101-S2-Q052</span>
@@ -416,12 +462,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The total number of electrons in all bonding molecular orbitals of O2− 2 is......... (Round off to the nearest integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 10</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2021-0101-S2-Q052</span>
@@ -432,12 +479,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">According to molecular orbital theory, the number of unpaired electron(s) in O2 2 - is _________.</div>
   <img class="question-media" src="../../assets/edc67216870224bc.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2022-0101-S2-Q034</span>
@@ -448,12 +496,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct order of bond orders of C2−, N2− and O2− is C2− N2− O2− 2 2 2 O2− N2− O2−</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2 &gt; 2 &gt; 2</div><div class="option"><span class="option-label">(B)</span>2 &gt; 2 &gt; 2</div><div class="option"><span class="option-label">(C)</span>N2− &gt; O2− &gt; C2−</div><div class="option"><span class="option-label">(D)</span>C2− &gt; O2− &gt; N2− 2 2 2 2 2 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2 &gt; 2 &gt; 2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2 &gt; 2 &gt; 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>N2− &gt; O2− &gt; C2−</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>C2− &gt; O2− &gt; N2− 2 2 2 2 2 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2022-0101-S1-Q033</span>
@@ -464,12 +513,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the ions/molecule O+, O2, O−, O2−. For increasing bond order the correct option is 2 2 2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>O− &lt; O2− &lt; O2 &lt; O+</div><div class="option"><span class="option-label">(B)</span>O− &lt; O2− &lt; O+ &lt; O2 O− 2 O+ 2 O2− 2 2 2- 2 - 2 +</div><div class="option"><span class="option-label">(C)</span>2 &lt; 2 &lt; 2 &lt; O2</div><div class="option"><span class="option-label">(D)</span>O2 &lt; O2 &lt; O2 &lt; O2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>O− &lt; O2− &lt; O2 &lt; O+</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>O− &lt; O2− &lt; O+ &lt; O2 O− 2 O+ 2 O2− 2 2 2- 2 - 2 +</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2 &lt; 2 &lt; 2 &lt; O2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>O2 &lt; O2 &lt; O2 &lt; O2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2022-0101-S1-Q038</span>
@@ -480,12 +530,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The ( ∂T ∂E )P of different types of half cells are as follows: A B C D 1 × 10−4 2 × 10−4 0. 1 × 10−4 0. 2 × 10−4 (Where E is the electromotive force). Which of the above half cells would be preferred to be used as reference electrode</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A</div><div class="option"><span class="option-label">(B)</span>B</div><div class="option"><span class="option-label">(C)</span>C</div><div class="option"><span class="option-label">(D)</span>D</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>B</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>C</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>D</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="415">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2022-0101-S2-Q057</span>
@@ -496,12 +547,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The osmotic pressure exerted by a solution prepared by dissolving 2. 0 g of protein of molar mass 60 kg mol−1 in 200 mL of water at 27 °C is____ Pa. [integer value] (use R = 0. 083 L bar mol−1 K−1 )</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 415</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="330">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2022-0101-S2-Q060</span>
@@ -512,12 +564,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">2. 5 g of protein containing only glycine (C2H5 NO2) is dissolved in water to make 500 mL of solution. The osmotic pressure of this solution at 300 K is found to be 5. 03 × 10−3 bar. The total number of glycine units present in the protein is (Given: R = 0. 083 L bar K−1 mol−1 )</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 330</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2022-0101-S1-Q041</span>
@@ -528,12 +581,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Which of the following is a correct statement?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Brownian motion destabilises sols.</div><div class="option"><span class="option-label">(B)</span>Any amount of dispersed phase can be added to emulsion without destabilising it.</div><div class="option"><span class="option-label">(C)</span>Mixing two oppositely charged sols in equal</div><div class="option"><span class="option-label">(D)</span>Presence of equal and similar charges on amount neutralises charges and stabilises colloidal particles provides stability to the colloids. colloidal solution.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Brownian motion destabilises sols.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Any amount of dispersed phase can be added to emulsion without destabilising it.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Mixing two oppositely charged sols in equal</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Presence of equal and similar charges on amount neutralises charges and stabilises colloidal particles provides stability to the colloids. colloidal solution.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="40535">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2023-0101-S2-Q057</span>
@@ -544,12 +598,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An aqueous solution of volume 300 cm3 contains 0.63 g of protein. The osmotic pressure of the solution at 300 K is 1.29 mbar. The molar mass of the protein is gmol-1. Given: R = 0.083 LbarK-1 mol-1</div>
   <img class="question-media" src="../../assets/b29cf1d1b7622f2e.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40535</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2023-0101-S2-Q049</span>
@@ -562,10 +617,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   <img class="question-media" src="../../assets/c5579ce61d0bca67.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">CHEM-2023-0101-S1-Q034</span>
@@ -576,12 +632,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The bond order and magnetic property of acetylide ion are same as that of</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>O2+</div><div class="option"><span class="option-label">(B)</span>N2+</div><div class="option"><span class="option-label">(C)</span>NO+</div><div class="option"><span class="option-label">(D)</span>O2−</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>O2+</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>N2+</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>NO+</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>O2−</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">CHEM-2023-0101-S1-Q046</span>
@@ -592,12 +649,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Solution of 12 g of non-electrolyte (A) prepared by dissolving it in 1000 mL of water exerts the same osmotic pressure as that of 0. 05 M glucose solution at the same temperature. The empirical formula of A is CH2 O. The molecular mass of A is ________g. (Nearest integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">CHEM-2023-0101-S1-Q032</span>
@@ -608,12 +666,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the following statement</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>NF3 molecules has a trigonal planar structure.</div><div class="option"><span class="option-label">(B)</span>Bond Length of N2 is shorter than O2.</div><div class="option"><span class="option-label">(C)</span>Isoelectronic molecules or ions have identical bond order.</div><div class="option"><span class="option-label">(D)</span>Dipole moment of H2S is higher than that of water molecule. Choose the correct answer from the options given below:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>NF3 molecules has a trigonal planar structure.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Bond Length of N2 is shorter than O2.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Isoelectronic molecules or ions have identical bond order.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Dipole moment of H2S is higher than that of water molecule. Choose the correct answer from the options given below:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">CHEM-2023-0101-S2-Q031</span>
@@ -626,10 +685,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   <img class="question-media" src="../../assets/be886da3f06d7b25.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">CHEM-2023-0101-S2-Q032</span>
@@ -640,12 +700,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">What is the number of unpaired electron(s) in the highest occupied molecular orbital of the following species: + O+ N2, N 2, O2, 2?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>0, 1, 2, 1</div><div class="option"><span class="option-label">(B)</span>2, 1, 2, 1</div><div class="option"><span class="option-label">(C)</span>0, 1, 0, 1</div><div class="option"><span class="option-label">(D)</span>2, 1, 0, 1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>0, 1, 2, 1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2, 1, 2, 1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>0, 1, 0, 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2, 1, 0, 1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">CHEM-2023-0101-S1-Q043</span>
@@ -656,12 +717,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The osmotic pressure of solutions of PVC in cyclohexanone at 300 K are plotted on the graph. The molar mass of PVC is g mol−1 (Nearest integer) (Given: R = 0. 083 L atm K−1 mol−1 )</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="60">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">CHEM-2023-0101-S1-Q057</span>
@@ -672,12 +734,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Which of the following statements is incorrect for antibiotics? (1) An antibiotic must be a product of metabolism. (2) An antibiotic is a synthetic substance produced as a structural analogue of naturally occurring antibiotic. (3) An antibiotic should promote the growth or (4) An antibiotic should be effective in low survival of microorganisms. concentrations.</div>
   <img class="question-media" src="../../assets/efeb25325755e947.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 60</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">CHEM-2023-0101-S2-Q044</span>
@@ -690,10 +753,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   <img class="question-media" src="../../assets/fa13ab77d721f0f4.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">CHEM-2023-0101-S2-Q033</span>
@@ -704,12 +768,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">According to MO theory the bond orders for O22−CO, and NO+ respectively, are</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1, 3 and 3</div><div class="option"><span class="option-label">(B)</span>1, 3 and 2</div><div class="option"><span class="option-label">(C)</span>and</div><div class="option"><span class="option-label">(D)</span>and 1, 2 3 2, 3 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1, 3 and 3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1, 3 and 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>and</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>and 1, 2 3 2, 3 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="62250">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">CHEM-2023-0101-S1-Q056</span>
@@ -720,12 +785,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">At 27°C, a solution containing 2.5 g of solute in 250.0 mL of solution exerts an osmotic pressure of 400 Pa. The molar mass of the solute is g mol-1 (Nearest integer) (Given: R = 0.083 L bar -1 mol-1 ) Pd2 + 4Cl- 2 -</div>
   <img class="question-media" src="../../assets/96cbe0e33f63c6e9.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 62250</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">CHEM-2024-0101-S1-Q041</span>
@@ -736,12 +802,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: Nitration of benzene involves the following step - Statement II: Use of Lewis base promotes the electrophilic substitution of benzene. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is correct but Statement II is incorrect</div><div class="option"><span class="option-label">(B)</span>Statement I is incorrect but Statement II is correct</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are correct</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are incorrect</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is correct but Statement II is incorrect</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is incorrect but Statement II is correct</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are correct</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are incorrect</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">CHEM-2024-0101-S1-Q055</span>
@@ -752,12 +819,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An artificial cell is made by encapsulating 0.2M glucose solution within a semipermeable membrane. The osmotic pressure developed when the artificial cell is placed within a 0.05M solution of NaCl at 300 K is _______ ×10−1 bar. (nearest integer). [Given: R = 0.083 Lbarmol−1 K−1 ] Assume complete dissociation of NaCl</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="76">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">CHEM-2024-0101-S1-Q055</span>
@@ -768,12 +836,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the dissociation of the weak acid HX as given below ⇌H+(aq) X−(aq), 10−5 HX(aq) + Ka = 1.2 × [Ka: dissociation constant ] The osmotic pressure of 0.03M aqueous solution of HX at 300 K is _______ ×10−2 bar (nearest integer). [Given: R = 0.083 Lbarmol−1 K−1 ]</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 76</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">CHEM-2024-0101-S2-Q052</span>
@@ -784,12 +853,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Number of molecules having bond order 2 from the following molecules is ________ C2, O2, Be2, Li2, Ne2, N2, He2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">CHEM-2024-0101-S2-Q052</span>
@@ -800,12 +870,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Total number of electrons present in (π∗) molecular orbitals of O2, O2+ and O− is _______. 2 mol−1 K−1</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">CHEM-2024-0101-S1-Q053</span>
@@ -816,12 +887,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Sum of bond order of CO and is</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="73">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">CHEM-2024-0101-S1-Q057</span>
@@ -832,12 +904,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The osmotic pressure of a dilute solution is 7 × 105 Pa at 273 K. Osmotic pressure of the same solution at 283 K is _______ × 104 Nm−2.(Nearest integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 73</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">CHEM-2024-0101-S2-Q053</span>
@@ -848,12 +921,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The total number of anti bonding molecular orbitals, formed from 2s and 2p atomic orbitals in a diatomic molecule is _____________.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="08">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">CHEM-2024-0101-S1-Q053</span>
@@ -864,12 +938,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The total number of molecular orbitals formed from 2s and 2p atomic orbitals of a diatomic molecule</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 08</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">CHEM-2025-0101-S1-Q031</span>
@@ -880,12 +955,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A bob of mass m is suspended at a point O by a light string of length l and left to perform vertical motion (circular) as shown in figure. Initially, by applying horizontal velocity v0 at the point &#x27; A &#x27;, the string becomes slack when, the bob reaches at the point &#x27; D &#x27;. The ratio of the kinetic energy of the bob at the points B and C is ______ -.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1</div><div class="option"><span class="option-label">(B)</span>2</div><div class="option"><span class="option-label">(C)</span>4</div><div class="option"><span class="option-label">(D)</span>3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">CHEM-2025-0101-S2-Q036</span>
@@ -896,12 +972,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A ball of mass 100 g is projected with velocity 20 m/s at 60∘ with horizontal. The decrease in kinetic energy of the ball during the motion from point of projection to highest point is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>5 J</div><div class="option"><span class="option-label">(B)</span>15 J</div><div class="option"><span class="option-label">(C)</span>20 J</div><div class="option"><span class="option-label">(D)</span>zero</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>5 J</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>15 J</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>20 J</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>zero</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">CHEM-2025-0101-S1-Q043</span>
@@ -912,12 +989,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The motion of an airplane is represented by velocity-time graph as shown below. The distance covered by airplane in the first 30.5 second is _______ km.</div>
   <img class="question-media" src="../../assets/cf4ee07e970a4b60.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="option"><span class="option-label">(A)</span>12</div><div class="option"><span class="option-label">(B)</span>3</div><div class="option"><span class="option-label">(C)</span>6</div><div class="option"><span class="option-label">(D)</span>9</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>12</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>6</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>9</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">CHEM-2025-0101-S1-Q036</span>
@@ -928,12 +1006,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A particle is executing simple harmonic motion with time period 2 s and amplitude 1 cm. If D and d are the total distance and displacement covered by the particle in 12.5 s, then D is 16 d</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>5</div><div class="option"><span class="option-label">(B)</span>10</div><div class="option"><span class="option-label">(C)</span>15</div><div class="option"><span class="option-label">(D)</span>25 4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>5</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>10</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>15</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>25 4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option 250">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">CHEM-2025-0101-S2-Q049</span>
@@ -946,10 +1025,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   <img class="question-media" src="../../assets/fa771b264d40fd0d.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option 250</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">CHEM-2025-0101-S2-Q035</span>
@@ -960,8 +1040,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements. One is labelled as Assertion</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>and the other is labelled as Reason (R). Assertion</div><div class="option"><span class="option-label">(B)</span>: Knowing initial position x0 and initial momentum p0 is enough to determine the position and momentum at any time t for a simple harmonic motion with a given angular frequency ω. Reason (R): The amplitude and phase can be expressed in terms of x0 and p0. In the light of the above statements, choose the correct answer from the options given below:</div><div class="option"><span class="option-label">(D)</span>is false but (R) is true</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>and the other is labelled as Reason (R). Assertion</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>: Knowing initial position x0 and initial momentum p0 is enough to determine the position and momentum at any time t for a simple harmonic motion with a given angular frequency ω. Reason (R): The amplitude and phase can be expressed in terms of x0 and p0. In the light of the above statements, choose the correct answer from the options given below:</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>is false but (R) is true</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
@@ -972,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(25 questions)</span>
     &nbsp;<a href="clusters/CHEM-CHEMBOND-DIPOLE_MOMENT_POLARITY/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">CHEM-2021-0101-S1-Q036</span>
@@ -983,12 +1064,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Assertion A: Enol form of acetone [CH3 COCH3] exists in &lt; 0. 1% quantity. However, the enol form of acetyl acetone exists in approximately quantity. [CH3 COCH2 OCCH3] 15% Reason R: enol form of acetyl acetone is stabilized by intramolecular hydrogen bonding, which is not possible in enol form of acetone. Choose the correct statement:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A is false but R is true</div><div class="option"><span class="option-label">(B)</span>Both A and R are true and R is the correct explanation of A</div><div class="option"><span class="option-label">(C)</span>Both A and R are true but R is not the correct</div><div class="option"><span class="option-label">(D)</span>A is true but R is false explanation of A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A is false but R is true</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both A and R are true and R is the correct explanation of A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both A and R are true but R is not the correct</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A is true but R is false explanation of A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">CHEM-2021-0101-S1-Q050</span>
@@ -999,12 +1081,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Out of the following, which type of interaction is responsible for the stabilisation of α- helix structure of proteins?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Covalent bonding</div><div class="option"><span class="option-label">(B)</span>Ionic bonding</div><div class="option"><span class="option-label">(C)</span>Hydrogen bonding</div><div class="option"><span class="option-label">(D)</span>vander Waals forces</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Covalent bonding</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Ionic bonding</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Hydrogen bonding</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>vander Waals forces</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">CHEM-2021-0101-S1-Q033</span>
@@ -1015,12 +1098,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: o -Nitrophenol is steam volatile due to intramolecular hydrogen bonding. Statement II: o -Nitrophenol has high melting due to hydrogen bonding. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both Statement I and Statement II are false</div><div class="option"><span class="option-label">(B)</span>Statement I is true but Statement II is false</div><div class="option"><span class="option-label">(C)</span>Statement I is false but Statement II is true</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are true</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both Statement I and Statement II are false</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is true but Statement II is false</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is false but Statement II is true</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are true</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">CHEM-2022-0101-S2-Q052</span>
@@ -1031,12 +1115,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">How many of the following molecules are with non-zero net dipole moment, NH3, HCl, H2O, BeF2, BH3, CCl4</div>
   <img class="question-media" src="../../assets/888b959dad0cdf23.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">CHEM-2022-0101-S1-Q054</span>
@@ -1047,12 +1132,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Compound &#x27; P &#x27; on nitration with dil. HNO3 yields two isomers (A) and (B). These isomers can be separated by steam distillations. Isomers (A) and (B) show the intramolecular and intermolecular hydrogen bonding respectively. Compound (P) on reaction with conc. HNO3 yields a yellow compound &#x27; C &#x27;, a strong acid. The number of oxygen atoms is present in compound &#x27; C &#x27;</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">CHEM-2023-0101-S1-Q035</span>
@@ -1063,12 +1149,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">But-2-yne is reacted separately with one mole of Hydrogen as shown below: Na Pd / C B ← CH3 - C ≡ C - CH3 →∆ A ̄ liq NH3 +H2 ̄ Identify the incorrect statements from the options given below: A. A is more soluble than B. B. The boiling point &amp; melting point of A are higher and lower than B respectively. C. A is more polar than B because dipole moment of A is zero. D. Br2 adds easily to B than A.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>B and C only</div><div class="option"><span class="option-label">(B)</span>B, C and D only</div><div class="option"><span class="option-label">(C)</span>A, C and D only</div><div class="option"><span class="option-label">(D)</span>A and B only</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>B and C only</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>B, C and D only</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A, C and D only</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A and B only</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">CHEM-2023-0101-S1-Q034</span>
@@ -1079,12 +1166,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: One is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Butan– 1 –ol has higher boiling point than ethoxyethane. Reason R: Extensive hydrogen bonding leads to stronger association of molecules. In the light of the above statements, choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A is true but R is false</div><div class="option"><span class="option-label">(B)</span>Both A and R are true and R is the correct explanation of A</div><div class="option"><span class="option-label">(C)</span>Both A and R are true but R is not the correct</div><div class="option"><span class="option-label">(D)</span>A is false but R is true explanation of A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A is true but R is false</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both A and R are true and R is the correct explanation of A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both A and R are true but R is not the correct</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A is false but R is true explanation of A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">CHEM-2023-0101-S1-Q032</span>
@@ -1095,12 +1183,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The pair from the following pairs having both compounds with net non-zero dipole moment is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1, 4-Dichlorobenzene, 1, 3-Dichlorobenzene</div><div class="option"><span class="option-label">(B)</span>cis-butene, trans-butene</div><div class="option"><span class="option-label">(C)</span>CH2Cl2, CHCl3</div><div class="option"><span class="option-label">(D)</span>Benzene, anisidine</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1, 4-Dichlorobenzene, 1, 3-Dichlorobenzene</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>cis-butene, trans-butene</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>CH2Cl2, CHCl3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Benzene, anisidine</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">CHEM-2023-0101-S1-Q036</span>
@@ -1113,10 +1202,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   <img class="question-media" src="../../assets/2322040d4b9a3402.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">CHEM-2023-0101-S2-Q032</span>
@@ -1127,12 +1217,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Match Lis-I with List-II. List-1 List-II Hexamethylenediamine A. Weak intermolecular forces of attraction I. + adipic acid B. Hydrogen bonding II. AlEt3 + TiCl4 C. Heavily branched polymer III. 2 - chloro - 1, 3 - butadiene D. High density polymer IV. Phenol + formaldehyde Choose the correct answer from the options given below</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A-IV, B-II, C-III, D-I</div><div class="option"><span class="option-label">(B)</span>A-IV, B-I, C-III, D-II</div><div class="option"><span class="option-label">(C)</span>A-II, B-IV, C-I, D-III</div><div class="option"><span class="option-label">(D)</span>A-III, B-I, C-IV, D-II</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A-IV, B-II, C-III, D-I</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A-IV, B-I, C-III, D-II</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A-II, B-IV, C-I, D-III</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A-III, B-I, C-IV, D-II</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">CHEM-2023-0101-S1-Q032</span>
@@ -1143,12 +1234,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Decreasing order of the hydrogen bonding in following forms of water is correctly represented by A. Liquid water B. Ice C. Impure water</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A = B &gt; C</div><div class="option"><span class="option-label">(B)</span>B &gt; A &gt; C</div><div class="option"><span class="option-label">(C)</span>C &gt; B &gt; A</div><div class="option"><span class="option-label">(D)</span>A &gt; B &gt; C</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A = B &gt; C</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>B &gt; A &gt; C</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>C &gt; B &gt; A</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A &gt; B &gt; C</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">CHEM-2023-0101-S2-Q033</span>
@@ -1159,12 +1251,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Statement I:- Dipole moment is a vector quantity and by convention it is depicted by a small arrow with tail on the negative centre and head pointing towards the positive centre. Statement II:- The crossed arrow of the dipole moment symbolizes the direction of the shift of charges in the molecules. In the light of the above statements, choose the most appropriate answer from the options given below:-</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both Statement I and Statement II are correct.</div><div class="option"><span class="option-label">(B)</span>Statement I is incorrect but Statement II is correct.</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are incorrect.</div><div class="option"><span class="option-label">(D)</span>Statement I is correct but Statement II is incorrect.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both Statement I and Statement II are correct.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is incorrect but Statement II is correct.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are incorrect.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Statement I is correct but Statement II is incorrect.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">CHEM-2024-0101-S1-Q034</span>
@@ -1175,12 +1268,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: PH3 has lower boiling point than NH3. Reason R: In liquid state NH3 molecules are associated through Vander Waal&#x27;s forces, but PH3 molecules are associated through hydrogen bonding. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both and are correct and is not the correct</div><div class="option"><span class="option-label">(B)</span>is not correct but is correct A R R A R explanation of A</div><div class="option"><span class="option-label">(C)</span>Both A and R are correct but R is the correct</div><div class="option"><span class="option-label">(D)</span>A is correct but R is not correct explanation of A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both and are correct and is not the correct</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>is not correct but is correct A R R A R explanation of A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both A and R are correct but R is the correct</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A is correct but R is not correct explanation of A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">CHEM-2024-0101-S2-Q034</span>
@@ -1191,12 +1285,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Select the compound from the following that will show intramolecular hydrogen bonding.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>H2O</div><div class="option"><span class="option-label">(B)</span>NH3</div><div class="option"><span class="option-label">(C)</span>C2H5OH</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>H2O</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>NH3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>C2H5OH</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">CHEM-2024-0101-S1-Q033</span>
@@ -1207,12 +1302,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Which one of the following molecules has maximum dipole moment?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>NF3 CH4</div><div class="option"><span class="option-label">(C)</span>PF5</div><div class="option"><span class="option-label">(D)</span>NH3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>NF3 CH4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>PF5</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>NH3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">CHEM-2024-0101-S2-Q034</span>
@@ -1223,12 +1319,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct statement/s about Hydrogen bonding is/are A. Hydrogen bonding exists when H is covalently bonded to the highly electro negative atom. B. Intermolecular H bonding is present in o-nitro phenol C. Intramolecular H bonding is present in HF. D. The magnitude of H bonding depends on the physical state of the compound. E. H-bonding has powerful effect on the structure and properties of compounds Choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A, B, D only</div><div class="option"><span class="option-label">(B)</span>A, D, E only</div><div class="option"><span class="option-label">(C)</span>A only</div><div class="option"><span class="option-label">(D)</span>A, B, C only</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A, B, D only</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A, D, E only</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A only</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A, B, C only</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">CHEM-2024-0101-S2-Q052</span>
@@ -1239,12 +1336,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Number of compounds / species from the following with non-zero dipole moment is ______ BeCl2, BCl3, NF3, XeF4, CCl4, H2O, H2 S, HBr, CO2, H2, HCl</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">CHEM-2024-0101-S1-Q039</span>
@@ -1255,12 +1353,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: one is labelled as Assertion</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>and the other is labelled as Reason (R). Assertion</div><div class="option"><span class="option-label">(B)</span>: Cis form of alkene is found to be more polar than the trans form. Reason (R): Dipole moment of trans isomer of 2-butene is zero. In the light of the above statements, choose the correct answer from the options given below:</div><div class="option"><span class="option-label">(D)</span>is false but (R) is true</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>and the other is labelled as Reason (R). Assertion</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>: Cis form of alkene is found to be more polar than the trans form. Reason (R): Dipole moment of trans isomer of 2-butene is zero. In the light of the above statements, choose the correct answer from the options given below:</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>is false but (R) is true</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">CHEM-2024-0101-S2-Q052</span>
@@ -1271,12 +1370,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Number of compounds from the following with zero dipole moment is ______ HF, H2, H2 S, CO2, NH3, BF3, CH4, CHCl3, SiF4, H2O, BeF2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">CHEM-2024-0101-S1-Q052</span>
@@ -1287,12 +1387,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Number of molecules from the following which can exhibit hydrogen bonding is _______ (nearest integer) – Q53.An ideal gas, 5, is expanded adiabatically against a constant pressure of 1 atm untill it doubles in Cv = 2 R volume. If the initial temperature and pressure is 298 K and 5 atm, respectively then the final temperature is – _______ K (nearest integer). [ Cv is the molar heat capacity at constant volume] ′′ − Q54.The major product of the following reaction is P. CH3C = C −CH3 (i) Na/ ing NH3 → Number of oxygen (ii) dil. KMnO4 273 K atoms present in product &#x27; P &#x27; is _______ (nearest integer)</div>
   <img class="question-media" src="../../assets/10707f0f0a98b8ce.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">CHEM-2024-0101-S2-Q037</span>
@@ -1303,12 +1404,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The incorrect statement regarding the geometrical isomers of 2-butene is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>cis-2-butene and trans-2-butene are not</div><div class="option"><span class="option-label">(B)</span>cis-2-butene and trans-2-butene are interconvertible at room temperature. stereoisomers.</div><div class="option"><span class="option-label">(C)</span>cis-2-butene has less dipole moment than trans-2-</div><div class="option"><span class="option-label">(D)</span>trans-2-butene is more stable than cis-2-butene. butene.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>cis-2-butene and trans-2-butene are not</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>cis-2-butene and trans-2-butene are interconvertible at room temperature. stereoisomers.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>cis-2-butene has less dipole moment than trans-2-</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>trans-2-butene is more stable than cis-2-butene. butene.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="12">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">CHEM-2024-0101-S2-Q051</span>
@@ -1319,12 +1421,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the following reactions NiS + HNO3 + HCl →A + NO + S + H2O A + NH4OH + H3C −C = N −OH | →B + NH4Cl + H2O The number of protons that do not involve in H3C −C = N −OH hydrogen bonding in the product B is ______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 12</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">CHEM-2024-0101-S2-Q051</span>
@@ -1335,12 +1438,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The total number of molccules with zero dipole moment among CH4, BF3, H2O, HF, NH3, CO2 and SO2 is ______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">CHEM-2024-0101-S2-Q052</span>
@@ -1351,12 +1455,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A diatomic molecule has a dipole moment of 1.2 D. If the bond distance is 1 A, o then fractional charge on each atom is _____ × 10−1 esu. (Given 1D = 10−18 esu cm)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option 12">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">CHEM-2025-0101-S2-Q048</span>
@@ -1369,6 +1474,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option 12</div>
     </div>
@@ -1379,7 +1485,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(4 questions)</span>
     &nbsp;<a href="clusters/CHEM-CHEMBOND-VSEPR_MOLECULAR_GEOMETRY/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">CHEM-2022-0101-S1-Q032</span>
@@ -1390,12 +1496,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Based upon VSEPR theory, match the shape (geometry) of the molecules in List-I with the molecules in List - II and select the most appropriate option. List-I List-II (Shape) (Molecules) A T-shaped I. XeF4 B Trigonal planar II. SF4 C Square planar III. ClF3 D See-saw IV. BF3</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>−(I),</div><div class="option"><span class="option-label">(C)</span>−(II),</div><div class="option"><span class="option-label">(D)</span>−(III),</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−(I),</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−(II),</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−(III),</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">CHEM-2024-0101-S2-Q034</span>
@@ -1406,12 +1513,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: one is labelled as Assertion</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>and the other is labelled as Reason (R). Assertion</div><div class="option"><span class="option-label">(B)</span>: NH3 and NF3 molecule have pyramidal shape with a lone pair of electrons on nitrogen atom. The resultant dipole moment of NH3 is greater than that of NF3. Reason (R): In NH3, the orbital dipole due to lone pair is in the same direction as the resultant dipole moment of the N −H bonds. F is the most electronegative element. In the light of the above statements, choose the correct answer from the options given below:</div><div class="option"><span class="option-label">(C)</span>Both</div><div class="option"><span class="option-label">(D)</span>and (R) are true and (R) is the correct</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>and the other is labelled as Reason (R). Assertion</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>: NH3 and NF3 molecule have pyramidal shape with a lone pair of electrons on nitrogen atom. The resultant dipole moment of NH3 is greater than that of NF3. Reason (R): In NH3, the orbital dipole due to lone pair is in the same direction as the resultant dipole moment of the N −H bonds. F is the most electronegative element. In the light of the above statements, choose the correct answer from the options given below:</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>and (R) are true and (R) is the correct</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">CHEM-2024-0101-S2-Q032</span>
@@ -1422,12 +1530,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement-I: Since fluorine is more electronegative than nitrogen, the net dipole moment of NF3 is greater than NH3. Statement-II: In NH3, the orbital dipole due to lone pair and the dipole moment of NH bonds are in opposite direction, but in NF3 the orbital dipole due to lone pair and dipole moments of N-F bonds are in same direction. In the light of the above statements. Choose the most appropriate from the options given below.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is true but Statement II is false.</div><div class="option"><span class="option-label">(B)</span>Both Statement I and Statement II are false.</div><div class="option"><span class="option-label">(C)</span>Both statement I and Statement II is are true.</div><div class="option"><span class="option-label">(D)</span>Statement I is false but Statement II is are true.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is true but Statement II is false.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both Statement I and Statement II are false.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both statement I and Statement II is are true.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Statement I is false but Statement II is are true.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">CHEM-2024-0101-S1-Q032</span>
@@ -1438,8 +1547,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The linear combination of atomic orbitals to form molecular orbitals takes place only when the combining atomic orbitals A. have the same energy B. have the minimum overlap C. have same symmetry about the molecular axis D. have different symmetry about the molecular axis Choose the most appropriate from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A, B, C only</div><div class="option"><span class="option-label">(B)</span>A and C only</div><div class="option"><span class="option-label">(C)</span>B, C, D only</div><div class="option"><span class="option-label">(D)</span>B and D only</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A, B, C only</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A and C only</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>B, C, D only</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>B and D only</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
@@ -1450,7 +1560,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(3 questions)</span>
     &nbsp;<a href="clusters/CHEM-CHEMBOND-HYBRIDIZATION_BOND_ORDER/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">CHEM-2021-0101-S2-Q033</span>
@@ -1461,12 +1571,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The hybridisations of the atomic orbitals of nitrogen in NO−, NO+ and NH+ respectively are. 2 2 4</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>sp3, sp2 and sp</div><div class="option"><span class="option-label">(B)</span>sp, sp2 and sp3</div><div class="option"><span class="option-label">(C)</span>sp3, sp and sp2</div><div class="option"><span class="option-label">(D)</span>sp2, sp and sp3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>sp3, sp2 and sp</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>sp, sp2 and sp3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>sp3, sp and sp2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>sp2, sp and sp3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="150">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">CHEM-2023-0101-S2-Q053</span>
@@ -1477,12 +1588,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Match List I with List II: List I List II (Complexes) (Hybridisation) (A) [Ni(CO)4] I sp3 (NH3)4]2+ (B) [Cu II dsp2 (C) (NH3)6]2+ III sp3 d2 [Fe (D) [Fe (H2O)6]2+ IV d2 sp3 (1) A – II, B – I, C – III, D – IV (2) A – I, B – II, C – III, D – IV (3) A – II, B – I, C – IV, D – III (4) A – I, B– II, C – IV, D – III</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 150</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">CHEM-2024-0101-S2-Q041</span>
@@ -1493,8 +1605,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: PF5 and BrF5 both exhibit sp3 d hybridisation. Statement II: Both SF6 and [Co(NH3)6]3+ exhibit sp3 d2 hybridisation. In the light of the above statements, choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is true but Statement II is false</div><div class="option"><span class="option-label">(B)</span>Statement I is false but Statement II is true</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are true</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are false</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is true but Statement II is false</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is false but Statement II is true</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are true</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are false</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>

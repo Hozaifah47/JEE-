@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -245,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(43 questions)</span>
     &nbsp;<a href="clusters/CHEM-ELECTROC-NERNST_EQUATION_CELL_EMF/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S1-Q035</span>
@@ -256,12 +292,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct order of conductivity of ions in water is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Na+ &gt; K+ &gt; Rb+ &gt; Cs+</div><div class="option"><span class="option-label">(B)</span>Cs+ &gt; Rb+ &gt; K+ &gt; Na+</div><div class="option"><span class="option-label">(C)</span>K+ Na+ Cs+ Rb+</div><div class="option"><span class="option-label">(D)</span>Rb+ Na+ K+ Li+ &gt; &gt; &gt; &gt; &gt; &gt;</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Na+ &gt; K+ &gt; Rb+ &gt; Cs+</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Cs+ &gt; Rb+ &gt; K+ &gt; Na+</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>K+ Na+ Cs+ Rb+</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Rb+ Na+ K+ Li+ &gt; &gt; &gt; &gt; &gt; &gt;</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q045</span>
@@ -272,12 +309,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Match List with List −I −II: List −I List −II (Chemicals) (Use / Preparation / Constituent)</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Alcoholic potassium hydroxide (i) Electrodes in batteries</div><div class="option"><span class="option-label">(B)</span>Pd / BaSO4 (ii) Obtained by addition reaction</div><div class="option"><span class="option-label">(C)</span>BHC (Benzene hexachloride) (iii) Used for β− elimination reaction</div><div class="option"><span class="option-label">(D)</span>Polyacetylene (iv) Lindlar&#x27;s catalyst Choose the most appropriate match</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Alcoholic potassium hydroxide (i) Electrodes in batteries</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Pd / BaSO4 (ii) Obtained by addition reaction</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>BHC (Benzene hexachloride) (iii) Used for β− elimination reaction</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Polyacetylene (iv) Lindlar&#x27;s catalyst Choose the most appropriate match</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S1-Q042</span>
@@ -288,12 +326,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The electrode potential of M2 + / M of 3 d-series elements shows positive value for?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>Co Fe</div><div class="option"><span class="option-label">(C)</span>Zn</div><div class="option"><span class="option-label">(D)</span>Cu</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Co Fe</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Zn</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Cu</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S2-Q054</span>
@@ -304,12 +343,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Among the following, number of metal/s which can be used as electrodes in the photoelectric cell is ___. (Integer answer) (A) Li (B) Na (C) Rb (D) Cs</div>
   <img class="question-media" src="../../assets/288ea27134b14ec2.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="109">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S2-Q058</span>
@@ -320,12 +360,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For the galvanic cell, Zn(s) + Cu2+(0. 02M) →Zn2+(0. 04M) + Cu(s) Ecell =... × 10−2 V (Nearest integer) [Use V]: E0 Cu / Cu2+ = −0. 34 V, EZn / Zn2+ = +0. 76 V, 2.303 F RT = 0. 059 (NH3)4]2+ 1013.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 109</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S1-Q057</span>
@@ -336,12 +377,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the following reaction MnO− 4 + 8H+ + 5e−→Mn+2 + 4H2O, E°= 1. 51 V The quantity of electricity required in Faraday to reduce five moles of MnO− is 4</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="12">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S1-Q058</span>
@@ -352,12 +394,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The conductivity of a weak acid of concentration L−1 is 10−5 cm−1. If HA 0. 001 mol 2. 0 × S Λ0 m(HA) = 190 S cm2 mol−1, the ionization constant (Ka) of HA is equal to ____ ×10−6 (Round off to the Nearest Integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 12</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2021-0101-S1-Q056</span>
@@ -368,12 +411,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the following cell reaction Cd(s) + Hg2 SO4( + 9 H2O(l) ⇌CdSO4 ⋅9 H2O(s) + 2 Hg(l). s) 5 5 The value of E0 is 4. 315 V at 25°C. If ΔH°= −825. 2 kJ mol−1, the standard entropy change ΔS° in cell J K−1 is _________. (Nearest integer) [Given: Faraday constant = 96487 C mol−1 ]</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="23">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2022-0101-S1-Q058</span>
@@ -384,12 +428,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In a cell, the following reactions take place Fe2 + →Fe3 + + e- Eo = 0.77 V Fe3 + / Fe2 + 2I- →I2 + 2e- EI2 0 I- = 0.54 V / The standard electrode potential for the spontaneous reaction in the cell is x × 10-2 V at 298 K. The value of x is - (Nearest Integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 23</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2022-0101-S2-Q038</span>
@@ -400,12 +445,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In 3 d series, the metal having the highest M2+/M standard electrode potential is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Cr</div><div class="option"><span class="option-label">(B)</span>Fe</div><div class="option"><span class="option-label">(C)</span>Cu</div><div class="option"><span class="option-label">(D)</span>Zn</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Cr</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Fe</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Cu</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Zn</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2022-0101-S1-Q058</span>
@@ -416,12 +462,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The quantity of electricity in Faraday needed to reduce 1 mol of Cr2 7 to is</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="16">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2022-0101-S2-Q055</span>
@@ -432,12 +479,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For the given reactions Sn2+ + 2e−→Sn Sn4+ + 4e−→Sn the electrode potentials are; E ° = −0. 140 V and E ° = 0. 010 V. The Sn2+ / Sn Sn4+ / Sn magnitude of standard electrode potential for Sn4+ / Sn2+ i.e. E ° is____ ×10−2 V (Nearest integer) Sn4+ / Sn2+</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 16</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="127">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2022-0101-S1-Q056</span>
@@ -448,12 +496,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A dilute solution of sulphuric acid is electrolysed using a current of for hours to produce hydrogen 0. 10 A 2 and oxygen gas. The total volume of gases produced at STP is cm3. (Nearest integer) [Given: Faraday constant F = 96500 Cmol−1 at STP, molar volume of an ideal gas is 22. 7 L mol−1 ]</div>
   <img class="question-media" src="../../assets/ae6a3fd5c3e96c02.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 127</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2023-0101-S1-Q052</span>
@@ -464,12 +513,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Electrons in a cathode ray tube have been emitted with a velocity of 1000 ms-1. The number of following statements which is/are true about the emitted radiation is 10-34Js, 10-31 Given: h = 6 × me = 9 × kg (A ) The deBroglie wavelength of the electron emitted is 666.67 nm (B ) The characteristic of electrons emitted depend upon the material of the electrodes of the cathode ray tube. (C) The cathode rays start from cathode and move towards anode. (D ) The nature of the emitted electrons depends on the nature of the gas present in cathode ray tube..</div>
   <img class="question-media" src="../../assets/c40aad94aa73fd98.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2023-0101-S1-Q057</span>
@@ -480,12 +530,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">At what pH, given half cell MnO4 - (0.1M) ∣Mn2 + ( 0.001 M ) will have electrode potential of 1.282 V? (Nearest Integer) Given EMnO4- o = 1.54 V, 2.303RT = 0.059 V / Mn2 + F</div>
   <img class="question-media" src="../../assets/efeb25325755e947.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2023-0101-S1-Q039</span>
@@ -496,12 +547,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The standard electrode potential of M+ / M in aqueous solution does not depend on</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Hydration of a gaseous metal ion</div><div class="option"><span class="option-label">(B)</span>Sublimation of a solid metal</div><div class="option"><span class="option-label">(C)</span>Ionisation of a solid metal atom</div><div class="option"><span class="option-label">(D)</span>Ionisation of a gaseous metal atom</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Hydration of a gaseous metal ion</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Sublimation of a solid metal</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Ionisation of a solid metal atom</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Ionisation of a gaseous metal atom</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2023-0101-S2-Q048</span>
@@ -514,10 +566,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2023-0101-S1-Q045</span>
@@ -528,12 +581,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The reaction occurs in which of the given galvanic cell? 1 H2( g) + AgCl(s) ⇌H+(aq) + Cl−(aq) + Ag(s) 2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Pt |H2(g)| HCl(soln )| AgCl(s)| Ag</div><div class="option"><span class="option-label">(B)</span>Ag | AgCl(s)| KCl(soln )| AgNO3 | Ag</div><div class="option"><span class="option-label">(C)</span>HCl(soln AgNO3(soln</div><div class="option"><span class="option-label">(D)</span>KCl(soln Pt |H2(g)| )| )| Ag Pt |H2(g)| )| AgCl(s)| Ag</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Pt |H2(g)| HCl(soln )| AgCl(s)| Ag</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Ag | AgCl(s)| KCl(soln )| AgNO3 | Ag</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>HCl(soln AgNO3(soln</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>KCl(soln Pt |H2(g)| )| )| Ag Pt |H2(g)| )| AgCl(s)| Ag</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2023-0101-S2-Q047</span>
@@ -546,10 +600,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2023-0101-S2-Q059</span>
@@ -560,12 +615,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">At 298 K, the standard reduction potential for Cu2 + / Cu electrode is 0.34 V. Given: 2.303RT KspCu(OH ) = 1 × 10-20 Take F = 0.059 V The reduction potential at pH = 14 for the above couple is ( - )x× 10-2 2 V. The value of x is</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">CHEM-2023-0101-S1-Q047</span>
@@ -576,12 +632,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The standard electrode potential ( M3+/M2+ ) for V, Cr, Mn &amp; Co are −0. 26 V, − 0. 41 V, + 1. 57 V and +1. 97 V, respectively. The metal ions which can liberate H2 from a dilute acid are</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>V2+ and Mn2+</div><div class="option"><span class="option-label">(B)</span>Cr2+ and Co2+</div><div class="option"><span class="option-label">(C)</span>V2+ and Cr2+</div><div class="option"><span class="option-label">(D)</span>Mn2+ and Co2+</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>V2+ and Mn2+</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Cr2+ and Co2+</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>V2+ and Cr2+</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Mn2+ and Co2+</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">CHEM-2023-0101-S2-Q045</span>
@@ -594,10 +651,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">CHEM-2023-0101-S2-Q047</span>
@@ -608,12 +666,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Match List-I and List-II List-I List-II Solvent molecules pass through semi permeable membrane A.Osmosis I. towards solvent side. Movement of charged colloidal particles under the influence Reverse B. II. of applied electric potential towards oppositely charged osmosis electrodes C. Electro osmosis III.Solvent molecules pass through semi permeable membrane towards solution side D.Electrophoresis IV. Dispersion medium moves in an electric field. Choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A-I, B-III, C-IV, D-II</div><div class="option"><span class="option-label">(B)</span>A-III, B-I, C-IV, D-II</div><div class="option"><span class="option-label">(C)</span>A-III, B-I, C-II, D-IV</div><div class="option"><span class="option-label">(D)</span>A-I, B-III, C-II, D-IV</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A-I, B-III, C-IV, D-II</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A-III, B-I, C-IV, D-II</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A-III, B-I, C-II, D-IV</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A-I, B-III, C-II, D-IV</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">CHEM-2023-0101-S2-Q047</span>
@@ -624,12 +683,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The electrode potential of the following half cell at 298 K X X2+(0. 001M)∥Y2+(0. 01M) Y is _____ ×10−2 V (Nearest integer) Given: E0 X2+∣X = −2. 36 V E0 Y2+Y = +0. 36 V 2.303 RT = 0. 06 V F</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="338">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">CHEM-2024-0101-S2-Q057</span>
@@ -640,12 +700,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the following redox reaction: MnO4 + + H2C2O4 + H2O + CO2 The standard reduction potentials are given as below Ered° E0 MnO4- Mn2 + = + 1.51 V; E0 CO2 / H2C2O4 = - 0.49 V / If the equilibrium constant of the above reaction is given as Keq = 10x, then the value of x = _______ (nearest integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 338</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">CHEM-2024-0101-S1-Q040</span>
@@ -656,12 +717,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">What pressure (bar) of H2 would be required to make emf of hydrogen electrode zero in pure water at 25∘C?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>10−7</div><div class="option"><span class="option-label">(B)</span>0.5</div><div class="option"><span class="option-label">(C)</span>1</div><div class="option"><span class="option-label">(D)</span>10−14</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>10−7</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>0.5</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>10−14</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">CHEM-2024-0101-S1-Q041</span>
@@ -672,12 +734,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">One of the commonly used electrode is calomel electrode. Under which of the following categories, calomel electrode comes?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Oxidation - Reduction electrodes</div><div class="option"><span class="option-label">(B)</span>Metal ion - Metal electrodes</div><div class="option"><span class="option-label">(C)</span>Gas - Ion electrodes</div><div class="option"><span class="option-label">(D)</span>Metal - Insoluble Salt - Anion electrodes</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Oxidation - Reduction electrodes</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Metal ion - Metal electrodes</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Gas - Ion electrodes</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Metal - Insoluble Salt - Anion electrodes</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">CHEM-2024-0101-S2-Q043</span>
@@ -688,12 +751,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Fuel cell, using hydrogen and oxygen as fuels, A. has been used in spaceship B. has as efficiency of 40% to produce electricity C. uses aluminum as catalysts D. is eco-friendry E. is actually a type of Galvanic cell only Choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A, B, D, E only</div><div class="option"><span class="option-label">(B)</span>A, D, E only</div><div class="option"><span class="option-label">(C)</span>A, B, D only</div><div class="option"><span class="option-label">(D)</span>A, B, C only</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A, B, D, E only</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A, D, E only</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A, B, D only</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A, B, C only</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">CHEM-2024-0101-S2-Q038</span>
@@ -704,12 +768,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">How can an electrochemical cell be converted into an electrolytic cell?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Applying an external opposite potential lower</div><div class="option"><span class="option-label">(B)</span>Reversing the flow of ions in salt bridge. than E0 cell.</div><div class="option"><span class="option-label">(C)</span>Applying an external opposite potential greater</div><div class="option"><span class="option-label">(D)</span>Exchanging the electrodes at anode and cathode. than E0 cell-</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Applying an external opposite potential lower</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Reversing the flow of ions in salt bridge. than E0 cell.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Applying an external opposite potential greater</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Exchanging the electrodes at anode and cathode. than E0 cell-</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">CHEM-2024-0101-S2-Q040</span>
@@ -720,12 +785,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The Tl+ Cu2+ emf of cell Tl Cu is 0.83 V at 298 K. It could be increased by: (0.001M) (0.01M)</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>decreasing concentration of both Tl+ and Cu2+</div><div class="option"><span class="option-label">(B)</span>increasing concentration of Cu2+ ions ions</div><div class="option"><span class="option-label">(C)</span>increasing concentration of T1+ ions</div><div class="option"><span class="option-label">(D)</span>increasing concentration of both Tl+ and Cu2+ ions</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>decreasing concentration of both Tl+ and Cu2+</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>increasing concentration of Cu2+ ions ions</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>increasing concentration of T1+ ions</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>increasing concentration of both Tl+ and Cu2+ ions</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">CHEM-2024-0101-S2-Q041</span>
@@ -736,12 +802,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The reaction; 1 →H+ Cl− occurs in which of the following galvanic cell: 2 H2( g) + AgCl(s) (aq) + (aq) + Ag(s)</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Ag AgCl(s) KCl(soln.) AgNO3 Ag</div><div class="option"><span class="option-label">(B)</span>Pt H2( HCl(soln.) AgCl(s) Ag (aq.) g)</div><div class="option"><span class="option-label">(C)</span>Pt H2( KCl(soln. AgCl(s) Ag</div><div class="option"><span class="option-label">(D)</span>Pt H2( HCl(soln.) AgNO3(aq) Ag g) ) g) − − Q42.For a reaction A K1 → B K2 → C If the rate of formation of B is set to be zero then the concentration of B is given by:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Ag AgCl(s) KCl(soln.) AgNO3 Ag</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Pt H2( HCl(soln.) AgCl(s) Ag (aq.) g)</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Pt H2( KCl(soln. AgCl(s) Ag</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Pt H2( HCl(soln.) AgNO3(aq) Ag g) ) g) − − Q42.For a reaction A K1 → B K2 → C If the rate of formation of B is set to be zero then the concentration of B is given by:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">CHEM-2024-0101-S1-Q056</span>
@@ -752,12 +819,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The standard reduction potentials at 298 K for the following half cells are given below: Cr2O2− 14H+ 6e−→2Cr3+ E∘= 7 + + + 7H2O, 1.33 V Fe3+(aq) + 3e−→Fe E∘= −0.04 V Ni2+(aq) + 2e−→Ni E∘= −0.25 V Consider the given electrochemical reactions, The Ag+(aq) + e−→Ag E∘= 0.80 V Au3+(aq) 3e−→Au E∘= + 1.40 V number of metal(s) which will be oxidized be Cr2O2−, in aqueous solution is ______ 7</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="18">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">CHEM-2024-0101-S2-Q058</span>
@@ -768,12 +836,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The hydrogen electrode is dipped in a solution of pH = 3 at 25°C. The potential of the electrode will be - ______ 10-2 V. 2.303RT Round off the answer to the nearest integer. × F = 0.059 V</div>
   <img class="question-media" src="../../assets/534b308cc89a0cae.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 18</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">CHEM-2024-0101-S2-Q058</span>
@@ -784,12 +853,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A constant current was passed through a solution of AuCl− ion between gold electrodes. After a period of 4 10. 0 minutes, the increase in mass of cathode was 1. 314 g. The total charge passed through the solution is ___ ×10−2 F. (Given atomic mass of Au = 197)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">CHEM-2024-0101-S1-Q042</span>
@@ -800,12 +870,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Identify the factor from the following that does not affect electrolytic conductance of a solution.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>The nature of the electrolyte added.</div><div class="option"><span class="option-label">(B)</span>The nature of the electrode used.</div><div class="option"><span class="option-label">(C)</span>Concentration of the electrolyte.</div><div class="option"><span class="option-label">(D)</span>The nature of solvent used.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>The nature of the electrolyte added.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>The nature of the electrode used.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Concentration of the electrolyte.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>The nature of solvent used.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">CHEM-2024-0101-S1-Q056</span>
@@ -816,12 +887,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">One Faraday of electricity liberates x × 10 – 1 gram atom of copper from copper sulphate, x is______.</div>
   <img class="question-media" src="../../assets/0deb9622e85c16ac.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">CHEM-2024-0101-S2-Q055</span>
@@ -832,12 +904,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The values of conductivity of some materials at 298.15 K in Sm−1 are 103, 10−16, 10−2, 10−7, 103. The number of 2.1 × 1.0 × 1.2 × 10, 3.91, 1.5 × 1 × 1.0 × conductors among the materials is _____.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option 40">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">CHEM-2025-0101-S1-Q049</span>
@@ -850,10 +923,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option 40</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">CHEM-2025-0101-S1-Q053</span>
@@ -864,12 +938,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">FeO2− +2.0v Fe3+ 0.8v Fe2+ −0.5v Fe0 − − − 4 → → → In the above diagram, the standard electrode potentials are given in volts (over the arrow). The value of EO is FeO2− 4 /Fe2+ (1) 2.1 V (2) 1.7 V (3) 1.4 V (4) 1.2 V</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">CHEM-2025-0101-S2-Q058</span>
@@ -880,12 +955,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Standard electrode potentials for a few half cells are mentioned below: E∘ Cu2+/Cu = 0.34 V, E∘ Zn2+/Zn = −0.76 V E∘ E∘ Which one of the following cells gives the most negative value of Ag+/Ag = 0.80 V, Mg2+/Mg = −2.37 V ΔG∘? (1) Zn Zn2+(1M) Ag+(1M) Ag (2) Zn Zn2+(1M) Mg2+(1M) Mg (3) Ag Ag+(1M) Mg2+(1M) Mg (4) Cu Cu2+(1M)∥Ag+(1M) Ag</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">CHEM-2025-0101-S1-Q060</span>
@@ -896,12 +972,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The standard reduction potential values of some of the p-block ions are given below. Predict the one with the strongest oxidising capacity. (1) E⊖ = +1.67 V (2) E⊖ = +1.15 V Pb4+/Pb2+ Sn4+/Sn2+ (3) E⊖ = −1.66 V (4) E⊖ T1/Tl/2.26 V Al3+/Al</div>
   <img class="question-media" src="../../assets/5f0f1e8cf7edc47b.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">CHEM-2025-0101-S2-Q031</span>
@@ -912,12 +989,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The difference of temperature in a material can convert heat energy into electrical energy. To harvest the heat energy, the material should have</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>high thermal conductivity and high electrical</div><div class="option"><span class="option-label">(B)</span>low thermal conductivity and low electrical conductivity conductivity</div><div class="option"><span class="option-label">(C)</span>high thermal conductivity and low electrical</div><div class="option"><span class="option-label">(D)</span>low thermal conductivity and high electrical conductivity conductivity</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>high thermal conductivity and high electrical</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>low thermal conductivity and low electrical conductivity conductivity</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>high thermal conductivity and low electrical</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>low thermal conductivity and high electrical conductivity conductivity</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">CHEM-2025-0101-S2-Q053</span>
@@ -928,8 +1006,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">gas will be evolved as a product of electrolysis of: (A) an aqueous solution of using silver O2 AgNO3 electrodes. (B) an aqueous solution of AgNO3 using platinum electrodes. (C) a dilute solution of H2SO4 using platinum electrodes. (D) a high concentration solution of H2SO4 using platinum electrodes. Choose the correct answer from the options given below: (1) (A) and (C) only (2) (B) and (C) only (3) (A) and (D) only (4) (B) and (D) only</div>
   <img class="question-media" src="../../assets/891f70cfa43ab1ed.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
@@ -940,7 +1019,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(19 questions)</span>
     &nbsp;<a href="clusters/CHEM-ELECTROC-CONDUCTANCE_KOHLRAUSCH/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="26">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">CHEM-2021-0101-S2-Q058</span>
@@ -951,12 +1030,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the conductivity of mercury at 0°C is 1.07 × 106 S m-1 and the resistance of a cell containing mercury is 0.243Ω, then the cell constant of the cell is x× 104 m-1. The value of x is ______. (Nearest integer)</div>
   <img class="question-media" src="../../assets/ec77c707db9d66ad.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 26</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="14">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">CHEM-2021-0101-S2-Q058</span>
@@ -967,12 +1047,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A 5. 0 m mol dm−3 aqueous solution of KCl has a conductance of 0. 55 mS when measured in a cell constant 1. 3 cm−1. The molar conductivity of this solution is _______ mSm2 mol−1. (Round off to the Nearest Integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 14</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="288">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">CHEM-2021-0101-S2-Q057</span>
@@ -983,12 +1064,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The molar conductivity at infinite dilution of barium chloride, sulphuric arid and hydrochloric acid are 280, 860 426 Scm2 mol−1 respectively. The molar conductivity at infinite dilution of barium sulphate is ___ Scm2 mol−1 ( Round off to the Nearest Integer).</div>
   <img class="question-media" src="../../assets/af7930e375bb7f51.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 288</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">CHEM-2021-0101-S1-Q040</span>
@@ -999,12 +1081,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: The limiting molar conductivity of KCl (strong electrolyte) is higher compared to that of CH3COOH (weak electrolyte). Statement II: Molar conductivity decreases with decrease in concentration of electrolyte. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is false but Statement II is true</div><div class="option"><span class="option-label">(B)</span>Both Statement I and Statement II are true</div><div class="option"><span class="option-label">(C)</span>Statement I is true but Statement II is false</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are false</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is false but Statement II is true</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both Statement I and Statement II are true</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is true but Statement II is false</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are false</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="760">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">CHEM-2021-0101-S2-Q058</span>
@@ -1015,12 +1098,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The resistance of conductivity cell with cell constant cm−1, containing at is. 1. 14 0. 001M KCl 298 K 1500Ω The molar conductivity of 0. 001M KCl solution at 298 K in S cm2 mol−1 is (Integer answer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 760</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">CHEM-2021-0101-S2-Q040</span>
@@ -1031,12 +1115,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Match List - I with List - II: List - I (Parameter) List - II (Unit)</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Cell constant (i) S cm2 mol-1</div><div class="option"><span class="option-label">(B)</span>Molar conductivity (ii) Dimensionless</div><div class="option"><span class="option-label">(C)</span>Conductivity (iii) m-1 Ω-1</div><div class="option"><span class="option-label">(D)</span>Degree of dissociation of electrolyte (iv) m-1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Cell constant (i) S cm2 mol-1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Molar conductivity (ii) Dimensionless</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Conductivity (iii) m-1 Ω-1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Degree of dissociation of electrolyte (iv) m-1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="266">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">CHEM-2022-0101-S2-Q056</span>
@@ -1047,12 +1132,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The resistance of a conductivity cell containing 0. 01 MKCl solution at 298 K is 1750 Ω. If the conductivity of 0. 01 MKCl solution at 298 K is 0. 152 × 10−3 S cm−1, then the cell constant of the conductivity cell is____ ×10−3 cm−1</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 266</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="14">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">CHEM-2022-0101-S1-Q057</span>
@@ -1063,12 +1149,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The limiting molar conductivities of NaI, NaNO3 and AgNO3 are 12. 7, 12. 0 and 13. 3 mSm2 mol−1, respectively (all at 25 °C ). The limiting molar conductivity of AgI at this temperature is____ mSm2 mol−1.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 14</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">CHEM-2022-0101-S1-Q057</span>
@@ -1079,12 +1166,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The solubility product of a sparingly soluble salt A2X3 is 1. 1 × 10−23. If specific conductance of the solution is 3 × 10−5 Sm−1, the limiting molar conductivity of the solution is x × 10−3 S m2 mol−1. The value of x is O2− Cr3+</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="66">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">CHEM-2023-0101-S2-Q058</span>
@@ -1095,12 +1183,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The specific conductance of 0.0025M acetic acid is 5 × 10-5 S cm-1 at a certain temperature. The dissociation constant of acetic acid is ___________ × 10-7.(Nearest integer) Consider limiting molar conductivity of as cm2 mol-1 CH3COOH 400 S</div>
   <img class="question-media" src="../../assets/112f0cee606ebea4.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 66</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">CHEM-2023-0101-S1-Q055</span>
@@ -1111,12 +1200,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of correct statements from the following is ___________ (A) Conductivity always decreases with decrease in concentration for both strong and weak electrolytes. (B) The number of ions per unit volume that carry current in a solution increases on dilution. (C) Molar conductivity increases with decrease in concentration. (D) The variation in molar conductivity is different for strong and weak electrolytes. (E) For weak electrolytes, the change in molar conductivity with dilution is due to decrease in degree of dissociation.</div>
   <img class="question-media" src="../../assets/21adbdad88d0b530.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">CHEM-2023-0101-S1-Q048</span>
@@ -1127,12 +1217,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Following figure shows dependence of molar conductance of two electrolytes on concentration. Λ0 is the m limiting molar conductivity. The number of Incorrect statement(s) from the following is _____</div>
   <img class="question-media" src="../../assets/a97342ad80cccaf2.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Λ0 m for electrolyte A is obtained by extrapolation</div><div class="option"><span class="option-label">(B)</span>For electrolyte B, Λm Vs √c graph is a straight line with intercept equal to Λ0 m</div><div class="option"><span class="option-label">(C)</span>At infinite dilution, the value of degree of dissociation approach zero for electrolyte B.</div><div class="option"><span class="option-label">(D)</span>for any electrolyte or can be calculated using λ° for individual ions. Λm A B</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Λ0 m for electrolyte A is obtained by extrapolation</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>For electrolyte B, Λm Vs √c graph is a straight line with intercept equal to Λ0 m</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>At infinite dilution, the value of degree of dissociation approach zero for electrolyte B.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>for any electrolyte or can be calculated using λ° for individual ions. Λm A B</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">CHEM-2023-0101-S2-Q048</span>
@@ -1143,12 +1234,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The resistivity of a solution of an electrolyte is 10−3Ωcm. Its molar conductivity is 0. 8M 5 × 104Ω−1 cm2 mol−1. (Nearest integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">CHEM-2024-0101-S2-Q042</span>
@@ -1159,12 +1251,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For a strong electrolyte, a plot of molar conductivity against (concentration) 1/2 is a straight line, with a negative slope, the correct unit for the slope is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Scm2 mol−3/2 L−1/2</div><div class="option"><span class="option-label">(B)</span>Scm2 mol−3/2 L1/2</div><div class="option"><span class="option-label">(C)</span>Scm2 mol−3/2 L</div><div class="option"><span class="option-label">(D)</span>Scm2 mol−1 L1/2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Scm2 mol−3/2 L−1/2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Scm2 mol−3/2 L1/2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Scm2 mol−3/2 L</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Scm2 mol−1 L1/2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">CHEM-2024-0101-S1-Q043</span>
@@ -1175,12 +1268,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Molar ionic conductivities of divalent cation and anion are 57 S cm2 mol−1 and 73 S cm2 mol−1 respectively. The molar conductivity of solution of an electrolyte with the above cation and anion will be:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>187 S cm2 mol−1</div><div class="option"><span class="option-label">(B)</span>260 S cm2 mol−1 mol−1 mol−1</div><div class="option"><span class="option-label">(C)</span>130 S cm2</div><div class="option"><span class="option-label">(D)</span>65 S cm2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>187 S cm2 mol−1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>260 S cm2 mol−1 mol−1 mol−1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>130 S cm2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>65 S cm2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">CHEM-2024-0101-S1-Q042</span>
@@ -1191,12 +1285,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A conductivity cell with two electrodes (dark side) are half filled with infinitely dilute aqueous solution of a weak electrolyte. If volume is doubled by adding more water at constant temperature, the molar conductivity of the cell will -</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>decrease sharply</div><div class="option"><span class="option-label">(B)</span>increase sharply</div><div class="option"><span class="option-label">(C)</span>remain same or can not be measured accurately</div><div class="option"><span class="option-label">(D)</span>depend upon type of electrolyte</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>decrease sharply</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>increase sharply</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>remain same or can not be measured accurately</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>depend upon type of electrolyte</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">CHEM-2024-0101-S1-Q040</span>
@@ -1207,12 +1302,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The molar conductivity for electrolytes A and B are plotted against C 1/2 as shown below. Electrolytes A and B respectively are:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A: strong electrolyte; B: weak electrolyte</div><div class="option"><span class="option-label">(B)</span>A: weak electrolyte; B: weak electrolyte</div><div class="option"><span class="option-label">(C)</span>A: weak electrolyte; B: strong electrolyte</div><div class="option"><span class="option-label">(D)</span>A: strong electrolyte; B: strong electrolyte</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A: strong electrolyte; B: weak electrolyte</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A: weak electrolyte; B: weak electrolyte</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A: weak electrolyte; B: strong electrolyte</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A: strong electrolyte; B: strong electrolyte</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">CHEM-2024-0101-S2-Q040</span>
@@ -1223,12 +1319,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Which out of the following is a correct equation to show change in molar conductivity with respect to concentration for a weak electrolyte, if the symbols carry their usual meaning: 1</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Λm −Λ0 m + AC 2 = 0</div><div class="option"><span class="option-label">(B)</span>Λ2 mC −KaΛ∘2 m + KaΛmΛm = 0 Λ2mC KaΛ∘2 −KaΛmΛ∘ −Λ∘ 1</div><div class="option"><span class="option-label">(C)</span>+ m m = 0</div><div class="option"><span class="option-label">(D)</span>Λm m −AC 2 = 0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Λm −Λ0 m + AC 2 = 0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Λ2 mC −KaΛ∘2 m + KaΛmΛm = 0 Λ2mC KaΛ∘2 −KaΛmΛ∘ −Λ∘ 1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>+ m m = 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Λm m −AC 2 = 0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">CHEM-2025-0101-S1-Q059</span>
@@ -1239,8 +1336,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The molar conductivity of a weak electrolyte when plotted against the square root of its concentration, which of the following is expected to be observed? (1) A small decrease in molar conductivity is (2) Molar conductivity decreases sharply with observed at infinite dilution. increase in concentration. (3) A small increase in molar conductivity is (4) Molar conductivity increases sharply with observed at infinite dilution. increase in concentration.</div>
   <img class="question-media" src="../../assets/a0f5cdf45bd679a2.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>

@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -237,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S2-Q031</span>
@@ -248,12 +284,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Number of paramagnetic oxides among the following given oxides is ___________. Li2O, CaO, Na2O2, KO2, MgO and K2O (1) 1 (2) 3 (3) 0 (4) 2</div>
   <img class="question-media" src="../../../../assets/a3509da6a707bb40.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q060</span>
@@ -264,12 +301,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The equivalents of ethylene diamine required to replace the neutral ligands from the coordination sphere of the trans-complex of CoCl3. 4 NH3 is _______. (Round off to the Nearest Integer).</div>
   <img class="question-media" src="../../../../assets/6911d8d8c96903e8.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S1-Q043</span>
@@ -280,12 +318,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: Potassium permanganate on heating at 573 K forms potassium manganate. Statement II: Both potassium permanganate and potassium manganate are tetrahedral and paramagnetic in nature. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is true but statement II is false</div><div class="option"><span class="option-label">(B)</span>Both statement I and statement II are true</div><div class="option"><span class="option-label">(C)</span>Statement I is false but statement II is true</div><div class="option"><span class="option-label">(D)</span>Both statement I and statement II are false</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is true but statement II is false</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both statement I and statement II are true</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is false but statement II is true</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both statement I and statement II are false</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S1-Q036</span>
@@ -296,12 +335,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Compound with molecular formula C3H6O can show:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Positional isomerism</div><div class="option"><span class="option-label">(B)</span>Both positional isomerism and metamerism</div><div class="option"><span class="option-label">(C)</span>Metamerism</div><div class="option"><span class="option-label">(D)</span>Functional group isomerism</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Positional isomerism</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both positional isomerism and metamerism</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Metamerism</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Functional group isomerism</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S2-Q037</span>
@@ -312,12 +352,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In the following molecules, Hybridisation of carbon and respectively are: a, b c</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>sp3, sp, sp</div><div class="option"><span class="option-label">(B)</span>sp3, sp2, sp</div><div class="option"><span class="option-label">(C)</span>sp3, sp2, sp2</div><div class="option"><span class="option-label">(D)</span>sp3, sp, sp2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>sp3, sp, sp</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>sp3, sp2, sp</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>sp3, sp2, sp2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>sp3, sp, sp2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S1-Q035</span>
@@ -328,12 +369,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A s-block element (M) reacts with oxygen to form an oxide of the formula MO2. The oxide is pale yellow in colour and paramagnetic. The element is: (M)</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Mg</div><div class="option"><span class="option-label">(B)</span>Na</div><div class="option"><span class="option-label">(C)</span>Ca</div><div class="option"><span class="option-label">(D)</span>K</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Mg</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Na</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Ca</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>K</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S2-Q044</span>
@@ -344,12 +386,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Spin only magnetic moment of an octahedral complex of Fe2+ in the presence of a strong field ligand in BM is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>4. 89 2. 82</div><div class="option"><span class="option-label">(C)</span>0</div><div class="option"><span class="option-label">(D)</span>3. 46</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4. 89 2. 82</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3. 46</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2021-0101-S1-Q037</span>
@@ -360,12 +403,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Which of the following molecules does not show stereo isomerism?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3, 4 -Dimethylhex- 3 -ene</div><div class="option"><span class="option-label">(B)</span>3 -Methylhex- 1 -ene</div><div class="option"><span class="option-label">(C)</span>3 -Ethylhex- 3 -ene</div><div class="option"><span class="option-label">(D)</span>4 -Methylhex- 1 -ene</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3, 4 -Dimethylhex- 3 -ene</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3 -Methylhex- 1 -ene</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3 -Ethylhex- 3 -ene</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4 -Methylhex- 1 -ene</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2021-0101-S1-Q045</span>
@@ -376,12 +420,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The set having ions which are coloured and paramagnetic both is -</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Cu2+, Cr3+, Sc+</div><div class="option"><span class="option-label">(B)</span>Cu2+, Zn2+, Mn4+</div><div class="option"><span class="option-label">(C)</span>Sc3+, V5+, Ti4+</div><div class="option"><span class="option-label">(D)</span>Ni2+, Mn7+, Hg2+</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Cu2+, Cr3+, Sc+</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Cu2+, Zn2+, Mn4+</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Sc3+, V5+, Ti4+</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Ni2+, Mn7+, Hg2+</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2021-0101-S1-Q058</span>
@@ -392,12 +437,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The coordination number of an atom in a body-centered cubic structure is______ [Assume that the lattice is made up of atoms.]</div>
   <img class="question-media" src="../../../../assets/87f875ebbfbda454.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2021-0101-S1-Q046</span>
@@ -408,12 +454,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The hybridization and magnetic nature of [Mn (CN)6]4− and [Fe (CN)6]3−, respectively are:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>sp3 d2 and diamagnetic</div><div class="option"><span class="option-label">(B)</span>d2 sp3 and paramagnetic</div><div class="option"><span class="option-label">(C)</span>sp3 d2 and paramagnetic</div><div class="option"><span class="option-label">(D)</span>d2 sp3 and diamagnetic</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>sp3 d2 and diamagnetic</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>d2 sp3 and paramagnetic</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>sp3 d2 and paramagnetic</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>d2 sp3 and diamagnetic</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2021-0101-S2-Q046</span>
@@ -424,12 +471,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: The identification of Ni2+ is carried out by dimethyl glyoxime in the presence of. NH4 OH Statement II:The dimethyl glyoxime is a bidentate neutral ligand. In the light of the above statements, choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is false but Statement II is true.</div><div class="option"><span class="option-label">(B)</span>Statement I is true but Statement II is false.</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are true.</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are false.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is false but Statement II is true.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is true but Statement II is false.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are true.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are false.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2021-0101-S2-Q033</span>
@@ -440,12 +488,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The bond order and magnetic behaviour of O− ion are, respectively: 2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1. 5 and diamagnetic.</div><div class="option"><span class="option-label">(B)</span>1. 5 and paramagnetic.</div><div class="option"><span class="option-label">(C)</span>2 and diamagnetic.</div><div class="option"><span class="option-label">(D)</span>1 and paramagnetic</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1. 5 and diamagnetic.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1. 5 and paramagnetic.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2 and diamagnetic.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 and paramagnetic</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2021-0101-S2-Q045</span>
@@ -456,12 +505,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Indicate the complex/complex ion which did not show any geometrical isomerism: Cl2]+</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>[Co (NH3)4</div><div class="option"><span class="option-label">(B)</span>[Co (NH3)3(NO2)3]</div><div class="option"><span class="option-label">(C)</span>[Co(CN)5(NC)]3−</div><div class="option"><span class="option-label">(D)</span>[CoCl2(en)2]</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>[Co (NH3)4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>[Co (NH3)3(NO2)3]</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>[Co(CN)5(NC)]3−</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>[CoCl2(en)2]</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2021-0101-S1-Q060</span>
@@ -472,12 +522,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Number of bridging CO ligands in [Mn2 (CO)10] is</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2021-0101-S1-Q060</span>
@@ -488,12 +539,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">1 mol of an octahedral metal complex with formula MCl3 ⋅2 L on reaction with excess of AgNO3 gives 1 mol of AgCl. The denticity of Ligand L is___________ (Integer answer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2021-0101-S2-Q040</span>
@@ -504,12 +556,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Potassium permanganate on heating at 513 K gives a product which is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>paramagnetic and colourless</div><div class="option"><span class="option-label">(B)</span>diamagnetic and colourless</div><div class="option"><span class="option-label">(C)</span>diamagnetic and green</div><div class="option"><span class="option-label">(D)</span>paramagnetic and green</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>paramagnetic and colourless</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>diamagnetic and colourless</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>diamagnetic and green</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>paramagnetic and green</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2021-0101-S1-Q044</span>
@@ -520,12 +573,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The type of hybridisation and magnetic property of the complex [MnCl6]3−, respectively, are:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>sp3 d2 and diamagnetic</div><div class="option"><span class="option-label">(B)</span>d2 sp3 and diamagnetic</div><div class="option"><span class="option-label">(C)</span>d2 sp3 and paramagnetic</div><div class="option"><span class="option-label">(D)</span>sp3 d2 and paramagnetic</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>sp3 d2 and diamagnetic</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>d2 sp3 and diamagnetic</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>d2 sp3 and paramagnetic</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>sp3 d2 and paramagnetic</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2021-0101-S2-Q044</span>
@@ -536,12 +590,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: [Mn(CN)6]3−, [Fe(CN)6]3− and [Co (C2O4)3]3− are d2 sp3 hybridised. [MnCl6]3− [FeF6]3− Statement II: and are paramagnetic and have 4 and 5 unpaired electrons, respectively. In the light of the above statements, choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is correct but statement II is false</div><div class="option"><span class="option-label">(B)</span>Both statement I and statement II are false</div><div class="option"><span class="option-label">(C)</span>Statement I is incorrect but statement II is true</div><div class="option"><span class="option-label">(D)</span>Both statement I and statement II are are true</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is correct but statement II is false</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both statement I and statement II are false</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is incorrect but statement II is true</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both statement I and statement II are are true</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2021-0101-S1-Q043</span>
@@ -552,12 +607,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The denticity of an organic ligand, biuret is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2</div><div class="option"><span class="option-label">(B)</span>3</div><div class="option"><span class="option-label">(C)</span>4</div><div class="option"><span class="option-label">(D)</span>6</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>6</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">CHEM-2022-0101-S1-Q060</span>
@@ -568,12 +624,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In the cobalt-carbonyl complex:, number of bonds is &quot; &quot; and terminal ligands is &quot; [Co2 (CO)8] Co −Co X CO Y &quot;. X + Y = ___</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">CHEM-2022-0101-S1-Q043</span>
@@ -584,12 +641,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Which of the following will have maximum stabilization due to crystal field?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(H2O)6]3+</div><div class="option"><span class="option-label">(B)</span>(H2O)6]2+ [Ti [Co</div><div class="option"><span class="option-label">(C)</span>[Co (CN)6]3−</div><div class="option"><span class="option-label">(D)</span>[Cu (NH3)4]2+</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(H2O)6]3+</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>(H2O)6]2+ [Ti [Co</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>[Co (CN)6]3−</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>[Cu (NH3)4]2+</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">CHEM-2022-0101-S1-Q059</span>
@@ -600,12 +658,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of statement(s) correct from the following for Copper is/are (A) Cu(II) complexes are always paramagnetic (B) Cu(I) complexes are generally colourless (C) Cu(I) is easily oxidized (D) In Fehling solution, the active reagent has Cu(I)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">CHEM-2022-0101-S1-Q043</span>
@@ -616,12 +675,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: (CN)4]2− Statement I: [Ni is square planar and diamagnetic complex, with dsp2 hybridization for Ni but [Ni (CO)4] is tetrahedral, paramagnetic and with sp3 hybridication for Ni. Statement II: [NiCl4]2− and [Ni (CO)4] both have same d-electron configuration, have same geometry and are paramagnetic. In light the above statements, choose the correct answer form the options given below</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both Statement I and Statement II are true.</div><div class="option"><span class="option-label">(B)</span>Statement I is correct but statement II is false.</div><div class="option"><span class="option-label">(C)</span>Statement I is incorrect but statement II is true.</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are false.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both Statement I and Statement II are true.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is correct but statement II is false.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is incorrect but statement II is true.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are false.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">CHEM-2022-0101-S2-Q057</span>
@@ -632,12 +692,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">(CN)6]4− [Fe [Fe (CN)6]3− [Ti (CN)6]3− [Ni (CN)4]2− [Co (CN)6]3− Among the given complexes, number of paramagnetic complexes is</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">CHEM-2022-0101-S2-Q043</span>
@@ -648,12 +709,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements. Statement: In bonds are present. I CuSO4 ⋅5H2O, Cu −O Statement II: In CuSO4. 5H2O, ligands coordinating with Cu (II) ion are O -and S -based ligands. In the light of the above statements, choose the correct answer from the options given below</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both Statement I and Statement II are correct</div><div class="option"><span class="option-label">(B)</span>Both Statement I and Statement II are incorrect</div><div class="option"><span class="option-label">(C)</span>Statement I is correct but Statement II is</div><div class="option"><span class="option-label">(D)</span>Statement I is incorrect but Statement II is incorrect correct</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both Statement I and Statement II are correct</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both Statement I and Statement II are incorrect</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is correct but Statement II is</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Statement I is incorrect but Statement II is incorrect correct</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">CHEM-2023-0101-S1-Q060</span>
@@ -664,12 +726,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Number of ambidentate ligands in a representative metal complex M ( en ) ( SCN ) is _________. [en = 4 ethylenediamine]</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">CHEM-2023-0101-S2-Q052</span>
@@ -680,12 +743,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: one is labelled as “Assertion A” and the other is labelled as “Reason R” Assertion A: In the complex Ni(CO)4 and Fe(CO)5, the metals have zero oxidation state. Reason R: Low oxidation states are found when a complex has ligands capable of -donor character in π addition to the σ -bonding. In the light of the above statements, choose the most appropriate answer from the options given below (1) A is correct but R is not correct (2) A is not correct but R is correct (3) Both A and R are correct but R is NOT the (4) Both A and R are correct and R is the correct correct explanation of A explanation of A</div>
   <img class="question-media" src="../../../../assets/64466217657b305b.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1411">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">CHEM-2023-0101-S2-Q053</span>
@@ -696,12 +760,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Match List-I with List-II LIST-I LIST-II Coordination Number of unpaired electrons Complex [Cr(CN)6]3− A. I. 0 B. [Fe (H2O)6]2+ II. 3 C. [Co (NH3)6]3+ III. 2 D. [Ni (NH3)6]2+ IV. 4 Choose the correct answer from the options given below: (1) A-II, B-IV, C-I, D-III (2) A-III, B-IV, C-I, D-II (3) A-II, B-I, C-IV, D-III (4) A-IV, B-III, C-II, D-I</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1411</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">CHEM-2023-0101-S1-Q045</span>
@@ -712,12 +777,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The set which does not have ambidentate ligand(s) is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>C2O4 2 -, ethylene diammine, H2O</div><div class="option"><span class="option-label">(B)</span>EDTA 4 -, NCS-, C2O4 2 -</div><div class="option"><span class="option-label">(C)</span>4-</div><div class="option"><span class="option-label">(D)</span>2 - - NCS- NO2 -, C2O4 2 -, EDTA C2O4, NO2,</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>C2O4 2 -, ethylene diammine, H2O</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>EDTA 4 -, NCS-, C2O4 2 -</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4-</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2 - - NCS- NO2 -, C2O4 2 -, EDTA C2O4, NO2,</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">CHEM-2023-0101-S2-Q053</span>
@@ -728,12 +794,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If is replaced by in the complex [NiCl2, which of the following properties are expected to get changed? A. Geometry B. Geometrical isomerism C. Optical isomerism D. Magnetic properties (1) A and D (2) A, B and C (3) B and C (4) A, B and D</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">CHEM-2023-0101-S1-Q034</span>
@@ -744,12 +811,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In which of the following processes, the bond order increases and paramagnetic character changes to diamagnetic one? →O+ →O2−</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>O2 2</div><div class="option"><span class="option-label">(B)</span>O2 2</div><div class="option"><span class="option-label">(C)</span>NO →NO+</div><div class="option"><span class="option-label">(D)</span>N2 →N+ 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>O2 2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>O2 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>NO →NO+</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>N2 →N+ 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="800">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">CHEM-2023-0101-S1-Q053</span>
@@ -760,12 +828,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The mismatched combinations are A. Chlorophyll – Co B. Water hardness – EDTA C. Photography −[Ag(CN)2]− D. Wilkinson catalyst −[(Ph3 P)3 RhCl] E. Chelating ligand –D− Penicillamine Choose the correct answer from the options given below. (1) A, C and E only (2) A and C only (3) A and E only (4) D and E only</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 800</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">CHEM-2023-0101-S1-Q059</span>
@@ -776,12 +845,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The d-electronic configuration of 2 - in tetrahedral crystal field is emt2 n. The sum of and number of CoCl4 m unpaired electrons is</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">CHEM-2023-0101-S2-Q039</span>
@@ -792,12 +862,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Identify the correct statements about alkali metals. A. The order of standard reduction potential (M+ | M) for alkali metal ions is Na &gt; Rb &gt; Li. B. CsI is highly soluble in water. C. Lithium carbonate is highly stable to heat. D. Potassium dissolved in concentrated liquid ammonia is blue and paramagnetic. E. All alkali metal hydrides are ionic solids. Choose the correct answer from the options given below</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A, B, D only</div><div class="option"><span class="option-label">(B)</span>C and E only</div><div class="option"><span class="option-label">(C)</span>A and E only</div><div class="option"><span class="option-label">(D)</span>A, B and E only</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A, B, D only</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>C and E only</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A and E only</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A, B and E only</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">CHEM-2023-0101-S2-Q053</span>
@@ -808,12 +879,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The hybridization and magnetic behaviour of cobalt ion in [Co(NH3)6]3+ complex, respectively is (1) sp3 d2 and diamagnetic (2) d2 sp3 and paramagnetic (3) d2 sp3 and diamagnetic (4) sp3 d2 and paramagnetic</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">CHEM-2023-0101-S1-Q051</span>
@@ -824,12 +896,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of paramagnetic species from the following is [Ni(CN)4]2−, [Ni(CO)4], [NiCl4]2− [Fe(CN)6]4−, [Cu (NH3)4]2+ [Fe(CN)6]3− and [Fe (H2O)6]2+</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">CHEM-2023-0101-S2-Q052</span>
@@ -840,12 +913,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Match List I with List II List I List II Coordination entity Wavelength of light absorbed in nm A [CoCl (NH3)5]2+ I. 310 B [Co (NH3)6]3+ II. 475 C [Co(CN)6]3− III. 535 (H2O)4]2+ D [Cu IV. 600 Choose the correct answer from the options given below:- (1) A −IV, B −I, C −III, D −II (2) A −III, B −II, C −I, D −IV (3) A −III, B −I, C −II, D −IV (4) A − II, B −III, C −IV, D −I</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">CHEM-2023-0101-S1-Q039</span>
@@ -856,12 +930,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The magnetic behaviour of Li2 O, Na2 O2 and KO2, respectively, are</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>diamagnetic, paramagnetic and diamagnetic</div><div class="option"><span class="option-label">(B)</span>paramagnetic, paramagnetic and diamagnetic</div><div class="option"><span class="option-label">(C)</span>paramagnetic, diamagnetic and paramagnetic</div><div class="option"><span class="option-label">(D)</span>diamagnetic, diamagnetic and paramagnetic</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>diamagnetic, paramagnetic and diamagnetic</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>paramagnetic, paramagnetic and diamagnetic</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>paramagnetic, diamagnetic and paramagnetic</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>diamagnetic, diamagnetic and paramagnetic</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="15">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">CHEM-2023-0101-S2-Q053</span>
@@ -872,12 +947,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The denticity of the ligand present in the Fehling&#x27;s reagent is _____.</div>
   <img class="question-media" src="../../../../assets/390d388377c4698d.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 15</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">CHEM-2023-0101-S1-Q042</span>
@@ -888,12 +964,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Which of the following is correct order of ligand field strength? 2 - S2 - S2 - 2 -</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>CO &lt; en &lt; NH3 &lt; C2O4 &lt;</div><div class="option"><span class="option-label">(B)</span>&lt; C2O4 &lt; NH3 &lt; en &lt; CO</div><div class="option"><span class="option-label">(C)</span>NH3 &lt; en &lt; CO &lt; S2 - &lt; C2O4 2 -</div><div class="option"><span class="option-label">(D)</span>S2 - &lt; NH3 &lt; en &lt; CO &lt; C2O4 2 -</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>CO &lt; en &lt; NH3 &lt; C2O4 &lt;</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>&lt; C2O4 &lt; NH3 &lt; en &lt; CO</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>NH3 &lt; en &lt; CO &lt; S2 - &lt; C2O4 2 -</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>S2 - &lt; NH3 &lt; en &lt; CO &lt; C2O4 2 -</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">CHEM-2023-0101-S1-Q043</span>
@@ -904,12 +981,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">To inhibit the growth of tumours, identify the compounds used from the following:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>EDTA</div><div class="option"><span class="option-label">(B)</span>Coordination Compounds of Pt</div><div class="option"><span class="option-label">(C)</span>D-Penicillamine</div><div class="option"><span class="option-label">(D)</span>Cis - Platin Choose the correct answer from the option given below:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>EDTA</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Coordination Compounds of Pt</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>D-Penicillamine</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Cis - Platin Choose the correct answer from the option given below:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">CHEM-2024-0101-S2-Q047</span>
@@ -920,12 +998,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement (I): Dimethyl glyoxime forms a six membered covalent chelate when treated with NiCl2 solution in presence of NH4OH. Statement (II): Prussian blue precipitate contains iron both in +2 and +3 oxidation states. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is false but Statement II is true</div><div class="option"><span class="option-label">(B)</span>Both Statement I and Statement II are true</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are false</div><div class="option"><span class="option-label">(D)</span>Statement I is true but Statement II is false</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is false but Statement II is true</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both Statement I and Statement II are true</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are false</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Statement I is true but Statement II is false</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">CHEM-2024-0101-S1-Q045</span>
@@ -936,12 +1015,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct sequence of ligands in the order of decreasing field strength is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>NCS−&gt; EDTA4−&gt; CN−&gt; CO</div><div class="option"><span class="option-label">(B)</span>CO &gt; H2O &gt; F−&gt; S2−</div><div class="option"><span class="option-label">(C)</span>S2−&gt; −OH &gt; EDTA4−&gt; CO</div><div class="option"><span class="option-label">(D)</span>−OH &gt; F−&gt; NH3 &gt; CN−</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>NCS−&gt; EDTA4−&gt; CN−&gt; CO</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>CO &gt; H2O &gt; F−&gt; S2−</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>S2−&gt; −OH &gt; EDTA4−&gt; CO</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−OH &gt; F−&gt; NH3 &gt; CN−</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">CHEM-2024-0101-S1-Q045</span>
@@ -952,12 +1032,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Which one of the following complexes will exhibit the least paramagnetic behaviour? [Atomic number, Cr = 24, Mn = 25, Fe = 26, Co = 27 ]</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>[Cr(H2O)6]2+</div><div class="option"><span class="option-label">(B)</span>[Fe(H2O)6]2+</div><div class="option"><span class="option-label">(C)</span>[Co(H2O)6]2+</div><div class="option"><span class="option-label">(D)</span>[Mn(H2O)6]2+</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>[Cr(H2O)6]2+</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>[Fe(H2O)6]2+</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>[Co(H2O)6]2+</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>[Mn(H2O)6]2+</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">CHEM-2024-0101-S1-Q046</span>
@@ -968,12 +1049,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct order of ligands arranged in increasing field strength.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>F−&lt; Br−&lt; I−&lt; NH3</div><div class="option"><span class="option-label">(B)</span>Br−&lt; F−&lt; H2O &lt; NH3</div><div class="option"><span class="option-label">(C)</span>H2O &lt; −OH &lt; CN−&lt; NH3</div><div class="option"><span class="option-label">(D)</span>Cl−&lt; −OH &lt; Br−&lt; CN−</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>F−&lt; Br−&lt; I−&lt; NH3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Br−&lt; F−&lt; H2O &lt; NH3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>H2O &lt; −OH &lt; CN−&lt; NH3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Cl−&lt; −OH &lt; Br−&lt; CN−</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">CHEM-2024-0101-S2-Q036</span>
@@ -984,12 +1066,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct statements from the following are:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>The decreasing order of atomic radii of group 13 elements is Tl &gt; In &gt; Ga &gt; Al &gt; B.</div><div class="option"><span class="option-label">(B)</span>Down the group 13 electronegativity decreases from top to bottom.</div><div class="option"><span class="option-label">(C)</span>Al dissolves in dil. and liberates but conc. renders passive by forming a protective oxide layer HCl H2 HNO3 Al on the surface.</div><div class="option"><span class="option-label">(D)</span>All elements of group 13 exhibits highly stable +1 oxidation state. (E) Hybridisation of Al in [Al(H2O)6]3+ ion is sp3 d2. Choose the correct answer from the options given below:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>The decreasing order of atomic radii of group 13 elements is Tl &gt; In &gt; Ga &gt; Al &gt; B.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Down the group 13 electronegativity decreases from top to bottom.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Al dissolves in dil. and liberates but conc. renders passive by forming a protective oxide layer HCl H2 HNO3 Al on the surface.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>All elements of group 13 exhibits highly stable +1 oxidation state. (E) Hybridisation of Al in [Al(H2O)6]3+ ion is sp3 d2. Choose the correct answer from the options given below:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">CHEM-2024-0101-S2-Q038</span>
@@ -1000,12 +1083,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">List - I List - II (Pair of compounds) (Isomerism) Match List I with List II</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>n-propanol and Isopropanol (I) Metamerism Choose the</div><div class="option"><span class="option-label">(B)</span>Methoxypropane and ethoxyethane (II) Chain Isomerism</div><div class="option"><span class="option-label">(C)</span>Propanone and propanal (III) Position Isomerism</div><div class="option"><span class="option-label">(D)</span>Neopentane and Isopentane (IV) Functional Isomerism correct answer from the options given below:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>n-propanol and Isopropanol (I) Metamerism Choose the</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Methoxypropane and ethoxyethane (II) Chain Isomerism</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Propanone and propanal (III) Position Isomerism</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Neopentane and Isopentane (IV) Functional Isomerism correct answer from the options given below:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">CHEM-2024-0101-S2-Q046</span>
@@ -1016,12 +1100,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The metal atom present in the complex MABXL (where A, B, X and L are unidentate ligands and M is metal) involves sp3 hybridization. The number of geometrical isomers exhibited by the complex is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2</div><div class="option"><span class="option-label">(B)</span>0</div><div class="option"><span class="option-label">(C)</span>4</div><div class="option"><span class="option-label">(D)</span>3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">CHEM-2024-0101-S1-Q036</span>
@@ -1032,12 +1117,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">List - I List - II (Molecule/Species) (Property/Shape) Match List I with List II A. SO2Cl2 I. Paramagnetic Choose the correct answer B. NO II. Diamagnetic C. NO− III. Tetrahedral I− 2 D. 3 IV. Linear from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A-II, B-III, C-I, D-IV</div><div class="option"><span class="option-label">(B)</span>A-III, B-I, C-II, D-IV</div><div class="option"><span class="option-label">(C)</span>A-IV, B-I, C-III, D-II</div><div class="option"><span class="option-label">(D)</span>A-III, B-IV, C-II, D-I</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A-II, B-III, C-I, D-IV</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A-III, B-I, C-II, D-IV</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A-IV, B-I, C-III, D-II</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A-III, B-IV, C-II, D-I</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">CHEM-2024-0101-S1-Q035</span>
@@ -1048,12 +1134,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: N(CH3)3 and P(CH3)3 can act as ligands to form transition metal complexes. Statement II: As N and P are from same group, the nature of bonding of N(CH3)3 and P(CH3)3 is always same with transition metals. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is correct but Statement II is</div><div class="option"><span class="option-label">(B)</span>Statement I is incorrect but Statement II is incorrect. correct.</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are correct.</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are incorrect. X ⇌Y; K1 = 1.0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is correct but Statement II is</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is incorrect but Statement II is incorrect. correct.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are correct.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are incorrect. X ⇌Y; K1 = 1.0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">CHEM-2024-0101-S1-Q059</span>
@@ -1064,12 +1151,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Number of ambidentate ligands among the following is ______ NO−, SCN−, C2O2−, NH3, CN−, SO2−, H2O. 2 4 4</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">CHEM-2024-0101-S2-Q044</span>
@@ -1080,12 +1168,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The coordination environment of Ca2+ ion in its complex with EDTA4− is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>tetrahedral</div><div class="option"><span class="option-label">(B)</span>trigonal prismatic</div><div class="option"><span class="option-label">(C)</span>octahedral</div><div class="option"><span class="option-label">(D)</span>square planar</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>tetrahedral</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>trigonal prismatic</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>octahedral</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>square planar</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">CHEM-2024-0101-S1-Q046</span>
@@ -1096,12 +1185,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Yellow compound of lead chromate gets dissolved on treatment with hot NaOH solution. The product of lead formed is a:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Tetraanionic complex with coordination number</div><div class="option"><span class="option-label">(B)</span>Neutral complex with coordination number four six</div><div class="option"><span class="option-label">(C)</span>Dianionic complex with coordination number six</div><div class="option"><span class="option-label">(D)</span>Dianionic complex with coordination number four</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Tetraanionic complex with coordination number</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Neutral complex with coordination number four six</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Dianionic complex with coordination number six</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Dianionic complex with coordination number four</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">CHEM-2024-0101-S1-Q052</span>
@@ -1112,12 +1202,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The number of species from the following which are paramagnetic and with bond order equal to one is H2, He+, O+, N2−, O2−, F2, Ne+, B2 2 2 2 2 2</div>
   <img class="question-media" src="../../../../assets/10707f0f0a98b8ce.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">CHEM-2024-0101-S2-Q037</span>
@@ -1130,10 +1221,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   <img class="question-media" src="../../../../assets/3459f9e72bcc8fc3.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">CHEM-2024-0101-S2-Q041</span>
@@ -1144,12 +1236,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Which of the following statements are correct about Zn, Cd and Hg? A. They exhibit high enthalpy of atomization as the d-subshell is full. B. Zn and Cd do not show variable oxidation state while Hg shows +I and + II. C. Compounds of Zn, Cd and Hg are paramagnetic in nature. D. and are called soft metals. Zn, Cd Hg Choose the most appropriate from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>B, D only</div><div class="option"><span class="option-label">(B)</span>B, C only</div><div class="option"><span class="option-label">(C)</span>A, D only</div><div class="option"><span class="option-label">(D)</span>C, D only</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>B, D only</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>B, C only</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A, D only</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>C, D only</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">CHEM-2024-0101-S1-Q043</span>
@@ -1160,12 +1253,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Choose the correct Statements from the following:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Ethane −1, 2 −diamine is a chelating ligand.</div><div class="option"><span class="option-label">(B)</span>Metallic aluminium is produced by electrolysis of aluminium oxide in presence of cryolite.</div><div class="option"><span class="option-label">(C)</span>Cyanide ion is used as ligand for leaching of silver.</div><div class="option"><span class="option-label">(D)</span>Phosphine act as a ligand in Wilkinson catalyst. Ca2+ Mg2+ (E) The stability constants of and are similar with EDTA complexes. Choose the correct answer from the options given below:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Ethane −1, 2 −diamine is a chelating ligand.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Metallic aluminium is produced by electrolysis of aluminium oxide in presence of cryolite.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Cyanide ion is used as ligand for leaching of silver.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Phosphine act as a ligand in Wilkinson catalyst. Ca2+ Mg2+ (E) The stability constants of and are similar with EDTA complexes. Choose the correct answer from the options given below:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">CHEM-2024-0101-S2-Q046</span>
@@ -1176,12 +1270,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The coordination geometry around the manganese in decacarbonyldimanganese0</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Octahedral</div><div class="option"><span class="option-label">(B)</span>Trigonal bipyramidal</div><div class="option"><span class="option-label">(C)</span>Square pyramidal</div><div class="option"><span class="option-label">(D)</span>Square planar</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Octahedral</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Trigonal bipyramidal</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Square pyramidal</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Square planar</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">CHEM-2024-0101-S2-Q057</span>
@@ -1192,12 +1287,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Number of complexes which show optical isomerism among the following is _________. 3 - 2 + + cis - Cr ( ox ) 2Cl2, Co ( en ) 3 +, cis - Pt ( en ) 2Cl2, cis - Co ( en ) 2Cl2 2 + 3 3 - ​, trans - Pt ( en ) 2Cl2, trans - Cr ( ox ) 2Cl2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">CHEM-2024-0101-S1-Q046</span>
@@ -1208,12 +1304,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct statements from the following are: A. The strength of anionic ligands can be explained by crystal field theory. B. Valence bond theory does not give a quantitative interpretation of kinetic stability of coordination compounds. C. The hybridization involved in formation of [Ni ( CN ) 4] 2 – complex is dsp2. D. The number of possible isomer(s) of cis-[PtCl2 ( en ) 2] 2 + is one Choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A, D only</div><div class="option"><span class="option-label">(B)</span>A, C only</div><div class="option"><span class="option-label">(C)</span>B, D only</div><div class="option"><span class="option-label">(D)</span>B, C only</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A, D only</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A, C only</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>B, D only</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>B, C only</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">CHEM-2024-0101-S2-Q044</span>
@@ -1224,12 +1321,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Select the option with correct property:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>NiCO4 and NiCl4 2 − both diamagnetic</div><div class="option"><span class="option-label">(B)</span>NiCO4 and NiCl4 2 − both paramagnetic</div><div class="option"><span class="option-label">(C)</span>NiCl4 2 − diamagnetic, NiCO4 paramagnetic</div><div class="option"><span class="option-label">(D)</span>NiCO4 diamagnetic, NiCl4 2 − paramagnetic</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>NiCO4 and NiCl4 2 − both diamagnetic</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>NiCO4 and NiCl4 2 − both paramagnetic</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>NiCl4 2 − diamagnetic, NiCO4 paramagnetic</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>NiCO4 diamagnetic, NiCl4 2 − paramagnetic</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">CHEM-2025-0101-S1-Q052</span>
@@ -1240,12 +1338,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The incorrect statements regarding geometrical isomerism are: (A) Propene shows geometrical isomerism. (B) Trans isomer has identical atoms/groups on the opposite sides of the double bond. (C) Cis-but-2-ene has higher dipole moment than trans-but-2-ene. (D) 2-methylbut-2-ene shows two geometrical isomers. (E) Trans-isomer has lower melting point than cis isomer. Choose the correct answer from the options given below: (1) (A) and (E) Only (2) (A), (D) and (E) Only (3) (B) and (C) Only (4) (C), (D) and (E) Only</div>
   <img class="question-media" src="../../../../assets/6aa0e6a31acbe2d5.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">CHEM-2025-0101-S2-Q053</span>
@@ -1256,12 +1355,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct order of the following complexes in terms of their crystal field stabilization energies is: (1) [Co(NH3)4]2+ [Co(NH3)6]2+ [Co(en)3]3+ [Co(NH3)6]3+ &lt; &lt; &lt; (2) [Co(NH3)6]2+ &lt; [Co(NH3)6]3+ &lt; [Co(NH3)4]2+ &lt; [Co(en)3]3+ (3) [Co(en)3]3+ &lt; [Co(NH3)6]3+ &lt; [Co(NH3)6]2+ &lt; [Co(NH3)4]2+ (4) [Co(NH3)4]2+ [Co(NH3)6]2+ [Co(NH3)6]3+ [Co(en)3]3+ &lt; &lt; &lt;</div>
   <img class="question-media" src="../../../../assets/891f70cfa43ab1ed.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">CHEM-2025-0101-S1-Q052</span>
@@ -1272,12 +1372,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The complex that shows Facial - Meridional isomerism is: (1) 1.[Co(en)2Cl2]+ (2) [Co(en)3]3+ [Co(NH3)4Cl2]+ (3) [Co(NH3)3Cl3] (4)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">CHEM-2025-0101-S1-Q051</span>
@@ -1288,8 +1389,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">List - I List - II (Complex) (Hybridisation &amp; Magnetic characters) (A) [MnBr4]2− (I) d2s3 &amp; diamagnetic Match List - I with List - II. (B) [FeF6]3− (II) sp3 d2 &amp; paramagnetic [Co(C2O4)3]3− sp3 (C) (III) &amp; diamagnetic (D) [Ni(CO)4] (IV) sp3 &amp; paramagnetic Choose the correct answer from the options given below: (1) (A) −(IV), (B) −(II), (C) −(I), (D) −(III) (2) (A) −(III), (B) −(I), (C) −(II), (D) −(IV) (3) (A) −(IV), (B) −(I), (C) −(II), (D) −(III) (4) (A) −(III), (B) −(II), (C) −(I), (D) −(IV)</div>
   <img class="question-media" src="../../../../assets/91aa9cd7255e65b8.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>

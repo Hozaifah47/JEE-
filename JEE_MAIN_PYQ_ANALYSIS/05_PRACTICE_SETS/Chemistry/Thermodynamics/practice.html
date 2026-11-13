@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -245,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(63 questions)</span>
     &nbsp;<a href="clusters/CHEM-THERMODY-FIRST_LAW_HEAT_CAPACITY/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S1-Q031</span>
@@ -256,12 +292,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The absolute value of the electron gain enthalpy of halogens satisfies:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>I &gt; Br &gt; Cl &gt; F</div><div class="option"><span class="option-label">(B)</span>Cl &gt; Br &gt; F &gt; I</div><div class="option"><span class="option-label">(C)</span>Cl &gt; F &gt; Br &gt; I</div><div class="option"><span class="option-label">(D)</span>F &gt; Cl &gt; Br &gt; I</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>I &gt; Br &gt; Cl &gt; F</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Cl &gt; Br &gt; F &gt; I</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Cl &gt; F &gt; Br &gt; I</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>F &gt; Cl &gt; Br &gt; I</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="230">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q055</span>
@@ -272,12 +309,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The standard enthalpies of formation of Al2 O3 and CaO are −1675 kJ and −635 kJ respectively. For the reaction 3CaO + 2Al →3Ca + Al2 O3 the standard reaction enthalpy ΔrH0 = ________ kJ. (Round off to the Nearest Integer).</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 230</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="128">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S1-Q054</span>
@@ -288,12 +326,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For the reaction C2H6 →C2H4 + H2 the reaction enthalpy ΔrH in kJmol−1 is (Round off to the Nearest Integer). [Given: Bond enthalpies in kJmol−1: C −C: 347, C = C: 611; C −H: 414, H −H: 436]</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 128</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="21">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -304,12 +343,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the standard molar enthalpy change for combustion of graphite powder is −2. 48 × 102 kJ mol−1, the amount of heat generated on combustion of 1 g of graphite powder in kJ (Nearest integer):</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 21</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S1-Q031</span>
@@ -320,12 +360,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the elements Mg, Al, S, P and Si, the correct increasing order of their first ionisation enthalpy is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Al &lt; Mg &lt; Si &lt; S &lt; P</div><div class="option"><span class="option-label">(B)</span>Al &lt; Mg &lt; S &lt; Si &lt; P</div><div class="option"><span class="option-label">(C)</span>Mg &lt; Al &lt; Si &lt; P &lt; S</div><div class="option"><span class="option-label">(D)</span>Mg &lt; Al &lt; Si &lt; S &lt; P</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Al &lt; Mg &lt; Si &lt; S &lt; P</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Al &lt; Mg &lt; S &lt; Si &lt; P</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Mg &lt; Al &lt; Si &lt; P &lt; S</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Mg &lt; Al &lt; Si &lt; S &lt; P</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5576">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -336,12 +377,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The ionization enthalpy of Na+ formation from Na(g) is 495. 8 kJ mol−1, while the electron gain enthalpy of Br is −325. 0 kJ mol−1. Given the lattice enthalpy of NaBr is −728. 4 kJ mol −1. The energy for the formation of NaBr ionic solid is (−)_____10−1 kJ mol−1</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5576</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S2-Q042</span>
@@ -352,12 +394,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct order of bond dissociation enthalpy of halogens is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>F2 &gt; Cl2 &gt; Br2 &gt; I2</div><div class="option"><span class="option-label">(B)</span>Cl2 &gt; F2 &gt; Br2 &gt; I2</div><div class="option"><span class="option-label">(C)</span>I2 &gt; Br2 &gt; Cl2 &gt; F2</div><div class="option"><span class="option-label">(D)</span>Cl2 &gt; Br2 &gt; F2 &gt; I2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>F2 &gt; Cl2 &gt; Br2 &gt; I2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Cl2 &gt; F2 &gt; Br2 &gt; I2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>I2 &gt; Br2 &gt; Cl2 &gt; F2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Cl2 &gt; Br2 &gt; F2 &gt; I2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2021-0101-S1-Q032</span>
@@ -368,12 +411,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">At 298.2 K the relationship between enthalpy of bond dissociation (in kJ mol-1) for hydrogen EH and its isotope, deuterium ED, is best described by:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>EH = 1 2ED</div><div class="option"><span class="option-label">(B)</span>EH = ED</div><div class="option"><span class="option-label">(C)</span>EH = ED - 7.5</div><div class="option"><span class="option-label">(D)</span>EH = 2ED</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>EH = 1 2ED</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>EH = ED</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>EH = ED - 7.5</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>EH = 2ED</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="101">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2021-0101-S1-Q054</span>
@@ -384,12 +428,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">At K, the enthalpy of fusion of a solid is mol-1 and the enthalpy of vaporisation of the liquid 298 X 2.8 kJ X is 98.2 kJ mol-1. The enthalpy of sublimation of the substance X in kJ mol-1 is ______. (in nearest integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 101</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2021-0101-S1-Q057</span>
@@ -400,12 +445,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">These are physical properties of an element (A) Sublimation enthalpy (B) Ionisation enthalpy (C) Hydration enthalpy (D) Electron gain enthalpy The total number of above properties that affect the reduction potential is (Integer answer)</div>
   <img class="question-media" src="../../assets/da8a65298a3efef8.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2021-0101-S2-Q031</span>
@@ -416,12 +462,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct order of electron gain enthalpy is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>S &gt; O &gt; Se &gt; Te</div><div class="option"><span class="option-label">(B)</span>O &gt; S &gt; Se &gt; Te</div><div class="option"><span class="option-label">(D)</span>S &gt; Se &gt; Te &gt; O Te &gt; Se &gt; S &gt; O</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>S &gt; O &gt; Se &gt; Te</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>O &gt; S &gt; Se &gt; Te</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>S &gt; Se &gt; Te &gt; O Te &gt; Se &gt; S &gt; O</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="964">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2021-0101-S2-Q055</span>
@@ -432,12 +479,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Data given for the following reaction is as follows: FeO(s) + C(graphite) ⟶Fe(s) + CO(g) Substance ΔfH°(kJmol−1) ΔS°(Jmol−1 K−1) FeO(s) −266. 3 57. 49 C(graphite) 0 5. 74 Fe(s) 0 27. 28 CO(g) −110. 5 197. 6 The minimum temperature in K at which the reaction becomes spontaneous is_____.(Integer answer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 964</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2021-0101-S2-Q032</span>
@@ -448,12 +496,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The CORRECT order of first ionisation enthalpy is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Mg &lt; S &lt; Al &lt; P</div><div class="option"><span class="option-label">(B)</span>Mg &lt; Al &lt; S &lt; P</div><div class="option"><span class="option-label">(C)</span>Al &lt; Mg &lt; S &lt; P</div><div class="option"><span class="option-label">(D)</span>Mg &lt; Al &lt; P &lt; S</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Mg &lt; S &lt; Al &lt; P</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Mg &lt; Al &lt; S &lt; P</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Al &lt; Mg &lt; S &lt; P</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Mg &lt; Al &lt; P &lt; S</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2021-0101-S1-Q031</span>
@@ -464,12 +513,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: one is labelled as Assertion</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>and the other is labelled as Reason (R). Assertion</div><div class="option"><span class="option-label">(B)</span>: Metallic character decreases and non-metallic character increases on moving from left to right in a period. Reason (R): It is due to increase in ionisation enthalpy and decrease in electron gain enthalpy, when one moves from left to right in a period. In the light of the above statements, choose the most appropriate answer from the options given below:</div><div class="option"><span class="option-label">(D)</span>is false but (R) is true.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>and the other is labelled as Reason (R). Assertion</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>: Metallic character decreases and non-metallic character increases on moving from left to right in a period. Reason (R): It is due to increase in ionisation enthalpy and decrease in electron gain enthalpy, when one moves from left to right in a period. In the light of the above statements, choose the most appropriate answer from the options given below:</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>is false but (R) is true.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="45">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2021-0101-S1-Q052</span>
@@ -480,12 +530,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">According to the following figure, the magnitude of the enthalpy change of the reaction in mol−1 A + B →M + N kJ is equal to __________. (Integer answer)</div>
   <img class="question-media" src="../../assets/424185f148f5246f.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 45</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2021-0101-S2-Q033</span>
@@ -496,12 +547,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Which one of the following statements is incorrect?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Atomic hydrogen is produced when H2</div><div class="option"><span class="option-label">(B)</span>At around 2000 K, the dissociation of molecules at a high temperature are irradiated dihydrogen into its atoms is nearly 8.1% with UV radiation.</div><div class="option"><span class="option-label">(C)</span>Bond dissociation enthalpy of H2 is highest</div><div class="option"><span class="option-label">(D)</span>Dihydrogen is produced on reacting zinc with among diatomic gaseous molecules which HCl as well as NaOH. ( aq ). contain a single bond.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Atomic hydrogen is produced when H2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>At around 2000 K, the dissociation of molecules at a high temperature are irradiated dihydrogen into its atoms is nearly 8.1% with UV radiation.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Bond dissociation enthalpy of H2 is highest</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Dihydrogen is produced on reacting zinc with among diatomic gaseous molecules which HCl as well as NaOH. ( aq ). contain a single bond.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="300">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2022-0101-S1-Q055</span>
@@ -512,12 +564,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The standard entropy change for the reaction 4Fes + 3O2g →2Fe2O3s is -550 J K-1 at 298 K mol-1]. [Given: The standard enthalpy change for the reaction is -165 kJ The temperature in K at which the reaction attains equilibrium is (Nearest Integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 300</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2022-0101-S2-Q032</span>
@@ -528,12 +581,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">What is the correct oder of electron gain enthalpy of Cl, F, Te, Po</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>F &gt; Cl &gt; Te &gt; Po</div><div class="option"><span class="option-label">(B)</span>Cl &gt; F &gt; Te &gt; Po</div><div class="option"><span class="option-label">(C)</span>Te &gt; Po &gt; Cl &gt; F</div><div class="option"><span class="option-label">(D)</span>Po &gt; Te &gt; F &gt; Cl</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>F &gt; Cl &gt; Te &gt; Po</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Cl &gt; F &gt; Te &gt; Po</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Te &gt; Po &gt; Cl &gt; F</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Po &gt; Te &gt; F &gt; Cl</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="117">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2022-0101-S1-Q052</span>
@@ -544,12 +598,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">17. 0 g of NH3 completely vapourises at −33. 42 °C and 1 bar pressure and the enthalpy change in the process is 23. 4 kJ mol−1. The enthalpy change for the vapourisation of 85 g of NH3 under the same conditions is kJ.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 117</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2022-0101-S2-Q033</span>
@@ -560,12 +615,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements. One is labelled as Assertion A and the other is labelled as Reason R. Assertion A: The first ionization enthalpy for oxygen is lower than that of nitrogen. Reason R: The four electrons in 2p orbitals of oxygen experience more electron-electron repulsion. In the light of the above statements, choose the correct answer from the options given below.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both A and R are correct and R is the correct</div><div class="option"><span class="option-label">(B)</span>Both A and R are correct but R is NOT the explanation of A. correct explanation of A.</div><div class="option"><span class="option-label">(C)</span>A is correct but R is not correct.</div><div class="option"><span class="option-label">(D)</span>A is not correct but R is correct</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both A and R are correct and R is the correct</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both A and R are correct but R is NOT the explanation of A. correct explanation of A.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A is correct but R is not correct.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A is not correct but R is correct</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="72">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">CHEM-2022-0101-S2-Q052</span>
@@ -576,12 +632,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">2. 2 g of nitrous oxide (N2O) gas is cooled at a constant pressure of 1 atm from 310 K to 270 K causing the compression of the gas from to. The change in internal energy of the process, △U is 217. 1 mL 167. 75 mL ′−x′J. The value of ′x′ is _____. [nearest integer] (Given: atomic mass of N = 14 g mol−1 and of O = 16 g mol−1. Molar heat capacity of N2O is 100 JK−1 mol−1 )</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 72</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="499">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">CHEM-2023-0101-S1-Q053</span>
@@ -592,12 +649,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">At 25°C, the enthalpy of the following processes are given: →2OH(g)ΔHo mol-1 H2 ( g) + O2 ( g) = 78 kJ H2 ( g) + 1 / 2O2 ( g) →H2O(g)ΔH0 = - 242 kJ mol-1 H2 ( g) →2H(g)ΔHo = 436 kJ mol-1 1 / 2O2 ( g) →O(g)ΔH0 = 249 kJ mol-1 What would be the value of X for the following reaction? (Nearest integer) H2Og →Hg + OHg ∆Ho = X kJmol-1</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 499</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">CHEM-2023-0101-S2-Q040</span>
@@ -608,12 +666,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Ion having highest hydration enthalpy among the given alkaline earth metal ions is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Be2+</div><div class="option"><span class="option-label">(B)</span>Sr2+</div><div class="option"><span class="option-label">(C)</span>Ba2+</div><div class="option"><span class="option-label">(D)</span>Ca2+</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Be2+</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Sr2+</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Ba2+</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Ca2+</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">CHEM-2023-0101-S1-Q037</span>
@@ -624,12 +683,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">When a 60 W electric heater is immersed in a gas for 100 s in a constant volume container with adiabatic walls, the temperature of the gas rises by 5°C. The heat capacity of the given gas is JK−1 (Nearest integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">CHEM-2023-0101-S2-Q047</span>
@@ -640,12 +700,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the boiling points of two solvents X and Y (having same molecular weights) are in the ratio 2: 1 and their enthalpy of vaporizations are in the ratio 1: 2, then the boiling point elevation constant of X is m times the boiling point elevation constant of. The value of is (nearest integer). Y m</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">CHEM-2023-0101-S1-Q034</span>
@@ -656,12 +717,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The enthalpy change for the adsorption process and micelle formation respectively are</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>and</div><div class="option"><span class="option-label">(B)</span>and ΔHads &gt; 0 ΔHmic &lt; 0 ΔHads &gt; 0 ΔHmic &gt; 0</div><div class="option"><span class="option-label">(C)</span>ΔHads &lt; 0 and ΔHmic &gt; 0</div><div class="option"><span class="option-label">(D)</span>ΔHads &lt; 0 and ΔHmic &lt; 0</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>and</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>and ΔHads &gt; 0 ΔHmic &lt; 0 ΔHads &gt; 0 ΔHmic &gt; 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>ΔHads &lt; 0 and ΔHmic &gt; 0</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>ΔHads &lt; 0 and ΔHmic &lt; 0</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">CHEM-2023-0101-S1-Q034</span>
@@ -672,12 +734,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For elements B, C, N Li, Be, O and F, the correct order of first ionisation enthalpy is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Li &lt; Be &lt; B &lt; C &lt; O &lt; N &lt; F</div><div class="option"><span class="option-label">(B)</span>B &lt; Li &lt; Be &lt; C &lt; N &lt; O &lt; F</div><div class="option"><span class="option-label">(C)</span>Li &lt; Be &lt; B &lt; C &lt; N &lt; O &lt; F</div><div class="option"><span class="option-label">(D)</span>Li &lt; B &lt; Be &lt; C &lt; O &lt; N &lt; F</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Li &lt; Be &lt; B &lt; C &lt; O &lt; N &lt; F</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>B &lt; Li &lt; Be &lt; C &lt; N &lt; O &lt; F</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Li &lt; Be &lt; B &lt; C &lt; N &lt; O &lt; F</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Li &lt; B &lt; Be &lt; C &lt; O &lt; N &lt; F</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">CHEM-2023-0101-S1-Q037</span>
@@ -688,12 +751,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">One mole of an ideal gas at 350 K is in a 2. 0 L vessel of thermally conducting walls, which are in contact with the surroundings. It undergoes isothermal reversible expansion from 2. 0 L to 3. 0 L against a constant pressure of 4 atm. The change in entropy of the surroundings (ΔS) is _____ J K–1 (Nearest integer) Given: R = 8. 314 J K−1 mol−1.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">CHEM-2023-0101-S1-Q051</span>
@@ -704,12 +768,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: In the Ellingham diagram, a sharp change in slope of the line is observed from Mg →MgO at ~1120oC Reason R: There is a large change of entropy associated with the change of state In the light of the above statements, choose the correct answer from the options given below (1) Both A and R are true but R is NOT the correct (2) A is false but R is true explanation of A (3) Both A and R are true and R is the correct (4) A is true but R is false explanation of A</div>
   <img class="question-media" src="../../assets/87d02cdb0c512d1e.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">CHEM-2023-0101-S2-Q035</span>
@@ -720,12 +785,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements, one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Isotopes of hydrogen have almost same chemical properties, but difference in their rates of reactions. Reason R: Isotopes of hydrogen have different enthalpy of bond dissociation. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both A and R are correct but R is NOT the</div><div class="option"><span class="option-label">(B)</span>Both A and R are correct and R is the correct correct explanation of A explanation of A</div><div class="option"><span class="option-label">(C)</span>A is not correct but R is correct</div><div class="option"><span class="option-label">(D)</span>A is correct but R is not correct</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both A and R are correct but R is NOT the</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both A and R are correct and R is the correct correct explanation of A explanation of A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A is not correct but R is correct</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A is correct but R is not correct</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">CHEM-2023-0101-S2-Q040</span>
@@ -736,12 +802,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements, one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Beryllium has less negative value of reduction potential compared to the other alkaline earth metals Reason R: Beryllium has large hydration energy due to small size of Be2+ but relatively large value of atomisation enthalpy. In the light of the above statements, choose the most appropriate answer from the options given below.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A is correct but R is not correct</div><div class="option"><span class="option-label">(B)</span>Both A and R are correct and R is the correct explanation of A</div><div class="option"><span class="option-label">(C)</span>A is not correct but R is correct</div><div class="option"><span class="option-label">(D)</span>Both A and R are correct and R is NOT the correct explanation of A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A is correct but R is not correct</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both A and R are correct and R is the correct explanation of A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A is not correct but R is correct</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both A and R are correct and R is NOT the correct explanation of A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">CHEM-2023-0101-S1-Q049</span>
@@ -752,12 +819,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Inert gases have positive electron gain enthalpy. Its correct order is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>Xe &lt; Kr &lt; Ne &lt; He He &lt; Ne &lt; Kr &lt; Xe</div><div class="option"><span class="option-label">(C)</span>He &lt; Xe &lt; Kr &lt; Ne</div><div class="option"><span class="option-label">(D)</span>He &lt; Kr &lt; Xe &lt; Ne</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Xe &lt; Kr &lt; Ne &lt; He He &lt; Ne &lt; Kr &lt; Xe</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>He &lt; Xe &lt; Kr &lt; Ne</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>He &lt; Kr &lt; Xe &lt; Ne</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="360">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">CHEM-2023-0101-S1-Q060</span>
@@ -768,12 +836,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An athlete is given 100 g of glucose (C6H12O6) for energy. This is equivalent to 1800 kJ of energy. The 50% of this energy gained is utilized by the athlete for sports activities at the event. In order to avoid storage of energy, the weight of extra water he would need to perspire is (Nearest integer) Assume that there is no _____g other way of consuming stored energy. Given: The enthalpy of evaporation of water is 45 kJ mol−1 Molar mass of C, H&amp;O are 12.1 and 16 g mol−1.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 360</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">CHEM-2023-0101-S2-Q048</span>
@@ -786,10 +855,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   <img class="question-media" src="../../assets/8eee3cc57457c4f4.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">CHEM-2023-0101-S2-Q032</span>
@@ -800,12 +870,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: The decrease in first ionization enthalpy from B to Al is much larger than that from Al to Ga. Statement II: The d orbitals in Ga are completely filled. In the light of the above statements, choose the most appropriate answer from the options given below</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is incorrect but statement II is</div><div class="option"><span class="option-label">(B)</span>Both the statements I and II are correct correct.</div><div class="option"><span class="option-label">(C)</span>Statement I is correct but statement II is incorrect</div><div class="option"><span class="option-label">(D)</span>Both the statements I and II are incorrect</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is incorrect but statement II is</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both the statements I and II are correct correct.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is correct but statement II is incorrect</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both the statements I and II are incorrect</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="610">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">CHEM-2023-0101-S1-Q053</span>
@@ -816,12 +887,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The enthalpy change for the conversion of 1 2Cl2 (g) to Cl- ( aq ) is ( - ) kJmol-1 (Nearest integer) Given: Δdis HCl2 0 = 240kJmol-1. ( g ) ΔegHCl o ( g ) = - 350kJmol-1, o 380kJmol-1 ΔhydHCl - = - ( g ) 1 1012</div>
   <img class="question-media" src="../../assets/c677868fddc01d59.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 610</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">CHEM-2023-0101-S2-Q034</span>
@@ -832,12 +904,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: one is labelled as Assertion</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>and the other is labelled as Reason (R). Assertion</div><div class="option"><span class="option-label">(B)</span>: The first ionization enthalpy of 3d series elements is more than that of group 2 metals Reason (R): In 3d series of elements successive filling of d -orbitals takes place. In the light of the above statements, choose the correct answer from the options given below:</div><div class="option"><span class="option-label">(C)</span>Both</div><div class="option"><span class="option-label">(D)</span>and (R) are true and (R) is the correct</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>and the other is labelled as Reason (R). Assertion</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>: The first ionization enthalpy of 3d series elements is more than that of group 2 metals Reason (R): In 3d series of elements successive filling of d -orbitals takes place. In the light of the above statements, choose the correct answer from the options given below:</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>and (R) are true and (R) is the correct</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">CHEM-2023-0101-S2-Q036</span>
@@ -848,12 +921,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Enthalpies of formation of CCl4( g), H2O(g), CO2( g) and HCl are −105, −242, −394 and −92 kJ mol−1 respectively. The magnitude of enthalpy of the reaction given below is kJmol−1. (nearest integer) CCl4( g) + 2H2O(g) →CO2( g) + 4 HCl(g)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">CHEM-2023-0101-S2-Q041</span>
@@ -866,10 +940,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">CHEM-2024-0101-S2-Q032</span>
@@ -880,12 +955,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement (I): Both metal and non-metal exist in $\mathrm{p}$ and d-block elements. Statement (II): Non-metals have higher ionisation enthalpy and higher electronegativity than the metals. In the light of the above statements, choose the most appropriate answer from the option given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both Statement I and Statement II are false</div><div class="option"><span class="option-label">(B)</span>Statement I is false but Statement II is true</div><div class="option"><span class="option-label">(C)</span>Statement I is true but Statement II is false</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are true</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both Statement I and Statement II are false</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is false but Statement II is true</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is true but Statement II is false</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are true</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">CHEM-2024-0101-S2-Q044</span>
@@ -896,12 +972,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The transition metal having highest 3rd ionisation enthalpy is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Cr</div><div class="option"><span class="option-label">(B)</span>Mn</div><div class="option"><span class="option-label">(C)</span>V</div><div class="option"><span class="option-label">(D)</span>Fe</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Cr</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Mn</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>V</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Fe</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">CHEM-2024-0101-S1-Q032</span>
@@ -912,12 +989,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct order of first ionization enthalpy values of the following elements is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>O</div><div class="option"><span class="option-label">(B)</span>N</div><div class="option"><span class="option-label">(C)</span>Be</div><div class="option"><span class="option-label">(D)</span>F (E) B Choose the correct answer from the options given below:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>O</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>N</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Be</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>F (E) B Choose the correct answer from the options given below:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">CHEM-2024-0101-S2-Q032</span>
@@ -928,12 +1006,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct order of the first ionization enthalpy is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Al &gt; Ga &gt; Tl</div><div class="option"><span class="option-label">(B)</span>Ga &gt; Al &gt; B</div><div class="option"><span class="option-label">(C)</span>Tl &gt; Ga &gt; Al</div><div class="option"><span class="option-label">(D)</span>B &gt; Al &gt; Ga</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Al &gt; Ga &gt; Tl</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Ga &gt; Al &gt; B</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Tl &gt; Ga &gt; Al</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>B &gt; Al &gt; Ga</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">CHEM-2024-0101-S2-Q033</span>
@@ -944,12 +1023,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: The correct order of first ionization enthalpy values of Li, Na, F and Cl is Na &lt; Li &lt; Cl &lt; F. Statement II: The correct order of negative electron gain enthalpy values of Li, Na, F and Cl is Na &lt; Li &lt; F &lt; Cl In the light of the above statements, choose the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is true but Statement II is false</div><div class="option"><span class="option-label">(B)</span>Statement I is false but Statement II is true</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are false</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are true</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is true but Statement II is false</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is false but Statement II is true</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are false</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are true</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">CHEM-2024-0101-S2-Q057</span>
@@ -960,12 +1040,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A first row transition metal with highest enthalpy of atomisation, upon reaction with oxygen at high temperature forms oxides of formula M2On (where n = 3, 4, 5). The &#x27;spin-only&#x27; magnetic moment value of the amphoteric oxide from the above oxides is ______ (near integer) (Given atomic number: BM Sc: 21, Ti: 22, V: 23, Cr: 24, Mn: 25, Fe: 26, Co: 27, Ni: 28, Cu: 29, Zn: 30 )</div>
   <img class="question-media" src="../../assets/3fa226e6004ee16f.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">CHEM-2024-0101-S1-Q035</span>
@@ -976,12 +1057,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: One is labelled as Assertion</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>and the other is labelled as Reason (R) Assertion</div><div class="option"><span class="option-label">(B)</span>: Enthalpy of neutralisation of strong monobasic acid with strong monoacidic base is always −57 kJ mol−1. Reason (R): Enthalpy of neutralisation is the amount of heat liberated when one mole of H+ ions furnished by acid combine with one mole of OH− ions furnished by base to form one mole of water. In the light of the above statements, choose the correct answer from the options given below.</div><div class="option"><span class="option-label">(D)</span>is true but (R) is false</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>and the other is labelled as Reason (R) Assertion</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>: Enthalpy of neutralisation of strong monobasic acid with strong monoacidic base is always −57 kJ mol−1. Reason (R): Enthalpy of neutralisation is the amount of heat liberated when one mole of H+ ions furnished by acid combine with one mole of OH− ions furnished by base to form one mole of water. In the light of the above statements, choose the correct answer from the options given below.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>is true but (R) is false</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">CHEM-2024-0101-S2-Q042</span>
@@ -992,12 +1074,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For the electro chemical cell If E0 = 0.46 V and E0 = 0.34 V. Which of the following is correct? (M2+/M) (x/X2−)</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>M + X →M2+ + X2− is a spontaneous reaction</div><div class="option"><span class="option-label">(B)</span>Ecell = 0.80 V</div><div class="option"><span class="option-label">(C)</span>Ecell = −0.80 V</div><div class="option"><span class="option-label">(D)</span>M2+ + X2−→M + X is a spontaneous reaction</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>M + X →M2+ + X2− is a spontaneous reaction</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Ecell = 0.80 V</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Ecell = −0.80 V</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>M2+ + X2−→M + X is a spontaneous reaction</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2000">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">CHEM-2024-0101-S2-Q054</span>
@@ -1008,12 +1091,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For the reaction at 298 K, 2 A + B →C. ΔH = 400 kJ mol−1 and ΔS = 0.2 kJ mol−1 K−1. The reaction will become spontaneous above K.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2000</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">CHEM-2024-0101-S1-Q032</span>
@@ -1024,12 +1108,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">List - I List - II (Elements) (Properties in their respective groups) A. Cl, S I. Elements with highest electronegativity B. Ge, As II. Elements with largest atomic size Match List I with List II Choose Elements which show properties of both C. Fr, Ra III. metals and non-metal Elements with highest negative electron D. F, O IV. gain enthalpy the correct answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>A-II, B-I, C-IV, D-III</div><div class="option"><span class="option-label">(B)</span>A-III, B-II, C-I, D-IV</div><div class="option"><span class="option-label">(C)</span>A-IV, B-III, C-II, D-I</div><div class="option"><span class="option-label">(D)</span>A-II, B-III, C-IV, D-I</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>A-II, B-I, C-IV, D-III</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A-III, B-II, C-I, D-IV</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A-IV, B-III, C-II, D-I</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A-II, B-III, C-IV, D-I</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">CHEM-2024-0101-S2-Q031</span>
@@ -1040,12 +1125,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Identify the correct statements about p-block elements and their compounds.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Non metals have higher electronegativity than metals.</div><div class="option"><span class="option-label">(B)</span>Non metals have lower ionisation enthalpy than metals.</div><div class="option"><span class="option-label">(C)</span>Compounds formed between highly reactive nonmetals and highly reactive metals are generally ionic.</div><div class="option"><span class="option-label">(D)</span>The non-metal oxides are generally basic in nature. (E) The metal oxides are generally acidic or neutral in nature. Choose the correct answer from the options given below:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Non metals have higher electronegativity than metals.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Non metals have lower ionisation enthalpy than metals.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Compounds formed between highly reactive nonmetals and highly reactive metals are generally ionic.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>The non-metal oxides are generally basic in nature. (E) The metal oxides are generally acidic or neutral in nature. Choose the correct answer from the options given below:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">CHEM-2024-0101-S1-Q032</span>
@@ -1056,12 +1142,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement (I): The oxidation state of an element in a particular compound is the charge acquired by its atom on the basis of electron gain enthalpy consideration from other atoms in the molecule. Statement (II): pπ −pπ bond formation is more prevalent in second period elements over other periods. In the light of the above statements, choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both Statement I and Statement II are correct</div><div class="option"><span class="option-label">(B)</span>Both Statement I and Statement II are incorrect</div><div class="option"><span class="option-label">(C)</span>Statement I is incorrect but Statement II is</div><div class="option"><span class="option-label">(D)</span>Statement I is correct but Statement II is correct incorrect</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both Statement I and Statement II are correct</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both Statement I and Statement II are incorrect</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is incorrect but Statement II is</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Statement I is correct but Statement II is correct incorrect</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">CHEM-2024-0101-S2-Q059</span>
@@ -1072,12 +1159,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A transition metal &#x27; M &#x27; among Sc, Ti, V, Cr, Mn and Fe has the highest second ionisation enthalpy. The spin- only magnetic moment value of M+ ion is _______. BM (Near integer) (Given atomic number Sc: 21, Ti: 22, V: 23, Cr: 24, Mn: 25, Fe: 26 ) M2+ + H2 S →A (Black precipitate) + by product</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">CHEM-2024-0101-S1-Q032</span>
@@ -1088,12 +1176,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R: Assertion A: The first ionisation enthalpy decreases across a period. Reason R: The increasing nuclear charge outweighs the shielding across the period. In the light of the above statements, choose the most appropriate from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both A and R are true and R is the correct</div><div class="option"><span class="option-label">(B)</span>A is true but R is false explanation of A</div><div class="option"><span class="option-label">(C)</span>A is false but R is true</div><div class="option"><span class="option-label">(D)</span>Both A and R are true but R is NOT the correct explanation of A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both A and R are true and R is the correct</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A is true but R is false explanation of A</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A is false but R is true</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both A and R are true but R is NOT the correct explanation of A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">CHEM-2024-0101-S2-Q032</span>
@@ -1104,12 +1193,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The element having the highest first ionization enthalpy is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Si</div><div class="option"><span class="option-label">(B)</span>Al</div><div class="option"><span class="option-label">(C)</span>N</div><div class="option"><span class="option-label">(D)</span>C</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Si</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Al</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>N</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>C</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">CHEM-2024-0101-S2-Q033</span>
@@ -1120,12 +1210,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement I: Fluorine has most negative electron gain enthalpy in its group. Statement II: Oxygen has least negative electron gain enthalpy in its group. In the light of the above statements, choose the most appropriate from the options given below.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both Statement I and Statement II are true</div><div class="option"><span class="option-label">(B)</span>Statement I is true but Statement II is false</div><div class="option"><span class="option-label">(C)</span>Both Statement I and Statement II are false</div><div class="option"><span class="option-label">(D)</span>Statement I is false but Statement II is true</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both Statement I and Statement II are true</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Statement I is true but Statement II is false</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both Statement I and Statement II are false</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Statement I is false but Statement II is true</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="56">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">CHEM-2024-0101-S2-Q054</span>
@@ -1136,12 +1227,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Standard enthalpy of vapourisation for CCl4 is 30. 5 kJ mol−1. Heat required for vapourisation of 284 g of gmol−1; CCl4 at constant temperature is __________ kJ. (Given molar mass in C = 12, Cl = 35. 5 ) Round off your answer to the nearest integer.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 56</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">CHEM-2024-0101-S2-Q033</span>
@@ -1152,12 +1244,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: One is labelled as Assertion A and the other is labelled as Reason R. Assertion A: H2Te is more acidic than H2 S. Reason R: Bond dissociation enthalpy of H2Te is lower than H2 S. In the light of the above statements. Choose the most appropriate from the options given below.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Both A and R are true but R is NOT the correct</div><div class="option"><span class="option-label">(B)</span>Both A and R are true and R is the correct explanation of A. explanation of A.</div><div class="option"><span class="option-label">(C)</span>A is false but R is true.</div><div class="option"><span class="option-label">(D)</span>A is true but R is false.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Both A and R are true but R is NOT the correct</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both A and R are true and R is the correct explanation of A. explanation of A.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A is false but R is true.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>A is true but R is false.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="492">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">CHEM-2024-0101-S2-Q052</span>
@@ -1168,12 +1261,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Two reactions are given below: 2Fe + 3 2O2 →Fe2O3, ΔHo = - 822 kJ / mol ( s ) ( g ) ( s ) C ( s ) + 1 2O2 →CO, ΔHo = - 110 kJ / mol ( g ) ( g ) Then enthalpy change for following reaction 3C ( s ) + Fe2O3 ( s ) →2Fe ( s ) + 3CO ( g )</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 492</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">CHEM-2024-0101-S1-Q031</span>
@@ -1184,12 +1278,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The correct sequence of electron gain enthalpy of the elements listed below is A. Ar B. Br C. F D. S Choose the most appropriate from the options given below:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>C &gt; B &gt; D &gt; A</div><div class="option"><span class="option-label">(B)</span>A &gt; D &gt; B &gt; C</div><div class="option"><span class="option-label">(C)</span>A &gt; D &gt; C &gt; B</div><div class="option"><span class="option-label">(D)</span>D &gt; C &gt; B &gt; A</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>C &gt; B &gt; D &gt; A</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>A &gt; D &gt; B &gt; C</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>A &gt; D &gt; C &gt; B</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>D &gt; C &gt; B &gt; A</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">CHEM-2025-0101-S1-Q038</span>
@@ -1200,12 +1295,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A gun fires a lead bullet of temperature 300 K into a wooden block. The bullet having melting temperature of 600 K penetrates into the block and melts down. If the total heat required for the process is 625 J, then the mass of the bullet is grams. (Latent heat of fusion of lead = 2.5 × 104JKg−1 and specific heat capacity of lead 125JKg−1 K−1) =</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>10</div><div class="option"><span class="option-label">(B)</span>20</div><div class="option"><span class="option-label">(C)</span>5</div><div class="option"><span class="option-label">(D)</span>15</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>10</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>20</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>5</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>15</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">CHEM-2025-0101-S2-Q031</span>
@@ -1216,12 +1312,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Water of mass m gram is slowly heated to increase the temperature from T1 to Tz The change in entropy of the water, given specific heat of water is 1Jkg−1 K−1, is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>m ln ( T2 )</div><div class="option"><span class="option-label">(B)</span>zero T1</div><div class="option"><span class="option-label">(C)</span>m ln ( T1 )</div><div class="option"><span class="option-label">(D)</span>m (T2 −T1) T2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>m ln ( T2 )</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>zero T1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>m ln ( T1 )</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>m (T2 −T1) T2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">CHEM-2025-0101-S1-Q054</span>
@@ -1232,12 +1329,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">An element &#x27; E ′ has the ionisation enthalpy value of 374 kJ mol−1. &#x27; E &#x27; reacts with elements A, B, C and D with electron gain enthalpy values of −328, −349, −325 and −295 kJ mol−1, respectively. The correct order of the products EA, EB, EC and ED in terms of ionic character is: (1) ED &gt; EC &gt; EB &gt; EA (2) EA &gt; EB &gt; EC &gt; ED (3) EB &gt; EA &gt; EC &gt; ED (4) ED &gt; EC &gt; EA &gt; EB</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">CHEM-2025-0101-S1-Q057</span>
@@ -1248,8 +1346,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Given below are two statements: Statement ( I ): The radii of isoelectronic species increases in the order. Mg2+ Na+ F−&lt; O2− &lt; &lt; Statement (II): The magnitude of electron gain enthalpy of halogen decreases in the order. Cl &gt; F &gt; Br &gt; I In the light of the above statements, choose the most appropriate answer from the options given below: (1) Statement I is incorrect but Statement II is (2) Statement I is correct but Statement II is correct incorrect (3) Both Statement I and Statement II are incorrect (4) Both Statement I and Statement II are correct</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
@@ -1260,7 +1359,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(10 questions)</span>
     &nbsp;<a href="clusters/CHEM-THERMODY-ENTROPY_GIBBS_SPONTANEITY/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="336">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">CHEM-2021-0101-S2-Q052</span>
@@ -1271,12 +1370,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For a given chemical reaction A →B at 300 K the free energy change is −49. 4 kJ mol−1 and the enthalpy mol−1. JK−1 mol−1. of reaction is 51. 4 kJ The entropy change of the reaction is _________</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 336</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="200">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -1287,12 +1387,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For a chemical reaction A + B = C + D (ΔrHΘ = 80 kJ mol−1) the entropy change ΔrSΘ depends on the ΔrSΘ 2T(JK−1 mol−1) temperature T (in K ) as =. Minimum temperature at which it will become spontaneous is K. (Integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 200</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="983">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">CHEM-2022-0101-S2-Q058</span>
@@ -1303,12 +1404,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Cu(s) + Sn2+(0. 001M) →Cu2+(0. 01M) + Sn(s) The Gibbs free energy change for the above reaction at 298 K is x × 10−1 kJ mol−1. The value of x is____[nearest integer] E⊖ E⊖ Cmol−1 [Given: Cu2+ / Cu = 0. 34 V; Sn2+ / Sn = −0. 14 V; F = 96500 ]</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 983</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">CHEM-2022-0101-S1-Q033</span>
@@ -1319,12 +1421,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Match List - I with List - II. List-I List-II</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Spontaneous process (I) ΔH &lt; 0 Process with</div><div class="option"><span class="option-label">(B)</span>(II) ΔGT,P &lt; 0 ΔP = 0, ΔT = 0</div><div class="option"><span class="option-label">(C)</span>ΔHreaction (III) Isothermal and isobaric process [Bond energies of molecules in reactants]</div><div class="option"><span class="option-label">(D)</span>Exothermic Process (IV) - [Bond energies of product molecules] Choose the correct answer from the options given below</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Spontaneous process (I) ΔH &lt; 0 Process with</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>(II) ΔGT,P &lt; 0 ΔP = 0, ΔT = 0</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>ΔHreaction (III) Isothermal and isobaric process [Bond energies of molecules in reactants]</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Exothermic Process (IV) - [Bond energies of product molecules] Choose the correct answer from the options given below</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">CHEM-2023-0101-S1-Q055</span>
@@ -1335,12 +1438,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider the graph of Gibbs free energy G vs extent of reaction. The number of statement/s from the following which are true with respect to points (a), (b) and (c) is ______ A. Reaction is spontaneous at (a) and (b) B. Reaction is at equilibrium at point (b) and non-spontaneous at point (c) C. Reaction is spontaneous at (a) and non-spontaneous at (c) D. Reaction is non-spontaneous at (a) and (b)</div>
   <img class="question-media" src="../../assets/21adbdad88d0b530.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">CHEM-2023-0101-S2-Q036</span>
@@ -1353,10 +1457,11 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   <img class="question-media" src="../../assets/95996445142e3818.png" alt="Figure or table from source paper" loading="lazy">
   <div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1070">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">CHEM-2023-0101-S1-Q052</span>
@@ -1367,12 +1472,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">30. 4 kJ of heat is required to melt one mole of sodium chloride and the entropy change at the melting point is K–1 mol–1 at. The melting point of sodium chloride is _______ (Nearest Integer) 28. 4 J 1 atm K</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1070</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">CHEM-2023-0101-S1-Q052</span>
@@ -1383,12 +1489,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For independent process at 300 K. kJmol-1 JK-1 Process ΔH / ΔS / A -25 -80 B -22 40 C 25 -50 D 22 20 The number of non-spontaneous process from the following is _____.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">CHEM-2024-0101-S1-Q033</span>
@@ -1399,12 +1506,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Which of the following is not correct?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>ΔG is negative for a spontaneous reaction</div><div class="option"><span class="option-label">(B)</span>ΔG is positive for a spontaneous reaction</div><div class="option"><span class="option-label">(C)</span>ΔG is zero for a reversible reaction</div><div class="option"><span class="option-label">(D)</span>ΔG is positive for a non-spontaneous reaction</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>ΔG is negative for a spontaneous reaction</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>ΔG is positive for a spontaneous reaction</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>ΔG is zero for a reversible reaction</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>ΔG is positive for a non-spontaneous reaction</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">CHEM-2025-0101-S1-Q056</span>
@@ -1415,8 +1523,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let us consider an endothermic reaction which is non-spontaneous at the freezing point of water. However, the reaction is spontaneous at boiling point of water. Choose the correct option. (1) Both ΔH and ΔS are (-ve) (2) ΔH is (-ve) but ΔS is (+ve) (3) ΔH is (+ve) but ΔS is (−ve) (4) Both ΔH and ΔS are (+ve)</div>
   <img class="question-media" src="../../assets/af5581d80696015e.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
@@ -1427,7 +1536,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(9 questions)</span>
     &nbsp;<a href="clusters/CHEM-THERMODY-HESS_LAW_THERMOCHEMISTRY/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="309">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">CHEM-2021-0101-S2-Q053</span>
@@ -1438,12 +1547,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The average S −F bond energy in kJ mol−1 of SF6 is _. (Rounded off to the nearest integer) [Given: The values of standard enthalpy of formation of SF6(g), S(g) and F(g) are −1100, 275 and 80 kJ mol−1 respectively.]</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 309</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">CHEM-2021-0101-S2-Q034</span>
@@ -1454,12 +1564,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Choose the correct statement from the following:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>LiF has least negative standard enthalpy of</div><div class="option"><span class="option-label">(B)</span>The standard enthalpy of formation for alkali formation among alkali metal fluorides. metal bromides becomes less negative on descending the group.</div><div class="option"><span class="option-label">(C)</span>The low solubility of CsI in water is due to its</div><div class="option"><span class="option-label">(D)</span>Among the alkali metal halides, LiF is least high lattice enthalpy. soluble in water.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>LiF has least negative standard enthalpy of</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>The standard enthalpy of formation for alkali formation among alkali metal fluorides. metal bromides becomes less negative on descending the group.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>The low solubility of CsI in water is due to its</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Among the alkali metal halides, LiF is least high lattice enthalpy. soluble in water.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">CHEM-2022-0101-S2-Q035</span>
@@ -1470,12 +1581,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">At 25 °C and 1 atm pressure, the enthalpies of combustion are as given below: Substance (graphite) H2 C C2H6(g) ΔcHΘ kJmol−1 −286. 0 −394. 0 −1560. 0 The enthalpy of formation of ethane is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>+54. 0 kJ mol−1</div><div class="option"><span class="option-label">(B)</span>−68. 0 kJ mol−1</div><div class="option"><span class="option-label">(C)</span>−86. 0 kJ mol−1</div><div class="option"><span class="option-label">(D)</span>+97. 0 kJ mol−1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>+54. 0 kJ mol−1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−68. 0 kJ mol−1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−86. 0 kJ mol−1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>+97. 0 kJ mol−1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">CHEM-2022-0101-S2-Q033</span>
@@ -1486,12 +1598,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">At 25 °C and 1 atm pressure, the enthalpy of combustion of benzene 1 and acetylene g are -3268 kJ mol-1 and -1300 kJ mol-1, respectively. The change in enthalpy for the reaction →C6H6l, is 3C2H2g</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>+324 kJ mol-1</div><div class="option"><span class="option-label">(B)</span>+632 kJ mol-1</div><div class="option"><span class="option-label">(C)</span>-632 kJ mol-1</div><div class="option"><span class="option-label">(D)</span>-732 kJ mol-1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>+324 kJ mol-1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>+632 kJ mol-1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>-632 kJ mol-1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>-732 kJ mol-1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="727">
   <div class="q-header">
     <span class="q-num">Q78</span>
     <span class="q-id">CHEM-2022-0101-S1-Q052</span>
@@ -1502,12 +1615,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For complete combustion of methanol CH3 OH(l) + 3 O2(g) →CO2(g) + 2H2O(l) the amount of heat produced as measured by bomb calorimeter mol−1 2 mol−1 is 726 kJ at 27 °C. The enthalpy of combustion for the reaction is −x kJ, where x is integer) (Given: R = 8. 3 JK−1 mol−1 )</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 727</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q79</span>
     <span class="q-id">CHEM-2023-0101-S1-Q038</span>
@@ -1518,12 +1632,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A2 + B2 →2 AB. ΔHf = −200 kJ mol−1 AB, A2 and B2 are diatomic molecules. If the bond enthalpies of A2, B2 and AB are in the ratio 1: 0. 5: 1, then the bond enthalpy of A2 is _________kJ mol–1 (Nearest integer)</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q80</span>
     <span class="q-id">CHEM-2023-0101-S2-Q031</span>
@@ -1534,12 +1649,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">. Identify the correct order of standard enthalpy of formation of sodium halides.</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>NaI &lt; NaBr &lt; NaF &lt; NaCl</div><div class="option"><span class="option-label">(B)</span>NaI &lt; NaBr &lt; NaCl &lt; NaF</div><div class="option"><span class="option-label">(C)</span>NaF &lt; NaCl &lt; NaBr &lt; NaI</div><div class="option"><span class="option-label">(D)</span>NaCl &lt; NaF &lt; NaBr &lt; NaI</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>NaI &lt; NaBr &lt; NaF &lt; NaCl</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>NaI &lt; NaBr &lt; NaCl &lt; NaF</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>NaF &lt; NaCl &lt; NaBr &lt; NaI</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>NaCl &lt; NaF &lt; NaBr &lt; NaI</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="125">
   <div class="q-header">
     <span class="q-num">Q81</span>
     <span class="q-id">CHEM-2024-0101-S1-Q053</span>
@@ -1550,12 +1666,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The enthalpy of formation of ethane (C2H6) from ethylene by addition of hydrogen where the bond-energies of C −H, C −C, C = C, H −H are 414 kJ, 347 kJ, 615 kJ and 435 kJ respectively is kJ</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 125</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6535">
   <div class="q-header">
     <span class="q-num">Q82</span>
     <span class="q-id">CHEM-2024-0101-S2-Q053</span>
@@ -1566,8 +1683,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Combustion of 1 mole of benzene is expressed at C6H6(l) + 15 O2( g) →6CO2( g) + 3H2O(l). The standard 2 enthalpy of combustion of 2 mol of benzene is −′x′kJ. x = ______ Given: 1. standard Enthalpy of formation of 1 mol of C6H6(l), for the reaction 6C (graphite) +3H2( g) →C6H6(l) is 48.5 kJ mol−1.2. Standard Enthalpy of formation of 1 mol of CO2( g), for the reaction C (graphite) +O2( g) →CO2( g) is mol−1 −393.5 kJ. 3. Standard and Enthalpy of formation of 1 mol of H2O(l), for the reaction H2( g) + 1 O2( g) →H2O(l) is −286 kJ mol−1.2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6535</div>
     </div>

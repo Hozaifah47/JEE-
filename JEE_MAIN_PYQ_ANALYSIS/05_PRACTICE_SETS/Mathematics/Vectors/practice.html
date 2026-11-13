@@ -77,6 +77,17 @@
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -163,6 +174,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\s+/g,'') === correct.replace(/\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -245,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(114 questions)</span>
     &nbsp;<a href="clusters/MATH-VECTORS-VECTOR_ALGEBRA_DOT_CROSS/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">MATH-2021-0101-S1-Q076</span>
@@ -256,12 +292,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let a vector αˆi + βˆj be obtained by rotating the vector √3ˆi +ˆj by an angle 45° about the origin in counterclockwise direction in the first quadrant. Then the area (in sq. units) of triangle having vertices (α, β), (0, β) and (0, 0) is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1</div><div class="option"><span class="option-label">(B)</span>1 2 1 2√2</div><div class="option"><span class="option-label">(C)</span>√2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 2 1 2√2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>√2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">MATH-2021-0101-S1-Q078</span>
@@ -272,12 +309,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the position vectors of two points P and Q be 3ˆi −ˆj + 2ˆk and ˆi + 2ˆj −4ˆk, respectively. Let R and S be two points such that the direction ratios of lines PR and QS are (4, −1, 2) and (−2, 1, −2), respectively. Let − − − → → → lines PR and QS intersect at T. If the vector TA is perpendicular to both PR and QS and the length of vector − → is √5 units, then the modulus of a position vector of is: TA A</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>√482</div><div class="option"><span class="option-label">(B)</span>√171</div><div class="option"><span class="option-label">(C)</span>√5</div><div class="option"><span class="option-label">(D)</span>√227</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>√482</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>√171</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>√5</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>√227</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="28">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">MATH-2021-0101-S2-Q089</span>
@@ -288,12 +326,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →c →a ˆi ˆj −ˆk → ˆi 2ˆj ˆk →c ⋅(ˆi ˆj 3ˆk) be a vector perpendicular to the vectors = + and b = + +. If + + = 8, then ⋅(→a → b) the value of →c × is equal to</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 28</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">MATH-2021-0101-S1-Q080</span>
@@ -304,12 +343,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A vector →a has components 3p and 1 with respect to a rectangular cartesian system. This system is rotated through a certain angle about the origin in the counter clockwise sense. If, with respect to new system, →a has components p + 1 and √10, then a value of p is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>−5 1 4</div><div class="option"><span class="option-label">(C)</span>4</div><div class="option"><span class="option-label">(D)</span>−1 5</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−5 1 4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−1 5</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">MATH-2021-0101-S2-Q078</span>
@@ -320,12 +360,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">In a triangle ABC, if BC = 8, CA = 7, AB = 10, then the projection of the vector AB on AC is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>25</div><div class="option"><span class="option-label">(B)</span>85 4 14</div><div class="option"><span class="option-label">(C)</span>127</div><div class="option"><span class="option-label">(D)</span>115 20 16 → → →</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>25</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>85 4 14</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>127</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>115 20 16 → → →</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">MATH-2021-0101-S2-Q079</span>
@@ -336,12 +377,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a and b be two non-zero vectors perpendicular to each other and →a = b, If →a × b = →a, then the angle between the vectors (→a → (→a → b)) →a + b + × and is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>sin−1( 1 )</div><div class="option"><span class="option-label">(B)</span>cos−1( 1 ) √3 √3</div><div class="option"><span class="option-label">(C)</span>cos−1( 1 )</div><div class="option"><span class="option-label">(D)</span>sin−1( 1 ) √2 √6</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>sin−1( 1 )</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>cos−1( 1 ) √3 √3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>cos−1( 1 )</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>sin−1( 1 ) √2 √6</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">MATH-2021-0101-S1-Q079</span>
@@ -352,12 +394,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a = 2ˆi + ˆj −2ˆk and b = ˆi + ˆj. If →c is a vector such that →a ⋅→c = →c, →c −→a = 2√2 and the angle between (→a → b) →c (→a → b) ×→c × and is π, then the value of × is: 6</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2</div><div class="option"><span class="option-label">(B)</span>4 3</div><div class="option"><span class="option-label">(C)</span>3</div><div class="option"><span class="option-label">(D)</span>3 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4 3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">MATH-2021-0101-S1-Q088</span>
@@ -368,12 +411,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a, b,→c be three mutually perpendicular vectors of the same magnitude and equally inclined at an angle θ, with the vector →a + → b +→c. Then 36 cos2 2θ is equal to</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">MATH-2021-0101-S2-Q076</span>
@@ -384,12 +428,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">⎡ y sin x 1 ⎤ Let y = y(x) satisfies the equation dy −|A| = 0, for all x &gt; 0, where A = 0 −1 1. If y(π) = π + 2, dx ⎣ ⎦ 2 0 1 π x then the value of y( 2 ) is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>π + 4</div><div class="option"><span class="option-label">(B)</span>π −1 2 π 2 π</div><div class="option"><span class="option-label">(C)</span>3π −1</div><div class="option"><span class="option-label">(D)</span>π −4 2 π 2 π − − − − − Q77.In → → → → → a triangle ABC, if BC = 3, CA = 5 and BA = 7, then the projection of the vector BA on BC is equal to</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>π + 4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>π −1 2 π 2 π</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3π −1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>π −4 2 π 2 π − − − − − Q77.In → → → → → a triangle ABC, if BC = 3, CA = 5 and BA = 7, then the projection of the vector BA on BC is equal to</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">MATH-2021-0101-S2-Q078</span>
@@ -400,12 +445,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The lines x = ay −1 = z −2 and x = 3y −2 = bz −2, (ab ≠0) are coplanar, if:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>b = 1, a ∈R −{0}</div><div class="option"><span class="option-label">(B)</span>a = 1, b ∈R −{0}</div><div class="option"><span class="option-label">(C)</span>a = 2, b = 2</div><div class="option"><span class="option-label">(D)</span>a = 2, b = 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>b = 1, a ∈R −{0}</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>a = 1, b ∈R −{0}</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>a = 2, b = 2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>a = 2, b = 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">MATH-2021-0101-S2-Q090</span>
@@ -416,12 +462,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For p &gt; 0, a vector →v2 = 2ˆi + (p + 1)ˆj is obtained by rotating the vector →v1 = √3pˆi + ˆj by an angle θ about (α√3−2) origin in counter clockwise direction. If tan θ = (4√3+3), then the value of α is equal to</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">MATH-2021-0101-S1-Q076</span>
@@ -432,12 +479,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a → →c →a a vector be coplanar with vectors b = 2ˆi + ˆj + ˆk and = ˆi −ˆj + ˆk. If is perpendicular to → →a → → → → d = 3ˆi + 2ˆj + 6ˆk, and = √10. Then a possible value of [ →a b →c ] + [ →a b d ] + [ →a →c d ] is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>−42</div><div class="option"><span class="option-label">(B)</span>−40</div><div class="option"><span class="option-label">(C)</span>−29</div><div class="option"><span class="option-label">(D)</span>−38</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>−42</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−40</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−29</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−38</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">MATH-2021-0101-S1-Q077</span>
@@ -448,12 +496,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a, → →c →a → =→c, → ×→c =→a →a three vectors b and be such that × b b and = 2. Then which one of the following is not true?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>→a (( → +→c) ( → −→c)) →</div><div class="option"><span class="option-label">(B)</span>→a ( → ×→c) × b × b = 0 Projection of on b is 2</div><div class="option"><span class="option-label">(C)</span>[ →a → b →c ] + [ →c →a → b ] = 8</div><div class="option"><span class="option-label">(D)</span>3→a + → b −2→c 2 = 51</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>→a (( → +→c) ( → −→c)) →</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>→a ( → ×→c) × b × b = 0 Projection of on b is 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>[ →a → b →c ] + [ →c →a → b ] = 8</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3→a + → b −2→c 2 = 51</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="75">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">MATH-2021-0101-S1-Q089</span>
@@ -464,12 +513,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let three vectors →a, →b and →c be such that →c is coplanar with →a and →b, →a· →c= 7 and →b is perpendicular to →c, where →a= - ^i+ ^j+ ^k and →b= 2 ^i+ ^k, then the value of 2 →a+ →b+ →c 2 is</div>
   <img class="question-media" src="../../assets/d0eb0dafc86ca6d8.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 75</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="12">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">MATH-2021-0101-S1-Q090</span>
@@ -480,12 +530,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let = ˆi + 2ˆj −ˆk, b = ˆi −ˆj and = ˆi −ˆj −ˆk be three given vectors. If is a vector such that → and →r ⋅ b = 0, then →r ⋅→a is equal to</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 12</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">MATH-2021-0101-S2-Q073</span>
@@ -496,12 +547,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let x denote the total number of one-one functions from a set A with 3 elements to a set B with 5 elements and denote the total number of one-one functions from the set to the set. Then: y A A × B</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>y = 273x</div><div class="option"><span class="option-label">(B)</span>2y = 273x</div><div class="option"><span class="option-label">(C)</span>2y = 91x</div><div class="option"><span class="option-label">(D)</span>y = 91x</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>y = 273x</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2y = 273x</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2y = 91x</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>y = 91x</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">MATH-2021-0101-S2-Q089</span>
@@ -512,12 +564,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a → = ˆi + αˆj + 3ˆk and b = 3ˆi −αˆj + ˆk. If the area of the parallelogram whose adjacent sides are represented →a → →a → by the vectors and b is 8√3 square units, then ⋅ b is equal to ___.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">MATH-2021-0101-S1-Q078</span>
@@ -528,12 +581,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the vectors 2 + a+ b ^i+ a+ 2b+ c ^j- b+ c ^k, 1 + b ^i+ 2b ^j- b ^k and ^i+ ^j+ ^k, 2 + b 2b 1 - b ∀a, b, c∈R be co-planar. Then which of the following is true?</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2b= a+ c</div><div class="option"><span class="option-label">(B)</span>3c= a+ b</div><div class="option"><span class="option-label">(C)</span>a= b+ 2c</div><div class="option"><span class="option-label">(D)</span>2a= b+ c</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2b= a+ c</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3c= a+ b</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>a= b+ 2c</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2a= b+ c</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">MATH-2021-0101-S1-Q090</span>
@@ -544,12 +598,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →p= 2 ^i + 3 ^j + ^k and →q= ^i + 2 ^j + ^k be two vectors. If a vector →r= α ^i + β ^j + γ ^k is perpendicular to each of the vectors ( →p+ →q) and ( →p- →q), and | →r| = √3, then |α| + | β| + | γ| is equal to</div>
   <img class="question-media" src="../../assets/57f59079a7f03544.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">MATH-2021-0101-S2-Q078</span>
@@ -560,12 +615,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let a, b and c be distinct positive numbers. If the vectors aˆi + aˆj + cˆk,ˆi + ˆk and cˆi + cˆj + bˆk are co-planar, then c is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2</div><div class="option"><span class="option-label">(B)</span>a+b 1 + 1 2</div><div class="option"><span class="option-label">(C)</span>1 a + b 1</div><div class="option"><span class="option-label">(D)</span>√ab a b</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>a+b 1 + 1 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1 a + b 1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>√ab a b</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="60">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">MATH-2021-0101-S2-Q088</span>
@@ -576,12 +632,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If →a → (→a → b) (7→a → b) (→a → b) and b are unit vectors and + 3 is perpendicular to −5 and −4 is perpendicular to (7→a → b), →a → −2 then the angle between and b (in degrees) is _________.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 60</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">MATH-2021-0101-S1-Q078</span>
@@ -592,12 +649,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a → →c →a ×→c → →a ⋅→c →a ⋅( → ×→c) = ˆi + ˆj + ˆk and b = ˆj −ˆk. If is a vector such that = b and = 3, then b is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>6</div><div class="option"><span class="option-label">(B)</span>−2</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>−6</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>6</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−6</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">MATH-2021-0101-S2-Q089</span>
@@ -608,12 +666,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the projection of the vector ˆi + 2ˆj + ˆk on the sum of the two vectors 2ˆi + 4ˆj −5ˆk and −λˆi + 2ˆj + 3ˆk is 1, then is equal to _______. λ</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">MATH-2021-0101-S1-Q077</span>
@@ -624,12 +683,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If →a and b are perpendicular, then →a × (→a × (→a × (→a × b))) is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>→a 4→</div><div class="option"><span class="option-label">(B)</span>→0 b</div><div class="option"><span class="option-label">(C)</span>→a →</div><div class="option"><span class="option-label">(D)</span>→a 4→ × b 1 2 b</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>→a 4→</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>→0 b</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>→a →</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>→a 4→ × b 1 2 b</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">MATH-2021-0101-S1-Q078</span>
@@ -640,12 +700,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If (1, 5, 35), (7, 5, 5), (1, λ, 7) and (2λ, 1, 2) are coplanar, then the sum of all possible values of is: λ</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>44</div><div class="option"><span class="option-label">(B)</span>−44</div><div class="option"><span class="option-label">(C)</span>39 5</div><div class="option"><span class="option-label">(D)</span>−39 5 5 5</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>44</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>−44</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>39 5</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−39 5 5 5</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">MATH-2021-0101-S2-Q076</span>
@@ -656,12 +717,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let slope of the tangent line to a curve at any point P(x, y) be given by xy2+y. If the curve intersects the line x x + 2y = 4 at x = −2, then the value of y, for which the point (3, y) lies on the curve, is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>−4</div><div class="option"><span class="option-label">(B)</span>18 3 35</div><div class="option"><span class="option-label">(C)</span>−18</div><div class="option"><span class="option-label">(D)</span>−18 19 11 − − Q77.If → → vectors a1 = xˆi −ˆj + ˆk and a2 = ˆi + yˆj + zˆk are collinear, then a possible unit vector parallel to the vector xˆi yˆj zˆk + + is:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>−4</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>18 3 35</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−18</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−18 19 11 − − Q77.If → → vectors a1 = xˆi −ˆj + ˆk and a2 = ˆi + yˆj + zˆk are collinear, then a possible unit vector parallel to the vector xˆi yˆj zˆk + + is:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="90">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">MATH-2021-0101-S1-Q090</span>
@@ -672,12 +734,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let = ˆi + 5ˆj + αˆk, b = ˆi + 3ˆj + βˆk and = −ˆi + 2ˆj −3ˆk be three vectors such that, b = 5√3 and is perpendicular to → b. Then the greatest amongst the values of →a 2 is ________.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 90</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">MATH-2021-0101-S2-Q072</span>
@@ -688,12 +751,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">A box open from top is made from a rectangular sheet of dimension a × b by cutting squares each of side x from each of the four corners and folding up the flaps. If the volume of the box is maximum, then x is equal to: a+b+√a2+b2−ab a+b−√a2+b2−ab</div>
   
-  <div class="options"><div class="option"><span class="option-label">(C)</span>a+b−√a2+b2−ab 6</div><div class="option"><span class="option-label">(D)</span>a+b−√a2+b2+ab 12 6 6</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>a+b−√a2+b2−ab 6</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>a+b−√a2+b2+ab 12 6 6</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">MATH-2021-0101-S1-Q078</span>
@@ -704,12 +768,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a = ˆi + ˆj + 2ˆk and → b = −ˆi + 2ˆj + 3ˆk. Then the vector product (→a +→b) ((→a ((→a −→b) ×→b)) ×→b) is equal to: × ×</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>5(34ˆi −5ˆj + 3ˆk)</div><div class="option"><span class="option-label">(B)</span>7(34ˆi −5ˆj + 3ˆk)</div><div class="option"><span class="option-label">(C)</span>7(30ˆi −5ˆj + 7ˆk)</div><div class="option"><span class="option-label">(D)</span>5(30ˆi −5ˆj + 7ˆk)</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>5(34ˆi −5ˆj + 3ˆk)</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>7(34ˆi −5ˆj + 3ˆk)</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>7(30ˆi −5ˆj + 7ˆk)</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>5(30ˆi −5ˆj + 7ˆk)</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">MATH-2021-0101-S1-Q089</span>
@@ -720,12 +785,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a = ˆi + ˆj + ˆk, b and →c = ˆj −ˆk be three vectors such that →a × b =→c and →a ⋅ b = 1. If the length of → projection vector of the vector b on the vector →a ×→c is l, then the value of 3l2 is equal to _____.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">MATH-2021-0101-S2-Q078</span>
@@ -736,12 +802,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a, b and →c be three vectors such that →a = b × ( b ×→c). If magnitudes of the vectors →a, b and →c are √2, 1 and → →c 2 respectively and the angle between b and is θ(0 &lt; θ &lt; π ), then the value of 1 + tan θ is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>√3</div><div class="option"><span class="option-label">(B)</span>2 + 1 2</div><div class="option"><span class="option-label">(C)</span>1</div><div class="option"><span class="option-label">(D)</span>√3+1 √3 x−α y−1 z−1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>√3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2 + 1 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>√3+1 √3 x−α y−1 z−1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">MATH-2021-0101-S1-Q079</span>
@@ -752,12 +819,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a → 2→a → 3→a → →a → →a and b be two vectors such that + 3 b = + b and the angle between and b is 60°. If 1 is a unit 8 → vector, then b is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>8</div><div class="option"><span class="option-label">(B)</span>4</div><div class="option"><span class="option-label">(D)</span>6 5</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>8</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>6 5</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">MATH-2021-0101-S2-Q078</span>
@@ -768,12 +836,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a, →c be three vectors mutually perpendicular to each other and have same magnitude. If a vector →r →a× {→r- →b× →a} →b× {→r- →c× →b} →c× {→r- →a× →c} →0, →r satisfies + + = then is equal to: →b+ →b-</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1 (→a+ →c)</div><div class="option"><span class="option-label">(B)</span>1 (2→a+ →c) 3 3</div><div class="option"><span class="option-label">(C)</span>1 (→a+ →b+ →c)</div><div class="option"><span class="option-label">(D)</span>1 ( →a+ →b+ 2 →c) 2 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1 (→a+ →c)</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 (2→a+ →c) 3 3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1 (→a+ →b+ →c)</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 ( →a+ →b+ 2 →c) 2 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">MATH-2022-0101-S1-Q078</span>
@@ -784,12 +853,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let ˆa,ˆb be unit vectors. If →c be a vector such that the angle between ˆa and →c is π, and ˆb =→c + 2(→c × ˆa), then 12 6→c 2 is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>6(3 −√3)</div><div class="option"><span class="option-label">(B)</span>6(3 + √3)</div><div class="option"><span class="option-label">(C)</span>3 + √3</div><div class="option"><span class="option-label">(D)</span>6(√3 + 1)</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>6(3 −√3)</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>6(3 + √3)</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>3 + √3</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>6(√3 + 1)</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">MATH-2022-0101-S2-Q077</span>
@@ -800,12 +870,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let and be two unit vectors such that. If is the angle between and ˆb, a b |(a + b) + 2(a × b)| = 2 θ ∈(0, π) ˆa then among the statements: (S1): 2 ˆa × ˆb = ˆa −ˆb (ˆa ˆb) (S2): The projection of ˆa on + is 1 2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Only (S1) is true.</div><div class="option"><span class="option-label">(B)</span>Only (S2) is true.</div><div class="option"><span class="option-label">(C)</span>Both and are true.</div><div class="option"><span class="option-label">(D)</span>Both and are false. (S1) (S2) (S1) (S2)</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Only (S1) is true.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Only (S2) is true.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both and are true.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both and are false. (S1) (S2) (S1) (S2)</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">MATH-2022-0101-S1-Q078</span>
@@ -816,12 +887,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a= a1 ^i+ a2 ^j+ a3 ^k, ai&gt; 0, i= 1, 2, 3 be a vector which makes equal angles with the coordinate axes →a ^i+ ^j →b OX, OY and OZ. Also, let the projection of on the vector 3 4 be 7. Let be a vector obtained by →a →a, →b →b ^i+ ^j rotating with 90°. If and x-axis are coplanar, then projection of a vector on 3 4 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>√7</div><div class="option"><span class="option-label">(B)</span>√2</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>7</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>√7</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>√2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>7</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="576">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">MATH-2022-0101-S1-Q089</span>
@@ -832,12 +904,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let θ be the angle between the vectors →a and where →a= 4, 3 and θ∈π 4, π 3. Then 2 2 →a- →b× →a+ →b + 4→a· →b is equal to ______</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 576</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="14">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">MATH-2022-0101-S2-Q089</span>
@@ -848,12 +921,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let ^i+ ^j+ λ ^k, λ∈R. If →a is a vector such that →a× 13 ^i- ^j- 4 ^k and →a· 21 = 0, then →b- →a· ^k- ^j+ →b+ →a· ^i- ^k is equal to</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 14</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">MATH-2022-0101-S1-Q077</span>
@@ -864,12 +938,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a →c → → ×→c =→a = ˆi + ˆj −ˆk and = 2ˆi −3ˆj + 2ˆk. Then the number of vectors b such that b and → b ∈{1, 2,..., 10} is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>0</div><div class="option"><span class="option-label">(B)</span>1</div><div class="option"><span class="option-label">(C)</span>2</div><div class="option"><span class="option-label">(D)</span>3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>0</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">MATH-2022-0101-S2-Q077</span>
@@ -880,12 +955,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let and b be the vectors along the diagonal of a parallelogram having area 2√2. Let the angle between and → → → 2√2(→a → b) → → b be acute. →a = 1 and →a. b = →a × b. If →c = × −2 b, then an angle between b and →c is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>−π</div><div class="option"><span class="option-label">(B)</span>5π 4 6</div><div class="option"><span class="option-label">(C)</span>π</div><div class="option"><span class="option-label">(D)</span>3π 3 4 x+2 y−1 z+1</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>−π</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>5π 4 6</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>π</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3π 3 4 x+2 y−1 z+1</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="150">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">MATH-2022-0101-S1-Q090</span>
@@ -896,12 +972,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If →a = 2ˆi + ˆj + 3ˆk, b = 3ˆi + 3ˆj + ˆk and →c = c1ˆi + c2ˆj + c3ˆk are coplanar vectors and →a ⋅→c = 5, b ⊥→c, then 122(c1 + c2 + c3) is equal to ______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 150</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">MATH-2022-0101-S2-Q078</span>
@@ -912,12 +989,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a −ˆk → ˆk = αˆi + 2ˆj and b = −2ˆi + αˆj +, where α ∈R. If the area of the parallelogram whose adjacent → 2 (→a → b) → 2 sides are represented by the vectors →a and b is √15(α2 + 4), then the value of 2→a + ⋅ b is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>10</div><div class="option"><span class="option-label">(B)</span>7</div><div class="option"><span class="option-label">(C)</span>9</div><div class="option"><span class="option-label">(D)</span>14</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>10</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>7</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>9</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>14</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">MATH-2022-0101-S2-Q079</span>
@@ -928,12 +1006,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a 3ˆi 1 ˆj 2ˆk →a (2ˆi ˆk) 2ˆi −13ˆj −4ˆk be a vector which is perpendicular to the vector + 2 +. If × + =, then →a ˆk the projection of the vector on the vector 2ˆi + 2ˆj + is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1</div><div class="option"><span class="option-label">(B)</span>1 3</div><div class="option"><span class="option-label">(C)</span>5</div><div class="option"><span class="option-label">(D)</span>7 3 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>5</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>7 3 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">MATH-2022-0101-S1-Q079</span>
@@ -944,12 +1023,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a αˆi 3ˆj −ˆk, → 3ˆi −βˆj 4ˆk and →c ˆi 2ˆj −2ˆk where be three vectors. If the projection = + b = + = + α, β ∈R →a →c 10 → ×→c −6ˆi 10ˆj 7ˆk of on is 3 and b = + +, then the value of α + β equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3</div><div class="option"><span class="option-label">(B)</span>4</div><div class="option"><span class="option-label">(C)</span>5</div><div class="option"><span class="option-label">(D)</span>6</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>4</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>5</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>6</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">MATH-2022-0101-S2-Q077</span>
@@ -960,12 +1040,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let A, B, C be three points whose position vectors respectively are: →a = ˆi + 4ˆj + 3ˆk → b = 2ˆi + αˆj + 4ˆk, α ∈R →c = 3ˆi −2ˆj + 5ˆk →a, → →c If α is the smallest positive integer for which b, are non-collinear, then the length of the median, △ABC, through is: A</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>√82</div><div class="option"><span class="option-label">(B)</span>√62 2 2</div><div class="option"><span class="option-label">(C)</span>√69</div><div class="option"><span class="option-label">(D)</span>√66 2 2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>√82</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>√62 2 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>√69</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>√66 2 2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="29">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">MATH-2022-0101-S2-Q090</span>
@@ -976,12 +1057,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a 3ˆk, → ˆk →c →a ( → +→c) =→0 3(→c.→a) = ˆi −2ˆj + b = ˆi + ˆj + and be a vector such that × b, then the value of is equal to _______.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 29</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3501">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">MATH-2023-0101-S1-Q089</span>
@@ -992,12 +1074,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →v= α ^i+ 2 ^j- 3 ^k, →w= 2α ^i+ ^j- ^k, and →u be a vector such that →u= α&gt; 0. If the minimum value of the 2 scalar triple product →u →v →w is -α√3401, and →u. ^i = m where m and n are coprime natural numbers, then n m+ n is equal to _____.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3501</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">MATH-2023-0101-S1-Q076</span>
@@ -1008,12 +1091,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let ^i ^j ^k, ^i ^j ^k, ^i ^j ^k the position vectors of the points A, B, C and D be 5 + 5 + 2λ + 2 + 3 - 2 + λ + 4 and - ^i + 5 ^j + 6 ^k. Let the set S= {λ∈R: the points A, B, C and D are coplanar }. The ∑λ∈S(λ+ 2 2 is equal ) to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>25</div><div class="option"><span class="option-label">(B)</span>37 2</div><div class="option"><span class="option-label">(C)</span>14</div><div class="option"><span class="option-label">(D)</span>41</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>25</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>37 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>14</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>41</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">MATH-2023-0101-S1-Q077</span>
@@ -1024,12 +1108,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a= 2 ^i + 3 ^j + 4 ^k, →b= ^i - 2 ^j - 2 ^k and →c= - ^i + 4 ^j + 3 ^k. If →d is a vector perpendicular to both →b and →c, and →a· →d= 18, then |→a× →d| 2 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>640</div><div class="option"><span class="option-label">(B)</span>680</div><div class="option"><span class="option-label">(C)</span>720</div><div class="option"><span class="option-label">(D)</span>760</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>640</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>680</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>720</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>760</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">MATH-2023-0101-S2-Q085</span>
@@ -1040,12 +1125,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the vectors →a, → b, →c represent three coterminous edges of a parallelopiped of volume V. Then the volume of the parallelopiped, whose coterminous edges are represented by →a, → +→c and →a → 3→c is equal to b + 2 b + (1) 2V (2) 6V (3) V (4) 3V</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">MATH-2023-0101-S2-Q086</span>
@@ -1056,12 +1142,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The sum of all values of α, for which the points whose position vectors are ˆi −2ˆj + 3ˆk, 2ˆi −3ˆj + 4ˆk, (α + 1)ˆi + 2ˆk and 9ˆi + (α −8)ˆj + 6ˆk are coplanar, is equal to (1) −2 (2) 2 (3) 6 (4) 4</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">MATH-2023-0101-S1-Q075</span>
@@ -1072,12 +1159,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the number of elements in sets A and B be five and two respectively. Then the number of subsets of A × B each having at least 3 and at most 6 elements is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>752</div><div class="option"><span class="option-label">(B)</span>782</div><div class="option"><span class="option-label">(C)</span>792</div><div class="option"><span class="option-label">(D)</span>772</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>752</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>782</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>792</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>772</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="19">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">MATH-2023-0101-S1-Q085</span>
@@ -1088,12 +1176,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the points with position vectors αˆi + 10ˆj + 13ˆk, 6ˆi + 11ˆj + 11ˆk, 9 2ˆi + βˆj −8ˆk are collinear, then −6β)2 (19α is equal to (1) 36 (2) 25 (3) 49 (4) 16</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 19</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">MATH-2023-0101-S1-Q086</span>
@@ -1104,12 +1193,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a → →c →a ×→c =→a → →a ⋅→c = 6ˆi + 9ˆj + 12ˆk, b = αˆi + 11ˆj −2ˆk and be vectors such that × b If = −12, and →c ⋅(ˆi ˆk) →c ⋅(ˆi ˆk) −2ˆj + = 5 then + ˆj + is equal to _______ x−4 y+2 z+3 x−1 y−3 z−4</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="20">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">MATH-2023-0101-S2-Q084</span>
@@ -1120,12 +1210,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the solution curve x = x(y), 0 &lt; y &lt; π, of the differential equation y))2 2 π 1 π 1 (loge(cos cos y dx −(1 + 3x loge(cos y)) sin y dy = 0 satisfy x( 3 ) = 2 loge 2. If x( 6 ) = loge m−loge n, where m and n are coprime, then mn is equal to − − − Q85.Let the vectors u1 → = ˆi + ˆj + aˆk, u2 → = ˆi + bˆj + ˆk, and u3 → = cˆi + ˆj + ˆk be coplanar. If the vectors − − → v1 = (a + b)ˆi + cˆj + cˆk, → v2 = aˆi + (b + c)ˆj + aˆk and →v3 = bˆi + bˆj + (c + a)ˆk are also coplanar, then 6(a + b + c) is equal to (1) (2) 0 4 (3) 12 (4) 6</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 20</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">MATH-2023-0101-S1-Q076</span>
@@ -1136,12 +1227,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let O be the origin and the position vector of the point P be - 2 3k. If the position vectors of the points and are ^i+ ^j- ^i+ ^j- and ^i^ ^j- respectively, then the projection of the vector A, B C -2 3k, 2 4 2k -4 + 2 k → OP on a vector perpendicular to the vectors → AB and → AC is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3</div><div class="option"><span class="option-label">(B)</span>8 7 3 10</div><div class="option"><span class="option-label">(D)</span>3 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>8 7 3 10</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>3 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">MATH-2023-0101-S2-Q076</span>
@@ -1152,12 +1244,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a= 2 ^i+ 7 ^j- ^k, ^b= 3 ^i+ 5 ^k and →c= ^i- ^j+ 2 ^k Let →d be a vector which is perpendicular to both →a and → b, and →c· → d= 12. Then- ^i+ ^j- ^k· →c× → d is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>24</div><div class="option"><span class="option-label">(B)</span>44</div><div class="option"><span class="option-label">(C)</span>42</div><div class="option"><span class="option-label">(D)</span>48</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>24</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>44</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>42</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>48</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">MATH-2023-0101-S1-Q076</span>
@@ -1168,12 +1261,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For any vector →a= ^i+ ^j+ ^k, with 3, consider the following statements: a1 a2 a3 10ai&lt; 1, i= 1, 2, A: maxa1, a2, a3 ≤ →a →a| B: | ≤3maxa1, a2, a3</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Only B is true</div><div class="option"><span class="option-label">(B)</span>Only A is true</div><div class="option"><span class="option-label">(C)</span>Both A and B are true</div><div class="option"><span class="option-label">(D)</span>Neither A nor B is true</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Only B is true</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Only A is true</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Both A and B are true</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Neither A nor B is true</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">MATH-2023-0101-S2-Q075</span>
@@ -1184,12 +1278,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let A = {1, 3, 4, 6, 9} and B = {2, 4, 5, 8, 10}. Let R be a relation defined on A × B such that R = {(a1, b1), (a2, b2): a1 ≤b2 and b1 ≤a2}. Then the number of elements in the set R is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>160</div><div class="option"><span class="option-label">(B)</span>52</div><div class="option"><span class="option-label">(C)</span>26</div><div class="option"><span class="option-label">(D)</span>180</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>160</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>52</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>26</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>180</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="116">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">MATH-2023-0101-S2-Q085</span>
@@ -1200,12 +1295,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If →a,→b,→c → [→a→b→c] four distinct points with position vectors and d are coplanar, then is equal to (1) [ → →b →a ] + [ →a →c → ] + [ → d→b →c ] (2) [ →a → →b ] + [ → →c →a ] + [ → →b →c ] d d d d d (3) [ → →c →a ] + [ → → →a ] + [ →c → → ] (4) [ → →c → ] + [ → →a →c ] + [ → → →a ] d b d d b b d d d b</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 116</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="360">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">MATH-2023-0101-S2-Q086</span>
@@ -1216,12 +1312,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a 3ˆk → −ˆk →c →a ⋅→c → ⋅(→a ×→c) → ⋅→c = ˆi + 2ˆj + and b = ˆi + ˆj. If is a vector such that = 11, b = 27 and b = −√3→b, then →a ×→c 2 is equal to</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 360</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">MATH-2023-0101-S1-Q084</span>
@@ -1232,12 +1329,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let a, b, c be three distinct real numbers, none equal to one. If the vectors aˆi + ˆj + ˆk, ˆi + bˆj + ˆk and ˆi ˆj cˆk 1 1 1 + + are coplanar, then 1−a + 1−b + 1−c is equal to (1) 2 (2) −1 (3) −2 (4) 1</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">MATH-2023-0101-S1-Q085</span>
@@ -1248,12 +1346,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a → →c λ ∈Z, = λˆi + ˆj −ˆk and b = 3ˆi −ˆj + 2ˆk. Let be a vector such that (→a → +→c) ×→c → →a ⋅→c → ⋅→c →c 2 + b = 0, = −17 and b = −20. Then × (λˆi + ˆj + ˆk) is equal to (1) 46 (2) 53 (3) 62 (4) 49</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="64">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">MATH-2023-0101-S1-Q087</span>
@@ -1264,12 +1363,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the lines L1: x+5 3 = y+4 1 = z−α −2 and L2: 3x + 2y + z −2 = 0 = x −3y + 2z −13 be coplanar. If the point on is nearest to the point then is equal to P(a, b, c) L1 Q(−4, −3, 2), |a| + |b| + |c| (1) 12 (2) 14 (3) 8 (4) 10</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 64</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">MATH-2023-0101-S1-Q085</span>
@@ -1280,12 +1380,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a ˆi 4ˆj 2ˆk, → 3ˆi −2ˆj 7ˆk and →c 2ˆi −ˆj 4ˆk. If a vector → satisfies → → =→c → and → ⋅→a = + + b = + = + d d × b × b d = 24, → 2 then d is equal to (1) 323 (2) 423 (3) 313 (4) 413</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">MATH-2023-0101-S1-Q086</span>
@@ -1296,12 +1397,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a 3ˆi +ˆj −ˆk →c 2ˆi −3ˆj 3ˆk. → →a → ×→c → = and = + If b is a vector such that = b and b 2 = 50, then → +→c 2 72 − b is equal to __________.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">MATH-2023-0101-S2-Q075</span>
@@ -1312,12 +1414,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let |→a| = 2, | = 3 and the angle between the vectors →a and be π 4. Then |( →a+ 2 × (2→a- 3 2 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>441</div><div class="option"><span class="option-label">(B)</span>482</div><div class="option"><span class="option-label">(C)</span>841</div><div class="option"><span class="option-label">(D)</span>882</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>441</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>482</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>841</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>882</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">MATH-2023-0101-S2-Q078</span>
@@ -1328,12 +1431,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The line, that is coplanar to the line x+ 3 y- 1 z- 5, is -3 = 1 = 5</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>x+ 1 = y- 2 = z- 5</div><div class="option"><span class="option-label">(B)</span>x+ 1 = y- 2 = z- 5</div><div class="option"><span class="option-label">(C)</span>x- -1 1 y- 2 2 z- 4 5</div><div class="option"><span class="option-label">(D)</span>x+ -1 1 y- 2 2 z- 5 5 -1 = 2 = 5 1 = 2 = 5</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>x+ 1 = y- 2 = z- 5</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>x+ 1 = y- 2 = z- 5</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>x- -1 1 y- 2 2 z- 4 5</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>x+ -1 1 y- 2 2 z- 5 5 -1 = 2 = 5 1 = 2 = 5</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">MATH-2023-0101-S1-Q076</span>
@@ -1344,12 +1448,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let S be the set of all (λ, μ) for which the vectors λˆi −ˆj + ˆk, ˆ j + 2ˆj + μˆk and 3ˆi −4ˆj + 5ˆk, where, are coplanar, then ∑(λ, 80(λ2 μ2) is equal to λ −μ = 5 μ)∈S +</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2210</div><div class="option"><span class="option-label">(B)</span>2130</div><div class="option"><span class="option-label">(C)</span>2290</div><div class="option"><span class="option-label">(D)</span>2370</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2210</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2130</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2290</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2370</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1080">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">MATH-2023-0101-S1-Q085</span>
@@ -1360,12 +1465,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let and →c be three non zero vectors such that ⋅→c = 0 and →a × =. If be a vector such that 2 → → =→a → (→a → b) ⋅(→c → d) b ⋅ d ⋅ b, then × × is equal to (1) 3 (2) 1 4 2 (3) −1 4 (4) 4 1</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1080</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="216">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">MATH-2023-0101-S1-Q086</span>
@@ -1376,12 +1482,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The vector →a = −ˆi + 2ˆj + ˆk is rotated through a right angle, passing through the -axis in its way and the y resulting vector is →. Then the projection of 3→a √2 → on →c 5ˆi 4ˆj 3ˆk is b + b = + + (1) 3√2 (2) 1 (3) √6 (4) 2√3</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 216</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">MATH-2023-0101-S2-Q084</span>
@@ -1392,12 +1499,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If the four points, whose position vectors are 3ˆi −4ˆj + 2ˆk,ˆi + 2ˆj −ˆk, −2ˆi −ˆj + 3ˆk and 5ˆi −2αˆj + 4ˆk are coplanar, then α is equal to (1) 73 17 (2) −107 17 (3) −73 (4) 107 17 17</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">MATH-2023-0101-S1-Q085</span>
@@ -1408,12 +1516,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If →a λˆi μˆj 4ˆk, → −2ˆi 4ˆj −2ˆk →c 2ˆi 3ˆj ˆk →a the vectors = + + b = + and = + + are coplanar and the projection of → on the vector b is √54 units, then the sum of all possible values of λ + μ is equal to (1) 0 (2) 6 (3) 24 (4) 18</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">MATH-2023-0101-S1-Q086</span>
@@ -1424,12 +1533,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a, → →c b and be three non-zero non-coplanar vectors. Let the position vectors of four points A, B, C and D − − − →a → +→c, λ→a → 4→c −→a → −3→c 2→a → 6→c → → → be − b −3 b +, + 2 b and −4 b + respectively. If AB, AC and AD are coplanar, then λ is: 8−y</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="11">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">MATH-2023-0101-S2-Q086</span>
@@ -1440,12 +1550,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a = 4ˆi + 3ˆj and → b = 3ˆi −4ˆj + 5ˆk and →c is a vector such that →c ⋅(→a × → b) + 25 = 0,→c ⋅(ˆi + ˆj + ˆk) = 4 →c →a →c → and projection of on is 1, then the projection of on b equals: 5 1 (1) √2 (2) 5 (3) 1 (4) 3 √2 √2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 11</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">MATH-2023-0101-S1-Q077</span>
@@ -1456,12 +1567,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If →a, b, →c are three non-zero vectors and ^n is a unit vector perpendicular to →c such that →a= α b- ^n, α≠0 →b· →c= →c× →a× →b and 12, then is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(B)</span>15 9</div><div class="option"><span class="option-label">(C)</span>12</div><div class="option"><span class="option-label">(D)</span>6</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>15 9</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>12</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>6</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="24">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">MATH-2023-0101-S2-Q085</span>
@@ -1472,12 +1584,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let λ ∈R,→a = λˆi + 2ˆj −3ˆk, b = ˆi −λˆj + 2ˆk, If ((→a + b) × (→a × b)) × (→a − b) = 8ˆi −40ˆj −24ˆk then λ(→a → b) (→a → b) + × − 2 is equal to (1) 140 (2) 132 (3) 144 (4) 136 → → → (2→a → b) → →</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 24</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="432">
   <div class="q-header">
     <span class="q-num">Q78</span>
     <span class="q-id">MATH-2023-0101-S2-Q086</span>
@@ -1488,12 +1601,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a and b be two vectors. Let →a = 1, b = 4 and →a ⋅ b = 2. If →c = × −3 b, then the value of b ⋅→c is (1) −24 (2) −48 (3) −84 (4) −60 →v</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 432</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q79</span>
     <span class="q-id">MATH-2023-0101-S1-Q078</span>
@@ -1504,12 +1618,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a= ^i+ ^j+ ^k, →b →c →a+ →b+ →c= →a+ →b- →c →b· →c= 2 and and be two nonzero vectors such that and 0. Consider the following two statement: A →a+ λ→c≥→a for all λ∈R. →a →c B and are always parallel</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>only</div><div class="option"><span class="option-label">(B)</span>is correct</div><div class="option"><span class="option-label">(C)</span>neither</div><div class="option"><span class="option-label">(D)</span>nor</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>only</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>is correct</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>neither</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>nor</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="36">
   <div class="q-header">
     <span class="q-num">Q80</span>
     <span class="q-id">MATH-2023-0101-S1-Q088</span>
@@ -1520,12 +1635,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let → → → → 2 →a and b be two vector such that →a= √14, b= √6 and →a× b= √48. Then →a· b is equal to _____.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 36</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="146">
   <div class="q-header">
     <span class="q-num">Q81</span>
     <span class="q-id">MATH-2023-0101-S2-Q085</span>
@@ -1536,12 +1652,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a → →c →r = ˆi + 2ˆj + 3ˆk, b = ˆi −ˆj + 2ˆk and = 5ˆi −3ˆj + 3ˆk, be there(three) vector. If is a vector such that, →r → =→c → →r ⋅→a 25→r 2 × b × b and = 0, then is equal to (1) 560 (2) 339 (3) (4) 449 336</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 146</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="204">
   <div class="q-header">
     <span class="q-num">Q82</span>
     <span class="q-id">MATH-2023-0101-S2-Q086</span>
@@ -1552,12 +1669,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a, → b,→c →a → →c 2(→a → b) 3(→c ×→a) be three vectors such that = √31, 4 b = = 2 and × =. If the angle → →c 2π ( →a×→c ) 2 between b and is 3, then →a⋅ → is equal to _____. b</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 204</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q83</span>
     <span class="q-id">MATH-2024-0101-S2-Q077</span>
@@ -1568,12 +1686,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider a ΔABC where A1, 3, 2, B−2, 8, 0 and C3, 6, 7. If the angle bisector of ∠BAC meets the line BC at D, →AD →AC then the length of the projection of the vector on the vector is:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>37</div><div class="option"><span class="option-label">(B)</span>√38 2√38 2</div><div class="option"><span class="option-label">(C)</span>39</div><div class="option"><span class="option-label">(D)</span>√19 2√38</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>37</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>√38 2√38 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>39</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>√19 2√38</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="38">
   <div class="q-header">
     <span class="q-num">Q84</span>
     <span class="q-id">MATH-2024-0101-S2-Q090</span>
@@ -1584,12 +1703,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a= ^i+ ^j+ ^k, →b= − ^i−8 ^j+ 2 ^k and →c= 4 ^i+ c2 ^j+ c3 ^k be three vectors such that →b× →a= →c× →a. If the angle between the vector →c and the vector 3 ^i+ 4 ^j+ ^k is θ, then the greatest integer less than or equal to tan2θ is:</div>
   <img class="question-media" src="../../assets/458e9619e23dc8d9.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 38</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q85</span>
     <span class="q-id">MATH-2024-0101-S1-Q078</span>
@@ -1600,12 +1720,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let a unit vector which makes an angle of 60∘ with 2^i 2^j −^k and angle 45∘ with ^i −^k be →. Then + C → (−1 2^i 1 ^j −√2 ^k) C + + 3√2 3 is: √2 ( )^i ( )^j ( )^k</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3 ^i −1 2 ^k</div><div class="option"><span class="option-label">(B)</span>1 + 2 1 + 1 − 1 + 1 + √2 3 √3 √3 3√2 √3</div><div class="option"><span class="option-label">(C)</span>√2 ^i + 1 ^j −1 ^k</div><div class="option"><span class="option-label">(D)</span>−√2 ^i + √2 ^j + ( 1 + 2√2 )^k 3 3√2 2 3 3 2 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3 ^i −1 2 ^k</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 + 2 1 + 1 − 1 + 1 + √2 3 √3 √3 3√2 √3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>√2 ^i + 1 ^j −1 ^k</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−√2 ^i + √2 ^j + ( 1 + 2√2 )^k 3 3√2 2 3 3 2 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="54">
   <div class="q-header">
     <span class="q-num">Q86</span>
     <span class="q-id">MATH-2024-0101-S1-Q089</span>
@@ -1616,12 +1737,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let ABC be a triangle of area 15√2 and the vectors AB = ^i + 2^j −7^k, BC = a^i + b^j + ck and − → 6^i d^j −2^k, AC = + d &gt; 0. Then the square of the length of the largest side of the triangle ABC is _______</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 54</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q87</span>
     <span class="q-id">MATH-2024-0101-S2-Q078</span>
@@ -1632,12 +1754,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let = ^i + ^j + = 2^i + 4^j −5^k and = x^i + 2^j + 3^k, x ∈R. If is the unit vector in the direction of + such that = 1, then × is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>11</div><div class="option"><span class="option-label">(B)</span>3</div><div class="option"><span class="option-label">(C)</span>9 →a</div><div class="option"><span class="option-label">(D)</span>6 →b →a →b −→b →a</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>11</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>9 →a</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>6 →b →a →b −→b →a</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q88</span>
     <span class="q-id">MATH-2024-0101-S2-Q079</span>
@@ -1648,12 +1771,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">For λ &gt; 0, let θ be the angle between the vectors = ^i + λ^j −3^k and = 3^i −^j + 2^k. If the vectors + and are mutually perpendicular, then the value of (14 cos θ)2 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>50</div><div class="option"><span class="option-label">(B)</span>40</div><div class="option"><span class="option-label">(C)</span>25</div><div class="option"><span class="option-label">(D)</span>20</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>50</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>40</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>25</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>20</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="30">
   <div class="q-header">
     <span class="q-num">Q89</span>
     <span class="q-id">MATH-2024-0101-S1-Q090</span>
@@ -1664,12 +1788,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a ^i −3^j 7^k, → 2^i −^j ^k and →c be a vector such that (→a → ×→c 3(→c ×→a). If, then = + b = + + 2 b) = = 130 is equal to _______</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 30</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q90</span>
     <span class="q-id">MATH-2024-0101-S2-Q077</span>
@@ -1680,12 +1805,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Consider three vectors. Let = 2, = 3 and = ×. If α ∈[0, π ] is the angle between the vectors 3 and, then the minimum value of is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>110</div><div class="option"><span class="option-label">(B)</span>124</div><div class="option"><span class="option-label">(C)</span>121</div><div class="option"><span class="option-label">(D)</span>105 (→c (→a →b →a (→c →a ⋅→c →c</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>110</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>124</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>121</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>105 (→c (→a →b →a (→c →a ⋅→c →c</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q91</span>
     <span class="q-id">MATH-2024-0101-S2-Q078</span>
@@ -1696,12 +1822,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a = 2^i + 5^j −^k, → b = 2^i −2^j + 2^k and →c be three vectors such that +^i) × + +^i) = × +^i). If = −29, then ⋅(−2^i + ^j + ^k) is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>15</div><div class="option"><span class="option-label">(B)</span>12</div><div class="option"><span class="option-label">(C)</span>10</div><div class="option"><span class="option-label">(D)</span>5</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>15</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>12</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>10</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>5</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="46">
   <div class="q-header">
     <span class="q-num">Q92</span>
     <span class="q-id">MATH-2024-0101-S1-Q089</span>
@@ -1712,12 +1839,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let = 2^i −3^j + = 3^i + 4^j −5^k and a vector be such that × + + × = ^i + 8^j + 13^k. If, then is equal to_______ = 13 (24</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 46</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q93</span>
     <span class="q-id">MATH-2024-0101-S2-Q078</span>
@@ -1728,12 +1856,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a 6^i ^j −^k and → ^i ^j. If →c is a is vector such that |→c| ≥6,→a ⋅→c 6|→c|, |→c −→a| 2√2 and the angle = + b = + = = between × and is 60∘, then × × is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>9 (6 −√6)</div><div class="option"><span class="option-label">(B)</span>3 √6 9 2 √6) 2 3 √3</div><div class="option"><span class="option-label">(C)</span>2 (6 +</div><div class="option"><span class="option-label">(D)</span>2</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>9 (6 −√6)</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>3 √6 9 2 √6) 2 3 √3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>2 (6 +</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q94</span>
     <span class="q-id">MATH-2024-0101-S1-Q077</span>
@@ -1744,12 +1873,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The set of all α, for which the vectors = αt^i + 6^j −3^k and = t^i −2^j −2αt^k are inclined at an obtuse angle for all t ∈R, is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>(−4, 1)</div><div class="option"><span class="option-label">(B)</span>[0, 1) 3</div><div class="option"><span class="option-label">(C)</span>(−4, 0] →r</div><div class="option"><span class="option-label">(D)</span>(−2, 0] 3 →r λ)^i −3λ)^j 4λ)^k,</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>(−4, 1)</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>[0, 1) 3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>(−4, 0] →r</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>(−2, 0] 3 →r λ)^i −3λ)^j 4λ)^k,</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="569">
   <div class="q-header">
     <span class="q-num">Q95</span>
     <span class="q-id">MATH-2024-0101-S1-Q089</span>
@@ -1760,12 +1890,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let = 9^i −13^j + = 3^i + 7^j −13^k and = 17^i −2^j + ^k be three given vectors. If is a vector such that × = + × and = 0, then is equal to___________ (593)2</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 569</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q96</span>
     <span class="q-id">MATH-2024-0101-S2-Q068</span>
@@ -1776,12 +1907,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let and. Let be a relation on defined by if A = {2, 3, 6, 8, 9, 11} B = {1, 4, 5, 10, 15} R A × B (a, b)R(c, d) and only if 3ad −7bc is an even integer. Then the relation R is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>an equivalence relation.</div><div class="option"><span class="option-label">(B)</span>reflexive and symmetric but not transitive.</div><div class="option"><span class="option-label">(C)</span>transitive but not symmetric.</div><div class="option"><span class="option-label">(D)</span>reflexive but not symmetric.</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>an equivalence relation.</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>reflexive and symmetric but not transitive.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>transitive but not symmetric.</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>reflexive but not symmetric.</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q97</span>
     <span class="q-id">MATH-2024-0101-S2-Q077</span>
@@ -1792,12 +1924,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let = 4^i −^j + = 11^i −^j + ^k and be a vector such that + × = × +. If + = 1670, then is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1609</div><div class="option"><span class="option-label">(B)</span>1618</div><div class="option"><span class="option-label">(C)</span>1600</div><div class="option"><span class="option-label">(D)</span>1627 →b →c →r ⋅→a →</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1609</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1618</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1600</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1627 →b →c →r ⋅→a →</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q98</span>
     <span class="q-id">MATH-2024-0101-S2-Q078</span>
@@ -1808,12 +1941,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a = ^i + 2^j + 3^k, b = 2^i + 3^j −5^k and →c = 3^i −^j + λ^k be three vectors. Let →r be anit vector along +. If = 3, then 3λ is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>21</div><div class="option"><span class="option-label">(B)</span>30</div><div class="option"><span class="option-label">(C)</span>25</div><div class="option"><span class="option-label">(D)</span>27</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>21</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>30</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>25</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>27</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q99</span>
     <span class="q-id">MATH-2024-0101-S1-Q077</span>
@@ -1824,12 +1958,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let three vectors →a = α^i + 4^j + 2^k, b = 5^i + 3^j + 4^k,→c = x^i + y^j + z^k form a triangle such that = and the area of the triangle is 5√6. If α is a positive real number, then is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>16</div><div class="option"><span class="option-label">(B)</span>14</div><div class="option"><span class="option-label">(C)</span>12 2→a, 6→a 5→b 3→b</div><div class="option"><span class="option-label">(D)</span>10 − − − Q78.Let → = → = + and → =, where is the origin. If the area of the parallelogram with OA OB OC O − − → → adjacent sides OA and OC is 15 sq. units, then the area (in sq. units) of the quadrilateral OABC is equal to:</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>16</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>14</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>12 2→a, 6→a 5→b 3→b</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>10 − − − Q78.Let → = → = + and → =, where is the origin. If the area of the parallelogram with OA OB OC O − − → → adjacent sides OA and OC is 15 sq. units, then the area (in sq. units) of the quadrilateral OABC is equal to:</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q100</span>
     <span class="q-id">MATH-2024-0101-S1-Q085</span>
@@ -1840,12 +1975,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let A = {2, 3, 6, 7} and B = {4, 5, 6, 8}. Let R be a relation defined on A × B by (a1, b1)R (a2, b2) if and only if a1 + a2 = b1 + b2. Then the number of elements in R is _________</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q101</span>
     <span class="q-id">MATH-2024-0101-S2-Q077</span>
@@ -1856,12 +1992,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Between ^i 2^j −3^k 2^i ^j −^k the following two statements: Statement I: Let = + and = +. Then the vector satisfying × = × and = 0 is of magnitude √10. Statement II: In a triangle ABC, cos 2A + cos 2B + cos 2C ≥−3.2</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>Statement I is incorrect but Statement II is</div><div class="option"><span class="option-label">(B)</span>Both Statement I and Statement II are correct. correct.</div><div class="option"><span class="option-label">(C)</span>Statement I is correct but Statement II is</div><div class="option"><span class="option-label">(D)</span>Both Statement I and Statement II are incorrect. →a ^k,→b →c incorrect. →a →b →b →c</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>Statement I is incorrect but Statement II is</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>Both Statement I and Statement II are correct. correct.</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>Statement I is correct but Statement II is</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>Both Statement I and Statement II are incorrect. →a ^k,→b →c incorrect. →a →b →b →c</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q102</span>
     <span class="q-id">MATH-2024-0101-S1-Q078</span>
@@ -1872,12 +2009,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">If →a = ˆi + 2ˆj + ˆk, b = 3(ˆi −ˆj + ˆk) and →c be the vector such that →a ×→c = b and →a ⋅→c = 3, then →a ⋅((→c → b) → −→c) × − b is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>32</div><div class="option"><span class="option-label">(B)</span>24</div><div class="option"><span class="option-label">(C)</span>20</div><div class="option"><span class="option-label">(D)</span>36</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>32</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>24</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>20</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>36</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q103</span>
     <span class="q-id">MATH-2024-0101-S1-Q089</span>
@@ -1888,12 +2026,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The least positive integral value of α, for which the angle between the vectors αˆi −2ˆj + 2ˆk and αˆi + 2αˆj −2ˆk is acute, is _____.</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q104</span>
     <span class="q-id">MATH-2024-0101-S2-Q077</span>
@@ -1904,12 +2043,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">The position vectors of the vertices A, B and C of a triangle are 2 ^i - 3 ^j + 3 ^k, 2 ^i + 2 ^j + 3 ^k and - ^i + ^j + 3 ^k respectively. Let l denotes the length of the angle bisector AD of ∠BAC where D is on the line segment BC, then 2l2 equals:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>49</div><div class="option"><span class="option-label">(B)</span>42</div><div class="option"><span class="option-label">(C)</span>50</div><div class="option"><span class="option-label">(D)</span>45</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>49</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>42</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>50</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>45</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q105</span>
     <span class="q-id">MATH-2024-0101-S2-Q078</span>
@@ -1920,12 +2060,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let the position vectors of the vertices and of a triangle be ^i ^j ^k, ^i ^j ^k and ^i ^j ^k A, B C 2 + 2 + + 2 + 2 2 + + 2 respectively. Let l1, l2 and l3 be the lengths of perpendiculars drawn from the ortho centre of the triangle on the sides AB, BC and CA respectively, then l1 2 + l2 2 + l3 2 equals:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>1</div><div class="option"><span class="option-label">(B)</span>1 5 2</div><div class="option"><span class="option-label">(C)</span>1</div><div class="option"><span class="option-label">(D)</span>1 4 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>1</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>1 5 2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>1 4 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q106</span>
     <span class="q-id">MATH-2024-0101-S1-Q077</span>
@@ -1936,12 +2077,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a, → →c → →c →a → b and be three non-zero vectors such that b and are non-collinear if + 5 b is collinear with →c, → 6→c →a →a → β→c → b + is collinear with and + α b + = 0, then α + β is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>35</div><div class="option"><span class="option-label">(B)</span>30</div><div class="option"><span class="option-label">(C)</span>−30</div><div class="option"><span class="option-label">(D)</span>−25 ˆk 4ˆk</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>35</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>30</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−30</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−25 ˆk 4ˆk</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q107</span>
     <span class="q-id">MATH-2024-0101-S1-Q078</span>
@@ -1952,12 +2094,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let O be the origin and the position vector of A and B be 2ˆi + 2ˆj + and 2ˆi + 4ˆj + respectively. If the internal bisector of ∠AOB meets the line AB at C, then the length of OC is</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2 √31</div><div class="option"><span class="option-label">(B)</span>2 √34 3 3 3 3</div><div class="option"><span class="option-label">(C)</span>4 √34</div><div class="option"><span class="option-label">(D)</span>2 √31</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2 √31</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2 √34 3 3 3 3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>4 √34</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>2 √31</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q108</span>
     <span class="q-id">MATH-2024-0101-S2-Q078</span>
@@ -1968,12 +2111,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let xˆi yˆj zˆk π π 2π −→v|2 √2ˆi 1 1 ˆk, 1 ˆj 1 ˆk a unit vector ˆu = + + make angles 2, 3 and 3 with the vectors + √2 √2 + √2 and →v ˆk √2ˆi 1 + 1 ˆj respectively. If = √2ˆi 1 + 1 ˆj + 1, then |^u is equal to 11 √2 √2 √2 5</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>2</div><div class="option"><span class="option-label">(B)</span>2</div><div class="option"><span class="option-label">(C)</span>9</div><div class="option"><span class="option-label">(D)</span>7</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>2</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>2</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>9</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>7</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q109</span>
     <span class="q-id">MATH-2024-0101-S1-Q078</span>
@@ -1984,12 +2128,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a = aiˆi + a2ˆj + a3ˆk and b = b1ˆi + b2ˆj + b3ˆk be two vectors such that →a = 1;→a ⋅ b = 2 and b = 4. If →c 2(→a → b) → → →c = × −3 b, then the angle between b and is equal to:</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>cos−1( 2 )</div><div class="option"><span class="option-label">(B)</span>cos−1(−1 ) √3 √3</div><div class="option"><span class="option-label">(C)</span>cos−1(−√3 )</div><div class="option"><span class="option-label">(D)</span>cos−1( 2 ) 2 3</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>cos−1( 2 )</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>cos−1(−1 ) √3 √3</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>cos−1(−√3 )</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>cos−1( 2 ) 2 3</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q110</span>
     <span class="q-id">MATH-2024-0101-S2-Q077</span>
@@ -2000,12 +2145,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a= ^i+ α ^j+ β ^k, α, β∈R. Let a vector →b be such that the angle between →a and →b is π and →b = 6, If 4 →a· →b= 3√2, then the value of α2 + β2 | →a× →b|2 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>90</div><div class="option"><span class="option-label">(B)</span>75</div><div class="option"><span class="option-label">(D)</span>95 85</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>90</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>75</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>95 85</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q111</span>
     <span class="q-id">MATH-2024-0101-S2-Q078</span>
@@ -2016,12 +2162,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a and → b be two vectors such that | → b| = 1 and | → b× →a| = 2 Then |( → b× →a) - → b| 2 is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>3</div><div class="option"><span class="option-label">(B)</span>5</div><div class="option"><span class="option-label">(C)</span>1</div><div class="option"><span class="option-label">(D)</span>4</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>3</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>5</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>1</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>4</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q112</span>
     <span class="q-id">MATH-2024-0101-S1-Q077</span>
@@ -2032,12 +2179,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a= 3 ^i+ ^j−2 ^k, → b= 4 ^i+ ^j+ 7 ^k and →c= ^i−3 ^j+ 4 ^k be three vectors. If a vectors →p satisfies →p× →b= →c× →b and →p⋅→a= 0, then →p⋅ ^i− ^j− ^k is equal to</div>
   
-  <div class="options"><div class="option"><span class="option-label">(A)</span>24</div><div class="option"><span class="option-label">(B)</span>36</div><div class="option"><span class="option-label">(C)</span>28</div><div class="option"><span class="option-label">(D)</span>32</div></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>24</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>36</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>28</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>32</button></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="48">
   <div class="q-header">
     <span class="q-num">Q113</span>
     <span class="q-id">MATH-2024-0101-S1-Q089</span>
@@ -2048,12 +2196,13 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a and → be two vectors such that →a= → and →a⋅ → 2. If →c= →a× → → and the angle between b 1, b= 4 b= 2 b−3 b →b and→c is α, then 192sin2α is equal to _________</div>
   
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 48</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer">
+</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="38">
   <div class="q-header">
     <span class="q-num">Q114</span>
     <span class="q-id">MATH-2024-0101-S2-Q089</span>
@@ -2064,8 +2213,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   </div>
   <div class="q-text">Let →a= 3 ^i+ 2 ^j+ ^k, →b= 2 ^i− ^j+ 3 ^k and →c be a vector such that →a+ →b× →c= 2→a× →b+ 24 ^j−6 ^k and → 2 →a− b+ ^i. →c= −3. Then →c is equal to _______.</div>
   <img class="question-media" src="../../assets/ef744e9173ea5eb0.png" alt="Figure or table from source paper" loading="lazy">
-  <div class="options"><div class="integer-box">Enter your answer</div></div>
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
   <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 38</div>
     </div>

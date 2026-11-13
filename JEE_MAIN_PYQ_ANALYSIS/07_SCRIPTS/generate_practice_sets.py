@@ -212,6 +212,17 @@ COMMON_CSS = """
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
+  .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
+  .option-select:hover, .option-select.selected { border-color:var(--accent); background:rgba(122,162,255,.12); }
+  .option-select.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+  .option-select.incorrect { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+  html[data-theme="dark"] .option-select.correct { background:#123d28; color:#86efac; }
+  html[data-theme="dark"] .option-select.incorrect { background:#4b1d24; color:#fda4af; }
+  .answer-input { width:180px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
+  .btn-check { background:#16a34a; color:#fff; border:0; border-radius:6px; padding:7px 14px; cursor:pointer; font-size:.82rem; }
+  .check-status { display:inline-block; margin-left:8px; font-size:.84rem; font-weight:600; }
+  .check-status.success { color:#16a34a; }
+  .check-status.error { color:#dc2626; }
   .option-label { font-weight: 600; margin-right: 6px; }
   .integer-box { display: inline-block; border: 1px dashed var(--muted);
                  border-radius: 4px; padding: 4px 32px; margin: 8px 0;
@@ -298,6 +309,31 @@ function toggleAnsCell(cell) {
     }
   }
 }
+function selectOption(button) {
+  var card = button.closest('.q-card');
+  card.querySelectorAll('.option-select').forEach(function(option) { option.classList.remove('selected'); });
+  button.classList.add('selected');
+  card.dataset.selected = button.dataset.option;
+}
+function checkAnswer(button) {
+  var card = button.closest('.q-card');
+  var status = card.querySelector('.check-status');
+  var type = card.dataset.type;
+  var correct = String(card.dataset.answer || '').trim().toUpperCase();
+  var given = type === 'MCQ' ? String(card.dataset.selected || '').trim().toUpperCase() : String(card.querySelector('.answer-input').value || '').trim();
+  if (!given) { status.textContent = 'Choose or enter an answer first.'; status.className = 'check-status error'; return; }
+  if (type === 'MCQ' && !/^[ABCD]$/.test(correct)) { status.textContent = 'Official key: ' + (card.dataset.answer || 'not available'); status.className = 'check-status'; return; }
+  var isCorrect = type === 'MCQ' ? given === correct : given.replace(/\\s+/g,'') === correct.replace(/\\s+/g,'');
+  if (type === 'MCQ') {
+    card.querySelectorAll('.option-select').forEach(function(option) {
+      option.classList.remove('correct','incorrect');
+      if (option.dataset.option === correct) option.classList.add('correct');
+      if (option.dataset.option === given && !isCorrect) option.classList.add('incorrect');
+    });
+  }
+  status.textContent = isCorrect ? 'Correct ✓' : 'Incorrect — correct answer: ' + correct;
+  status.className = 'check-status ' + (isCorrect ? 'success' : 'error');
+}
 function initTheme() {
   var root = document.documentElement;
   var button = document.createElement('button');
@@ -375,16 +411,17 @@ def render_question(q, num, show_cluster_badge=True, media_prefix="../../assets/
         opts_html = '<div class="options">'
         for key, val in opts:
             if val:
-                opts_html += f'<div class="option"><span class="option-label">({key})</span>{escape(normalize_text(val))}</div>'
+                opts_html += f'<button type="button" class="option option-select" data-option="{key}" onclick="selectOption(this)"><span class="option-label">({key})</span>{escape(normalize_text(val))}</button>'
         opts_html += "</div>"
     elif qtype in ("Integer", "Numerical"):
-        opts_html = '<div class="options"><div class="integer-box">Enter your answer</div></div>'
+        opts_html = '<div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>'
     elif qtype == "MCQ":
         opts_html = '<div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>'
 
     # answer reveal
     ans_text = escape(normalize_text(ans)) if ans else "<em>Not available</em>"
     ans_html = f"""<div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> {ans_text}</div>
     </div>"""
@@ -392,7 +429,7 @@ def render_question(q, num, show_cluster_badge=True, media_prefix="../../assets/
     media = q.get("media_asset")
     media = f"{media_prefix}{media}" if media else ""
     media_html = f'<img class="question-media" src="{escape(media)}" alt="Figure or table from source paper" loading="lazy">' if media else ""
-    return f"""<div class="q-card" data-year="{escape(str(year))}" data-shift="{escape(str(shift))}" data-difficulty="{escape(str(diff or 'Unknown').title())}" data-type="{escape(str(qtype))}">
+    return f"""<div class="q-card" data-year="{escape(str(year))}" data-shift="{escape(str(shift))}" data-difficulty="{escape(str(diff or 'Unknown').title())}" data-type="{escape(str(qtype))}" data-answer="{escape(normalize_text(ans))}">
   <div class="q-header">
     <span class="q-num">Q{num}</span>
     <span class="q-id">{qid}</span>
@@ -662,10 +699,10 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
             opts_html = '<div class="options">'
             for key, val in opts:
                 if val:
-                    opts_html += f'<div class="option"><span class="option-label">({key})</span>{escape(normalize_text(val))}</div>'
+                    opts_html += f'<button type="button" class="option option-select" data-option="{key}" onclick="selectOption(this)"><span class="option-label">({key})</span>{escape(normalize_text(val))}</button>'
             opts_html += "</div>"
         elif qtype in ("Integer", "Numerical"):
-            opts_html = '<div class="options"><div class="integer-box">Enter your answer</div></div>'
+            opts_html = '<div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>'
         elif qtype == "MCQ":
             opts_html = '<div class="options"><em style="color:#6c757d;font-size:.85rem">Options not extracted — refer to source paper.</em></div>'
 
@@ -673,7 +710,7 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
         media = q.get("media_asset")
         media = f"assets/{media}" if media else ""
         media_html = f'<img class="question-media" src="{escape(media)}" alt="Figure or table from source paper" loading="lazy">' if media else ""
-        qs_html += f"""<div class="q-card" data-year="{escape(str(year))}" data-shift="{escape(str(shift))}" data-difficulty="{escape(str(diff or 'Unknown').title())}" data-type="{escape(str(qtype))}">
+        qs_html += f"""<div class="q-card" data-year="{escape(str(year))}" data-shift="{escape(str(shift))}" data-difficulty="{escape(str(diff or 'Unknown').title())}" data-type="{escape(str(qtype))}" data-answer="{escape(normalize_text(ans))}">
   <div class="q-header">
     <span class="q-num">Q{i}</span>
     <span class="q-id">{qid}</span>
@@ -686,6 +723,7 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
   {media_html}
   {opts_html}
   <div class="ans-reveal">
+    <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
     <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
     <div class="ans-box"><span class="ans-label">Answer:</span> {ans_text}</div>
   </div>
