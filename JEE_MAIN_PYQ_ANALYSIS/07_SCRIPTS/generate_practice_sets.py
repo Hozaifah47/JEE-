@@ -119,9 +119,35 @@ def normalize_text(value):
     text = unicodedata.normalize("NFKC", str(value or ""))
     text = text.replace("\u00a0", " ").replace("\u2009", " ").replace("\u202f", " ")
     text = re.sub(r"(?<=\d)\s+\.\s+(?=\d)", ".", text)
+    text = re.sub(r"(?<=\d)\.\s+(?=\d)", ".", text)
+    superscripts = str.maketrans("0123456789-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁻")
+    text = re.sub(r"\b([A-Za-zµΩ]+)\s*-\s*(\d+)\b", lambda m: m.group(1) + m.group(0)[len(m.group(1)):].translate(superscripts).replace(" ", ""), text)
+    text = re.sub(r"\b10\s*-\s*(\d+)\b", lambda m: "10" + ("-" + m.group(1)).translate(superscripts), text)
     text = re.sub(r"\s+([,.;:!?])", r"\1", text)
     text = re.sub(r"\s+", " ", text)
     return text.strip()
+
+def structured_table_html(value):
+    """Render unambiguous alternating List-I/List-II extraction as a real table."""
+    text = normalize_text(value)
+    if not re.search(r"List\s*[- ]?I\b.*List\s*[- ]?II\b", text, re.I):
+        return ""
+    pairs = re.findall(
+        r"(?:^|\s)([A-D])\.\s*(.*?)\s+\(?((?:I{1,3}|IV))\)?[\.\s]+(.*?)(?=\s+[A-D]\.\s*|\s+Choose\b|$)",
+        text, flags=re.I
+    )
+    if len(pairs) < 2:
+        return ""
+    rows = "".join(
+        f"<tr><th>{escape(left.strip())}</th><td>{escape(item.strip())}</td><td>{escape(right.strip())}</td><td>{escape(roman.upper())}</td></tr>"
+        for left, item, roman, right in pairs[:4]
+    )
+    return f'''<div class="structured-table-wrap"><div class="structured-table-title">Structured List-I / List-II view</div><table class="structured-table"><thead><tr><th>Label</th><th>List-I</th><th>List-II</th><th>Match</th></tr></thead><tbody>{rows}</tbody></table></div>'''
+
+def question_body_html(value):
+    text = normalize_text(value)
+    table = structured_table_html(text)
+    return escape(text) + table
 
 def filter_controls():
     return """
@@ -204,6 +230,11 @@ COMMON_CSS = """
   .badge-year      { background: #e0f2fe; color: #0369a1; }
   .q-text { font-size: 0.95rem; margin: 10px 0; white-space: pre-wrap; }
   .question-media { display:block; max-width:100%; max-height:460px; margin:14px auto; border:1px solid var(--border); border-radius:8px; background:#fff; object-fit:contain; }
+  .structured-table-wrap { overflow-x:auto; margin:14px 0; }
+  .structured-table-title { color:var(--muted); font-size:.78rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:.04em; }
+  .structured-table { width:100%; border-collapse:collapse; background:var(--card); }
+  .structured-table th, .structured-table td { border:1px solid var(--border); padding:7px 10px; text-align:left; font-size:.86rem; }
+  .structured-table th { background:var(--cluster-bg); }
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
@@ -438,7 +469,7 @@ def render_question(q, num, show_cluster_badge=True, media_prefix="../../assets/
     {qtype_badge(qtype)}
     {cluster_badge}
   </div>
-  <div class="q-text">{escape(text)}</div>
+  <div class="q-text">{question_body_html(text)}</div>
   {media_html}
   {opts_html}
   {ans_html}
@@ -719,7 +750,7 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
     {qtype_badge(qtype)}
     {chapter_badge}
   </div>
-  <div class="q-text">{escape(text)}</div>
+  <div class="q-text">{question_body_html(text)}</div>
   {media_html}
   {opts_html}
   <div class="ans-reveal">
