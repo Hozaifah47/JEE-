@@ -278,7 +278,7 @@ def nav_html(active=""):
         ("index.html", "🏠 Dashboard"),
         ("00_HIGHEST_WEIGHTAGE_PCM.html", "📊 Weightage Report"),
         ("09_PRIORITY_SYSTEM/index.html", "🎯 Priority System"),
-        ("05_PRACTICE_SETS/index.html", "📝 Practice Hub"),
+        ("05_PRACTICE_SETS/index.html", "Practice Hub"),
         ("Physics/index.html", "🔵 Physics"),
         ("Chemistry/index.html", "🟢 Chemistry"),
         ("Mathematics/index.html", "🟣 Mathematics"),
@@ -493,7 +493,7 @@ def generate_main_dashboard(all_chapters, questions):
 <div class="stats-grid">
 <div class="stat-card"><a href="00_HIGHEST_WEIGHTAGE_PCM.html" style="text-decoration:none"><div class="number">📊</div><div class="label">Highest Weightage PCM<br>Chapter Rankings</div></a></div>
 <div class="stat-card"><a href="09_PRIORITY_SYSTEM/index.html" style="text-decoration:none"><div class="number">🎯</div><div class="label">Three-Bucket Strategy<br>Priority Dashboard</div></a></div>
-<div class="stat-card"><a href="05_PRACTICE_SETS/index.html" style="text-decoration:none"><div class="number">📝</div><div class="label">Practice Sets Library<br>526 Interactive Tests</div></a></div>
+<div class="stat-card"><a href="05_PRACTICE_SETS/index.html" style="text-decoration:none"><div class="number">526</div><div class="label">Interactive Practice Tests</div></a></div>
 </div>
 
 <h2>🏆 Top 15 Highest-Frequency Chapters</h2>

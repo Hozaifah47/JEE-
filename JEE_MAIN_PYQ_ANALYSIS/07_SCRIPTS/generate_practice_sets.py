@@ -164,11 +164,29 @@ def semantic_matrix_html(value):
         return f'<div class="matrix-semantic-wrap"><div class="matrix-semantic-title">Semantic matrix view ({label})</div><table class="matrix-semantic" aria-label="{label}"><tbody>{rows}</tbody></table></div>'
     return ''
 
+def truth_table_html(value):
+    """Render a single unambiguous 2- or 3-input truth table from source text."""
+    text = normalize_text(value)
+    if not re.search(r'\btruth\s+table\b', text, re.I):
+        return ''
+    headers = re.findall(r'\b([A-Z])\s+([A-Z])\s+([XY])\b', text)
+    if len(headers) != 1:
+        return ''
+    labels = list(headers[0])
+    width = len(labels)
+    rows = re.findall(r'(?<!\d)([01](?:\s+[01]){' + str(width - 1) + r'})(?!\s+[01])', text)
+    if len(rows) not in (4, 8):
+        return ''
+    cells = ''.join('<tr>' + ''.join(f'<td>{bit}</td>' for bit in row.split()) + '</tr>' for row in rows)
+    head = ''.join(f'<th>{escape(label)}</th>' for label in labels)
+    return f'<div class="truth-table-wrap"><div class="truth-table-title">Semantic truth-table view</div><table class="truth-table" aria-label="Truth table"><thead><tr>{head}</tr></thead><tbody>{cells}</tbody></table></div>'
+
 def question_body_html(value):
     text = normalize_text(value)
     table = structured_table_html(text)
     matrix = semantic_matrix_html(value)
-    return escape(text) + matrix + table
+    truth = truth_table_html(value)
+    return escape(text) + truth + matrix + table
 
 def filter_controls():
     return """
@@ -213,7 +231,7 @@ COMMON_CSS = """
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg);
          color: var(--text); line-height: 1.6; padding: 0 0 60px; }
-  header { background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+  header { background: #1a237e;
            color: #fff; padding: 20px 32px; }
   header h1 { font-size: 1.5rem; font-weight: 700; }
   header p  { font-size: 0.9rem; opacity: 0.85; margin-top: 4px; }
@@ -260,6 +278,11 @@ COMMON_CSS = """
   .matrix-semantic-title { color:var(--muted); font-size:.78rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:.04em; }
   .matrix-semantic { border-collapse:collapse; margin:0; }
   .matrix-semantic td { border:1px solid var(--border); min-width:2.4rem; padding:7px 10px; text-align:center; }
+  .truth-table-wrap { overflow-x:auto; margin:14px 0; }
+  .truth-table-title { color:var(--muted); font-size:.78rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:.04em; }
+  .truth-table { border-collapse:collapse; margin:0; }
+  .truth-table th, .truth-table td { border:1px solid var(--border); min-width:2.4rem; padding:7px 10px; text-align:center; }
+  .truth-table th { background:var(--cluster-bg); }
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
@@ -544,7 +567,7 @@ def build_chapter_practice(subject, chapter, questions, out_path, cluster_link_p
 </head>
 <body>
 <header>
-  <h1>📝 {escape(chapter)}</h1>
+  <h1>{escape(chapter)}</h1>
   <p>{escape(subject)} · {bucket_label} · {total} question{"s" if total!=1 else ""}</p>
 </header>
 <nav class="breadcrumb">
@@ -792,7 +815,7 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
 {COMMON_CSS}
 </head>
 <body>
-<header style="background:linear-gradient(135deg,{color}cc,{color})">
+<header style="background:{color}">
   <h1>🎯 Bucket {bucket_num} Mixed Practice — PCM</h1>
   <p>{label} · {total} questions from Physics, Chemistry &amp; Mathematics</p>
 </header>

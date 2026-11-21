@@ -337,7 +337,7 @@ def make_index_html(cluster: dict, questions: list, bucket: int, chapter_rel: st
     body = f"""
 <nav>
   <a href="{chapter_rel}/index.html">← {chapter}</a>
-  <a href="questions.html">📝 Questions</a>
+  <a href="questions.html">Questions</a>
   <a href="cluster_analysis.html">🔍 Analysis</a>
   <a href="answers.html">✅ Answers</a>
 </nav>
@@ -375,7 +375,7 @@ def make_index_html(cluster: dict, questions: list, bucket: int, chapter_rel: st
 
 <div class="card" style="display:flex;gap:12px;flex-wrap:wrap">
   <a href="questions.html" style="flex:1;min-width:140px;text-align:center;background:#1a237e;color:#fff;padding:16px;border-radius:10px;text-decoration:none;font-weight:600">
-    📝 View All {q_count} Questions
+    View All {q_count} Questions
   </a>
   <a href="cluster_analysis.html" style="flex:1;min-width:140px;text-align:center;background:#4a148c;color:#fff;padding:16px;border-radius:10px;text-decoration:none;font-weight:600">
     🔍 Cluster Analysis
@@ -447,7 +447,7 @@ def make_questions_html(cluster: dict, questions: list, chapter_rel: str) -> str
   <a href="answers.html">✅ Answers</a>
 </nav>
 
-<h1>📝 {name}</h1>
+<h1>{name}</h1>
 <p style="color:#555">{len(questions)} questions in this cluster</p>
 
 {questions_html}
@@ -541,7 +541,7 @@ def make_analysis_html(cluster: dict, questions: list, chapter_rel: str) -> str:
 <nav>
   <a href="{chapter_rel}/index.html">← {chapter}</a>
   <a href="index.html">↑ Cluster Overview</a>
-  <a href="questions.html">📝 Questions</a>
+  <a href="questions.html">Questions</a>
   <a href="answers.html">✅ Answers</a>
 </nav>
 
@@ -599,7 +599,7 @@ def make_analysis_html(cluster: dict, questions: list, chapter_rel: str) -> str:
 
 <div style="text-align:center;margin-top:24px">
   <a href="questions.html" style="display:inline-block;background:#1a237e;color:#fff;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:600;margin-right:12px">
-    📝 Practice Questions
+    Practice Questions
   </a>
   <a href="answers.html" style="display:inline-block;background:#1b5e20;color:#fff;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:600">
     ✅ Answer Key
@@ -633,7 +633,7 @@ def make_answers_html(cluster: dict, questions: list, chapter_rel: str) -> str:
 <nav>
   <a href="{chapter_rel}/index.html">← {chapter}</a>
   <a href="index.html">↑ Cluster Overview</a>
-  <a href="questions.html">📝 Questions</a>
+  <a href="questions.html">Questions</a>
   <a href="cluster_analysis.html">🔍 Analysis</a>
 </nav>
 
@@ -655,7 +655,7 @@ def make_answers_html(cluster: dict, questions: list, chapter_rel: str) -> str:
 
 <div style="text-align:center;margin-top:16px">
   <a href="questions.html" style="display:inline-block;background:#1a237e;color:#fff;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:600">
-    📝 Back to Questions
+    Back to Questions
   </a>
 </div>
 """

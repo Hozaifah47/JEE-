@@ -4,7 +4,7 @@ generate_all_cluster_pages.py — Generates individual cluster directories and H
 for ALL 231 clusters across Physics, Chemistry, and Mathematics.
 """
 
-import json, os, html
+import json, os, html, subprocess, sys
 from pathlib import Path
 from collections import defaultdict
 
@@ -25,6 +25,13 @@ def escape(s):
     return html.escape(str(s)) if s else ""
 
 def main():
+    # Canonical renderer: keep this compatibility command aligned with CI and
+    # the local refresh endpoint instead of maintaining a second HTML template.
+    builder = ROOT / "07_SCRIPTS" / "build_everything_clean.py"
+    print("Delegating cluster refresh to the canonical portal builder…")
+    subprocess.run([sys.executable, str(builder)], cwd=str(ROOT), check=True)
+    return
+
     with open(CLUSTERS_FILE) as f:
         cdata = json.load(f)
     clusters = {c['cluster_id']: c for c in cdata['clusters']}
@@ -94,7 +101,7 @@ function toggleAns(id){
 
         target_dir.mkdir(parents=True, exist_ok=True)
 
-        nav = f'<nav><a href="../../index.html">← Chapter Overview</a><a href="questions.html">📝 Practice Questions</a><a href="cluster_analysis.html">🔬 Cluster Analysis</a><a href="answers.html">🔑 Answer Key</a></nav>'
+        nav = f'<nav><a href="../../index.html">← Chapter Overview</a><a href="questions.html">Practice Questions</a><a href="cluster_analysis.html">Cluster Analysis</a><a href="answers.html">Answer Key</a></nav>'
 
         # 1. index.html
         with open(target_dir / "index.html", "w", encoding='utf-8') as f:
