@@ -121,15 +121,24 @@ def question_block(q: dict) -> str:
     shift= q.get("shift", "")
     qn   = q.get("question_number", "")
     qtype= q.get("question_type", "MCQ")
+    media_name = q.get("media_asset")
+    media_html = ""
+    if media_name:
+        media_html = f'<div class="q-media" style="margin:12px 0;text-align:center;"><img src="../../05_PRACTICE_SETS/assets/{html.escape(str(media_name), quote=True)}" alt="Figure for Q{qn}" style="max-width:100%;max-height:450px;border-radius:6px;border:1px solid #dee2e6;background:#fff;" loading="lazy"></div>'
 
     opt_html = ""
     if opts:
         opt_html = '<div class="question-options">'
-        for label in ["A", "B", "C", "D"]:
-            val = opts.get(label, "")
+        for idx, label in enumerate(["A", "B", "C", "D"]):
+            if isinstance(opts, dict):
+                val = opts.get(label, "")
+            elif isinstance(opts, (list, tuple)):
+                val = opts[idx] if idx < len(opts) else ""
+            else:
+                val = ""
             if val:
                 correct_cls = "correct" if label == ans else ""
-                opt_html += f'<div class="option {correct_cls}"><span class="option-label">{label}.</span> {html.escape(val)}</div>'
+                opt_html += f'<div class="option {correct_cls}"><span class="option-label">{label}.</span> {html.escape(str(val))}</div>'
         opt_html += "</div>"
     elif qtype in ("Integer", "Numerical") and ans:
         opt_html = f'<div class="mt-1"><strong>Answer:</strong> <code>{html.escape(str(ans))}</code></div>'
@@ -143,6 +152,7 @@ def question_block(q: dict) -> str:
     </div>
   </div>
   <div class="question-text">{text}</div>
+  {media_html}
   {opt_html}
   <div class="text-muted mt-1" style="font-size:0.75rem">{qid}</div>
 </div>"""
@@ -330,14 +340,16 @@ def generate_chapter_page(chapter_dir: Path, subject: str, chapter: str, questio
     more_note = f'<p class="text-muted">Showing first 50 of {len(chap_qs)} questions.</p>' if len(chap_qs) > 50 else ""
 
     cluster_cards = ""
-    for c in sorted(chap_clusters, key=lambda x: -x.get("frequency", 0)):
+    for c in sorted(chap_clusters, key=lambda x: -x.get("question_count", x.get("frequency", 0))):
+        qcnt = c.get("question_count", c.get("frequency", 0))
+        diff = c.get("difficulty_rating", "Moderate")
+        cid  = c.get("cluster_id", "")
         cluster_cards += f"""<div class="cluster-card">
-  <div class="cluster-id">{html.escape(c.get("cluster_id",""))}</div>
+  <div class="cluster-id">{html.escape(cid)}</div>
   <div class="cluster-name">{html.escape(c.get("cluster_name",""))}</div>
   <div class="cluster-meta">
-    <span class="chip">{c.get("frequency",0)} Qs</span>
-    <span class="chip">{", ".join(str(y) for y in c.get("years_appeared",[]))}</span>
-    {weight_badge(c.get("predicted_weight","LOW"))}
+    <span class="chip primary">{qcnt} Questions</span>
+    <span class="badge badge-moderate">{html.escape(diff)}</span>
   </div>
 </div>"""
 

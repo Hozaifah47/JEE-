@@ -39,3 +39,14 @@ Approved finding fixed: **5**.
 - Added `DESIGN.md` as the shared visual direction for theme, palette, typography, composition, interaction, and accessibility.
 - The document records why the study portal is dark-first and limits blue, green, red, and amber to specific functions.
 - Verification: the portal now has a documented design source rather than relying on generator-local visual assumptions.
+
+Approved finding fixed: **6**.
+
+- The canonical builder now wires option selection and answer checking through delegated data-attribute events instead of inline handlers.
+- Option cards are keyboard activatable with Enter/Space.
+- Existing generated pages will receive the centralized wiring on the next canonical rebuild; they were not force-regenerated over concurrent Antigravity edits.
+
+Approved finding fixed: **7**.
+
+- Added shared visible focus-state rules to the canonical cluster and practice generators.
+- Added the design-token and accessibility baseline to `DESIGN.md`.

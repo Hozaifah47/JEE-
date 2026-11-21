@@ -90,6 +90,19 @@ def extract_clean_page_lines(page):
     return lines
 
 all_extracted = []
+previous_media = {}
+if QUESTIONS_JSONL.exists():
+    with QUESTIONS_JSONL.open(encoding="utf-8") as old_db:
+        for line in old_db:
+            if not line.strip():
+                continue
+            old_q = json.loads(line)
+            if old_q.get("media_asset"):
+                key = (old_q.get("source_file"), old_q.get("question_number"), old_q.get("subject"))
+                previous_media[key] = {
+                    "media_asset": old_q.get("media_asset"),
+                    "source_page": old_q.get("source_page"),
+                }
 
 for pdf_path in pdf_files:
     m = re.search(r'JEE Main (\d{4})\s*\(([^)]+)\)', pdf_path.name)
@@ -324,7 +337,8 @@ def classify_question(q):
             best_ch = ch_name
             
     if not best_ch or best_score == 0:
-        # Second-pass: try ALL subjects' signatures (the question might be misassigned)
+        # Second-pass: try ALL subjects' signatures (the question might use
+        # cross-subject terminology, e.g. a Physics question using "vector" math)
         for alt_subj, alt_sigs in CHAPTER_SIGNATURES.items():
             for ch_name, kws in alt_sigs:
                 score = sum(1 for kw in kws if kw in text)
@@ -367,6 +381,10 @@ def classify_question(q):
     return q
 
 classified_questions = [classify_question(q) for q in all_extracted]
+for question in classified_questions:
+    key = (question.get("source_file"), question.get("question_number"), question.get("subject"))
+    if key in previous_media:
+        question.update(previous_media[key])
 
 ch_counts = Counter(q["chapter"] for q in classified_questions)
 print("Chapter distribution (top 15):")
@@ -661,6 +679,39 @@ body {
   color: var(--text-secondary);
   font-size: 0.9rem;
 }
+
+/* Truth Table in Options */
+.tt-table {
+  border-collapse: collapse;
+  margin: 6px 0;
+  font-size: 0.82rem;
+  font-family: var(--font-mono, monospace);
+  background: #1c1c24;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #333342;
+}
+.tt-table th {
+  background: #272734;
+  color: #fff;
+  padding: 4px 10px;
+  border: 1px solid #333342;
+  font-weight: 700;
+}
+.tt-table td {
+  padding: 3px 10px;
+  border: 1px solid #2a2a38;
+  text-align: center;
+  color: #e0e0e8;
+}
+.tt-table td.tt-out {
+  font-weight: 700;
+  color: #38bdf8;
+}
+a:focus-visible, button:focus-visible, [role="button"]:focus-visible, input:focus-visible {
+  outline: 3px solid var(--accent-blue);
+  outline-offset: 3px;
+}
 </style>
 
 <script>
@@ -741,11 +792,60 @@ function checkAnswer(qid, correctAns, qtype) {
     }
   }
 }
+
+document.addEventListener('click', function(event) {
+  var option = event.target.closest('.opt-card[data-qid]');
+  if (option) {
+    selectOption(option.dataset.qid, option.dataset.option, option.dataset.correct);
+    return;
+  }
+  var check = event.target.closest('.btn-check[data-qid]');
+  if (check) {
+    checkAnswer(check.dataset.qid, check.dataset.answer, check.dataset.type);
+  }
+});
+document.addEventListener('keydown', function(event) {
+  if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('.opt-card[data-qid]')) {
+    event.preventDefault();
+    selectOption(event.target.dataset.qid, event.target.dataset.option, event.target.dataset.correct);
+  }
+});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
 """
 
-def render_question_card(q, idx):
+def render_truth_table_html(text):
+    tokens = str(text).strip().split()
+    if not tokens:
+        return html.escape(str(text))
+    # Case 1: Starts with A B Y followed by 0s and 1s
+    if len(tokens) >= 15 and tokens[0:3] == ['A', 'B', 'Y']:
+        rows = []
+        i = 3
+        while i + 2 < len(tokens):
+            if tokens[i] in ('0', '1') and tokens[i+1] in ('0', '1') and tokens[i+2] in ('0', '1'):
+                rows.append((tokens[i], tokens[i+1], tokens[i+2]))
+                i += 3
+            else:
+                break
+        if len(rows) == 4:
+            table_html = '<table class="tt-table"><thead><tr><th>A</th><th>B</th><th>Y</th></tr></thead><tbody>'
+            for r in rows:
+                table_html += f'<tr><td>{r[0]}</td><td>{r[1]}</td><td class="tt-out">{r[2]}</td></tr>'
+            table_html += '</tbody></table>'
+            return table_html
+    # Case 2: 12 tokens of 0s and 1s representing 4 rows of A B Y
+    if len(tokens) == 12 and all(t in ('0', '1') for t in tokens):
+        rows = [(tokens[i], tokens[i+1], tokens[i+2]) for i in (0, 3, 6, 9)]
+        table_html = '<table class="tt-table"><thead><tr><th>A</th><th>B</th><th>Y</th></tr></thead><tbody>'
+        for r in rows:
+            table_html += f'<tr><td>{r[0]}</td><td>{r[1]}</td><td class="tt-out">{r[2]}</td></tr>'
+        table_html += '</tbody></table>'
+        return table_html
+
+    return html.escape(str(text))
+
+def render_question_card(q, idx, media_prefix="../../../../../05_PRACTICE_SETS/assets/"):
     qid = q["question_id"]
     qnum = q.get("question_number", idx + 1)
     exam_pill = q.get("exam_pill", f"JEE Main {q['year']}")
@@ -755,7 +855,7 @@ def render_question_card(q, idx):
     media_name = q.get("media_asset")
     media_html = ""
     if media_name:
-        media_src = f"../../../../05_PRACTICE_SETS/assets/{html.escape(str(media_name), quote=True)}"
+        media_src = f"{media_prefix}{html.escape(str(media_name), quote=True)}"
         media_html = f'<div class="q-media"><img src="{media_src}" alt="Source figure for question {qnum}" loading="lazy"></div>'
     
     type_badge = f'MCQ (Single Correct Answer) <span class="badge-pos">+4</span> <span class="badge-neg">-1</span>' if qtype == "MCQ" else 'Numerical Answer <span class="badge-pos">+4</span> <span class="badge-neg">0</span>'
@@ -767,11 +867,11 @@ def render_question_card(q, idx):
         for opt_idx, label in enumerate(labels):
             opt_val = ""
             if opt_idx < len(q.get("options", [])):
-                opt_val = html.escape(str(q["options"][opt_idx]))
+                opt_val = render_truth_table_html(str(q["options"][opt_idx]))
             if not opt_val:
                 opt_val = f"Option {label}"
             opts_html += f'''
-            <div class="opt-card" id="opt-{qid}-{label}" onclick="selectOption('{qid}', '{label}', '{corr_ans}')">
+            <div class="opt-card" id="opt-{qid}-{label}" data-qid="{html.escape(str(qid), quote=True)}" data-option="{label}" data-correct="{html.escape(str(corr_ans), quote=True)}" tabindex="0" role="button">
               <span class="opt-letter">{label}</span>
               <span class="opt-text">{opt_val}</span>
             </div>
@@ -803,7 +903,7 @@ def render_question_card(q, idx):
       
       {opts_html}
       
-      <button class="btn-check" onclick="checkAnswer('{qid}', '{corr_ans}', '{qtype}')">Check answer</button>
+      <button class="btn-check" data-qid="{html.escape(str(qid), quote=True)}" data-answer="{html.escape(str(corr_ans), quote=True)}" data-type="{html.escape(str(qtype), quote=True)}">Check answer</button>
       
       <div class="ans-box" id="ans-{qid}">
         <div class="ans-title" id="status-{qid}">Correct Answer: {corr_ans}</div>
@@ -1024,7 +1124,7 @@ print("Step 5: Rebuilding Practice Sets...")
 practice_dir = ROOT / "05_PRACTICE_SETS"
 for subj in ["Physics", "Chemistry", "Mathematics"]:
     subj_qs = [q for q in classified_questions if q["subject"] == subj]
-    p_cards = "\n".join([render_question_card(q, i) for i, q in enumerate(subj_qs[:50])])
+    p_cards = "\n".join([render_question_card(q, i, media_prefix="assets/") for i, q in enumerate(subj_qs[:50])])
     
     p_html = f'''<!DOCTYPE html>
 <html lang="en">

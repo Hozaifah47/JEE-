@@ -283,6 +283,9 @@ COMMON_CSS = """
   .truth-table { border-collapse:collapse; margin:0; }
   .truth-table th, .truth-table td { border:1px solid var(--border); min-width:2.4rem; padding:7px 10px; text-align:center; }
   .truth-table th { background:var(--cluster-bg); }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+    outline:3px solid var(--accent); outline-offset:3px;
+  }
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
