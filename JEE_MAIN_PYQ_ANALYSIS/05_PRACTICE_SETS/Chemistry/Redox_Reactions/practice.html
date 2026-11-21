@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -284,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -298,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(30 questions)</span>
     &nbsp;<a href="clusters/CHEM-REDOREAC-OXIDATION_NUMBER_METHOD/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+  <div class="q-card" id="q-CHEM-2021-0101-S1-Q033" data-search="The species given below that does NOT show disproportionation reaction is: CHEM-2021-0101-S1-Q033" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S1-Q033</span>
@@ -315,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q044" data-search="Which one of the following group−15 hydride is the strongest reducing agent? CHEM-2021-0101-S1-Q044" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q044</span>
@@ -332,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q033" data-search="[Question text not available — refer to source paper] CHEM-2021-0101-S1-Q033" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S1-Q033</span>
@@ -349,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q042" data-search="The incorrect statement among the following is: CHEM-2021-0101-S2-Q042" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S2-Q042</span>
@@ -366,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q040" data-search="The correct order of following 3d metal oxides, according to their oxidation numbers is: CHEM-2021-0101-S1-Q040" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S1-Q040</span>
@@ -383,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q042" data-search="Given below are two statements. Statement I: The choice of reducing agents for metals extraction can be made by using the Ellingham diagram, a plot of ΔG vs temperature. Statement II: The value of ΔS increases from left to right in the Ellingham diagram. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2021-0101-S1-Q042" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S1-Q042</span>
@@ -400,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q055" data-search="Dichromate ion is treated with base, the oxidation number of in the product formed is Cr CHEM-2021-0101-S1-Q055" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S1-Q055</span>
@@ -417,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q032" data-search="In which one of the following sets all species show disproportionation reaction? CHEM-2021-0101-S2-Q032" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2021-0101-S2-Q032</span>
@@ -434,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q042" data-search="Cerium IV has a noble gas configuration. Which of the following is correct statement about it? CHEM-2022-0101-S1-Q042" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2022-0101-S1-Q042</span>
@@ -451,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q034" data-search="Which one of the following is an example of disproportionation reaction? MnO2− MnO− MnO− CHEM-2022-0101-S2-Q034" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2022-0101-S2-Q034</span>
@@ -468,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q032" data-search="Which of the following options are correct for the reaction? - 2 - 2Au ( CN ) (aq) + Zn(s) →2Au(s) + Zn ( CN ) (aq) 2 4 A. Redox reaction B. Displacement reaction C. Decomposition reaction D. Combination reaction Choose the correct answer from the options given below: CHEM-2023-0101-S1-Q032" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2023-0101-S1-Q032</span>
@@ -485,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q050" data-search="Which one amongst the following are good oxidising agents? CHEM-2023-0101-S2-Q050" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2023-0101-S2-Q050</span>
@@ -502,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q038" data-search="Which one among the following metals is the weakest reducing agent? CHEM-2023-0101-S2-Q038" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2023-0101-S2-Q038</span>
@@ -519,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q041" data-search="In Kjeldahl&#x27;s method for estimation of nitrogen, CuSO4 acts as: CHEM-2024-0101-S1-Q041" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2024-0101-S1-Q041</span>
@@ -536,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q052" data-search="Lowest Oxidation number of an atom in a compound A2B is−2. The number of an electron in its valence shell is CHEM-2024-0101-S1-Q052" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2024-0101-S1-Q052</span>
@@ -553,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q043" data-search="The strongest reducing agent amont the following is: CHEM-2024-0101-S2-Q043" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2024-0101-S2-Q043</span>
@@ -570,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q057" data-search="The spin-only magnetic moment value of the ion among and, that acts as strong oxidising agent in aqueous solution is _______ BM (Near integer). (Given atomic numbers: Ti: 22, V: 23, Cr: 24, Co: 27 ) CHEM-2024-0101-S1-Q057" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2024-0101-S1-Q057</span>
@@ -587,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q033" data-search="Match List - I with List - II. List - I List - II Reaction Type of redox reaction CHEM-2024-0101-S2-Q033" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2024-0101-S2-Q033</span>
@@ -604,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q042" data-search="List - I List - II Reaction Type of redox reaction CHEM-2024-0101-S2-Q042" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2024-0101-S2-Q042</span>
@@ -621,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q049" data-search="List - I List - II Reaction Type of redox reaction Match List - I with List - II. CHEM-2024-0101-S2-Q049" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2024-0101-S2-Q049</span>
@@ -638,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q037" data-search="Among the following halogens F2, Cl2, Br2 and I2 Which can undergo disproportionation reactions? CHEM-2024-0101-S1-Q037" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">CHEM-2024-0101-S1-Q037</span>
@@ -655,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q039" data-search="In qualitative test for identification of presence of phosphorous, the compound is heated with an oxidising agent. Which is further treated with nitric acid and ammonium molybdate respectively. The yellow coloured precipitate obtained is: CHEM-2024-0101-S2-Q039" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">CHEM-2024-0101-S2-Q039</span>
@@ -672,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q044" data-search="Given below are two statements: Statement (I): Fusion of MnO2 with KOH and an oxidising agent gives dark green K2MnO4. Statement (II): Manganate ion on electrolytic oxidation in alkaline medium gives permanganate ion. In the light of the above statements, choose the correct answer from the options given below: CHEM-2024-0101-S2-Q044" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">CHEM-2024-0101-S2-Q044</span>
@@ -689,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q031" data-search="Which of the following cannot function as an oxidising agent? CHEM-2024-0101-S2-Q031" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">CHEM-2024-0101-S2-Q031</span>
@@ -706,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q034" data-search="Chlorine undergoes disproportionation in alkaline medium as shown below: aCl2( g) bOH−(aq) →cClO−(aq) dCl−(aq) O(l) + + + eH2 The values of a, b, c and d in a balanced redox reaction are respectively: CHEM-2024-0101-S1-Q034" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">CHEM-2024-0101-S1-Q034</span>
@@ -723,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q040" data-search="Which of the following acts as a strong reducing agent? (Atomic number: Ce = 58, Eu = 63, Gd = 64, Lu = 71) CHEM-2024-0101-S2-Q040" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">CHEM-2024-0101-S2-Q040</span>
@@ -740,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q041" data-search="Choose the correct statements about the hydrides of group 15 elements. A. The stability of the hydrides decreases in the order NH3 &gt; PH3 &gt; AsH3 &gt; SbH3 &gt; BiH3 B. The reducing ability of the hydrides increases in the order NH3 &lt; PH3 &lt; AsH3 &lt; SbH3 &lt; BiH3 C. Among the hydrides, NH3 is strong reducing agent while BiH3 is mild reducing agent. D. The basicity of the hydrides increases in the order NH3 &lt; PH3 &lt; AsH3 &lt; SbH3 &lt; BiH3 Choose the most appropriate from the option given below: CHEM-2024-0101-S2-Q041" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">CHEM-2024-0101-S2-Q041</span>
@@ -757,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q036" data-search="Given below are two statements: Statement I: S8 solid undergoes disproportionation reaction under alkaline conditions to form S2 − and S2O3 2 − − Statement II: ClO4 can undergo disproportionation reaction under acidic condition. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2024-0101-S2-Q036" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">CHEM-2024-0101-S2-Q036</span>
@@ -774,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q057" data-search="The species which does not undergo disproportionation reaction is: (1) ClO− (2) ClO− ClO− 3 ClO− (3) 2 (4) 4 CHEM-2025-0101-S2-Q057" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">CHEM-2025-0101-S2-Q057</span>
@@ -791,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q057" data-search="E∘ Cr2O2− /Cr3+ = 1.33 V E∘ Cl2/Cl(−) = 1.36 V Based on the data given below: 7 the strongest reducing agent is: E∘ MnO− /Mn2+ = 1.51 V E∘ Cr3+/Cr = −0.74 V 4 (1) Cr (2) Cl− (3) MnO− (4) Mn2+ 4 CHEM-2025-0101-S2-Q057" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">CHEM-2025-0101-S2-Q057</span>

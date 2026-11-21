@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+<div class="q-card" id="q-CHEM-2021-0101-S1-Q044" data-search="Given below are two statement: one is labelled as Assertion A and the other is labelled as Reason R: Assertion A: Size of Bk3+ ion is less than Np3+ ion. Reason R: The above is a consequence of the lanthanide contraction. In the light of the above statements, choose the correct answer from the options given below: CHEM-2021-0101-S1-Q044" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S1-Q044</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q039" data-search="Given below are two statements. One is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Sharp glass edge becomes smooth on heating it up to its melting point. Reason R: The viscosity of glass decreases on melting. Choose the most appropriate answer from the options given below. CHEM-2021-0101-S1-Q039" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q039</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q034" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Hydrogen is the most abundant element in the Universe, but it is not the most abundant gas in the troposphere. Reason R: Hydrogen is the lightest element. In the light of the above statements, choose the correct answer from the options given below: CHEM-2021-0101-S2-Q034" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S2-Q034</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="70">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q051" data-search="A car tyre is filled with nitrogen gas at 35 psi at 27 °C. It will burst if pressure exceeds 40 psi. The temperature in ∘C at which the car tyre will burst is (Rounded-off to the nearest integer) CHEM-2021-0101-S1-Q051" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="70">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S1-Q051</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 70</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q040" data-search="Select the correct statements. CHEM-2021-0101-S2-Q040" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S2-Q040</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q035" data-search="Given below are two statements: one is labelled as Assertion CHEM-2021-0101-S1-Q035" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S1-Q035</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q046" data-search="Given below are two statements: Statement I: The process of producing syn-gas is called gasification of coal. Statement II: The composition of syn-gas is CO + CO2 + H2(1: 1: 1). In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2021-0101-S1-Q046" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S1-Q046</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="63">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q052" data-search="A 0.166 g sample of an organic compound was digested with conc. H2 SO4 and then distilled with NaOH. The ammonia gas evolved was passed through 50.0 mL of 0.5 N H2 SO4. The used acid required 30.0 mL of 0.25 N NaOH for complete neutralization. The mass percentage of nitrogen in the organic compound is CHEM-2022-0101-S1-Q052" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="63">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2022-0101-S1-Q052</span>
@@ -426,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 63</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q031" data-search="Given below are two statements: one is labelled as Assertion and the other is labelled as Reason. Assertion: The ionic radii of O2− and Mg2+ are same. Mg2+ Reason: Both O2− and are isoelectronic species. In the light of the above statements, choose the correct answer from the options given below. CHEM-2022-0101-S1-Q031" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2022-0101-S1-Q031</span>
@@ -443,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q041" data-search="Given below are two statements: one is labelled as Assertion and the other is labelled as Reason. Assertion: Flourine forms one oxoacid. Reason: Flourine has smallest size amongst all halogens and is highly electronegative. In the light of the above statements, choose the most appropriate answer from the Question: options given below. CHEM-2022-0101-S2-Q041" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2022-0101-S2-Q041</span>
@@ -460,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q043" data-search="The &#x27; f &#x27; orbitals are half and completely filled, respectively in lanthanide ions [Given: Atomic no. Eu, 63: Sm, 62: Tm, 69; Tb, 65; Yb, 70; Dy, 66 ] Eu2+ Tm2+ Sm2+ Tm3+ CHEM-2022-0101-S2-Q043" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2022-0101-S2-Q043</span>
@@ -477,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q031" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: Hydrogen is an environment friendly fuel. Reason R: Atomic number of hydrogen is 1 and it is a very light element. In the light of the above statements, choose the correct answer from the options given below CHEM-2023-0101-S1-Q031" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2023-0101-S1-Q031</span>
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q039" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: In an Ellingham diagram, the oxidation of carbon to carbon monoxide shows a negative slope with respect to temperature. Reason R: CO tends to get decomposed at higher temperature. In the light of the above statements, choose the correct answer from the options given below CHEM-2023-0101-S1-Q039" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2023-0101-S1-Q039</span>
@@ -511,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q034" data-search="Given below are two statements, one is labelled as Assertion A and the other is labelled as Reason R. – 3 Assertion A: Loss of electron from hydrogen atom results in nucleus of ~1.5 × 10 pm size. Reason R: Proton H+ always exists in combined form. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2023-0101-S1-Q034" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2023-0101-S1-Q034</span>
@@ -528,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q044" data-search="Given below are two statements, one is labelled as Assertion A and the other is labelled as Reason R. 3 - Assertion A: The spin only magnetic moment value for Fe ( CN ) is 1.74 BM, whereas for [Fe(H2O)6] 3 + is 6 FeH2O6 5.92 BM. Reason B: In both complexes, Fe is present in +3 oxidation state. In the light of the above statements, choose the correct answer from the options given below: CHEM-2023-0101-S1-Q044" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2023-0101-S1-Q044</span>
@@ -545,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q036" data-search="Three bulbs are filled with CH4, CO2 and Ne as shown in the picture. The bulbs are connected through pipes of zero volume. When the stopcocks are opened and the temperature is kept constant throughout, the pressure of the system is found to be______ atm. (Nearest integer). CHEM-2023-0101-S1-Q036" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2023-0101-S1-Q036</span>
@@ -562,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q033" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Mg2 + Mg+ Assertion A: The energy required to form from Mg is much higher than that required to produce Reason R:Mg2 + is small ion and carry more charge than Mg+ In the light of the above statements, choose the correct answer from the options given below. CHEM-2023-0101-S2-Q033" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2023-0101-S2-Q033</span>
@@ -579,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q036" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Physical properties of isotopes of hydrogen are different. Reason R: Mass difference between isotopes of hydrogen is very large. In the light of the above statements, choose the correct answer from the options given below: CHEM-2023-0101-S2-Q036" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2023-0101-S2-Q036</span>
@@ -596,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q041" data-search="In the extraction process of copper, the product obtained after carrying out the reactions (i) 2Cu2 S + 3O2 ⟶2Cu2O + 2SO2 (ii) 2Cu2O + Cu2 S ⟶6Cu + SO2 is called CHEM-2023-0101-S1-Q041" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2023-0101-S1-Q041</span>
@@ -613,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q055" data-search="Given below are two statements, one is labelled as assertion A and the other is labelled as Reason R. assertion A: [CoCl (NH3)5]2+ absorbs at lower wavelength of light with respect to [Co (NH3)5(H2O)]3+ Reason R: It is because the wavelenght of light absorbed depends on the oxidation state of the metal ion. In the light of the above statements,choose the correct answer from the options given below: (1) A is false but R is true (2) A is true but R is false (3) Both A and R are true and R is the correct (4) Both A and R are true and R is NOT the correct explaination of A explaination of A CHEM-2023-0101-S2-Q055" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2023-0101-S2-Q055</span>
@@ -630,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q032" data-search="Given below are two statement: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: 5f electron can participate in bonding to a far greater extent than 4f electrons Reason R: 5f orbitals are not as buried as 4f orbitals In the light of the above statements, choose the correct answer from the options given below CHEM-2023-0101-S1-Q032" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">CHEM-2023-0101-S1-Q032</span>
@@ -647,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q051" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: In the Ellingham diagram, a sharp change in slope of the line is observed from Mg →MgO at ~1120oC Reason R: There is a large change of entropy associated with the change of state In the light of the above statements, choose the correct answer from the options given below (1) Both A and R are true but R is NOT the correct (2) A is false but R is true explanation of A (3) Both A and R are true and R is the correct (4) A is true but R is false explanation of A CHEM-2023-0101-S1-Q051" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">CHEM-2023-0101-S1-Q051</span>
@@ -664,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q038" data-search="Given below are two statements, one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Order of acidic nature of the following compounds is A &gt; B &gt; C. Reason R: Fluoro is a stronger electron withdrawing group than Chloro group. In the light of the above statements, choose the correct answer from the options given below: CHEM-2023-0101-S2-Q038" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">CHEM-2023-0101-S2-Q038</span>
@@ -681,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q035" data-search="Given below are two statements: One is labelled as Assertion A and the other is labelled as Reason R: Assertion CHEM-2023-0101-S1-Q035" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">CHEM-2023-0101-S1-Q035</span>
@@ -698,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="42">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q054" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R: Assertion A: Acetal/Ketal is stable in basic medium. Reason R: The high leaving tendency of alkoxide ion gives the stability to acetal/ketal in basic medium. In the light of the above statements, choose the correct answer from the options given below: (1) A is true but R is false (2) A is false but R is true (3) Both A and R are true and R is the correct (4) Both A and R are true but R is NOT the correct explanation of A explanation of A CHEM-2023-0101-S1-Q054" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="42">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">CHEM-2023-0101-S1-Q054</span>
@@ -715,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 42</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q040" data-search="Given below are two statements, one is labelled as Assertion A and the other is labelled as Reason R Assertion A:- Carbon forms two important oxides CO and CO2. CO is neutral whereas CO2 is acidic in nature. Reason R: CO2 can combine with water in a limited way to form carbonic acid, while CO is sparingly soluble in water. In the light of the above statements, choose the most appropriate answer from the options given below:- CHEM-2023-0101-S2-Q040" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">CHEM-2023-0101-S2-Q040</span>
@@ -732,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q056" data-search="Given below are two statements, one is labelled as Assertion A and the other is labelled as Reason R Assertion A:- Butylated hydroxyl anisole when added to butter increases its shelf life. Reason R:- Butylated hydroxyl anisole is more reactive towards oxygen than food. In the light of the above statements, choose the most appropriate answer from the options given below:- (1) Both A and R are correct and R is the correct (2) A is correct but R is not correct. explanation of A. (3) A is not correct but R is correct. (4) Both A and R are correct but R is NOT the correct explanation of A. CHEM-2023-0101-S2-Q056" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">CHEM-2023-0101-S2-Q056</span>
@@ -749,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q050" data-search="Given below are two statements: one is labelled as Assertion CHEM-2023-0101-S1-Q050" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">CHEM-2023-0101-S1-Q050</span>
@@ -766,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q043" data-search="Given below are two statements: One is labelled as Assertion A and the other is labelled as Reason R. Assertion A: can be easily reduced using Zn −Hg / HCl to Reason R: Zn −Hg / HCl is used to reduce carbonyl group to – CH2 – group. In the light of the above statements, choose the correct answer from the options given below: CHEM-2023-0101-S2-Q043" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">CHEM-2023-0101-S2-Q043</span>
@@ -783,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q052" data-search="Which of the following elements have half-filled f-orbitals in their ground state? (Given: atomic number Sm −62; Eu = 63; Tb = 65; Gd = 64, Pm = 61 ) Choose the correct answer from the options given below: (1) A and B only (2) C and D only (3) B and D only (4) A and E only CHEM-2023-0101-S2-Q052" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">CHEM-2023-0101-S2-Q052</span>
@@ -800,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q043" data-search="We have three aqueous solutions of NaCl labelled as ‘A’, ‘B’ and ‘C’ with concentration 0.1 M, 0.01M and respectively. The value of van Haft factor for these solutions will be in the order. 0.001 M, t’ i CHEM-2024-0101-S1-Q043" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">CHEM-2024-0101-S1-Q043</span>
@@ -817,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q037" data-search="At −20∘C and 1 atm pressure, a cylinder is filled with equal number of H2, I2 and HI molecules for the reaction H2( g) + I2( g) ⇌2HI(g), the Kp for the process is x × 10−1. x = _____ [Given: R = 0.082 L atm K−1 mol−1 ] CHEM-2024-0101-S1-Q037" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">CHEM-2024-0101-S1-Q037</span>
@@ -834,7 +850,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q039" data-search="Give below are two statements: One is labelled as Assertion and the other is labelled as Reason R: Assertion A A: The stability order of +1 oxidation state of Ga, In and T1 is Ga &lt; In &lt; T1. Reason R: The inert pair effect stabilizes the lower oxidation state down the group. In the light of the above statements, choose the correct answer from the options given below: CHEM-2024-0101-S1-Q039" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">CHEM-2024-0101-S1-Q039</span>
@@ -851,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q031" data-search="Given below are two statements: Statement-I: The orbitals having same energy are called as degenerate orbitals. Statement-II: In hydrogen atom, 3p and 3 d orbitals are not degenerate orbitals. In the light of the above statements, choose the most appropriate answer from the options given CHEM-2024-0101-S1-Q031" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">CHEM-2024-0101-S1-Q031</span>
@@ -868,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q032" data-search="Given below are the two statements: one is labeled as Assertion CHEM-2024-0101-S1-Q032" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">CHEM-2024-0101-S1-Q032</span>
@@ -885,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q049" data-search="The Lassiagne&#x27;s extract is boiled with dil HNO3 before testing for halogens because, CHEM-2024-0101-S1-Q049" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">CHEM-2024-0101-S1-Q049</span>
@@ -902,7 +918,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q039" data-search="The fragrance of flowers is due to the presence of some steam volatile organic compounds called essential oils. These are generally insoluble in water at room temperature but are miscible with water vapour in the vapour phase. A suitable method for the extraction of these oils from the flowers is: CHEM-2024-0101-S2-Q039" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">CHEM-2024-0101-S2-Q039</span>
@@ -919,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q033" data-search="Which of the following circuits represents a forward biased diode? Choose the correct answer from the options given below: CHEM-2025-0101-S1-Q033" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">CHEM-2025-0101-S1-Q033</span>
@@ -936,7 +952,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q036" data-search="A closed organ and an open organ tube are filled by two different gases having same bulk modulus but different densities and, respectively. The frequency of 9th harmonic of closed tube is identical with 4th ρ1 ρ2′ harmonic of open tube. If the length of the closed tube is 10 cm and the density ratio of the gases is ρ1: ρ2 = 1: 16, then the length of the open tube is: CHEM-2025-0101-S1-Q036" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">CHEM-2025-0101-S1-Q036</span>
@@ -953,7 +969,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q038" data-search="Given below are two statements. One is labelled as Assertion CHEM-2025-0101-S2-Q038" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">CHEM-2025-0101-S2-Q038</span>
@@ -970,7 +986,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q049" data-search="A tube of length 1 m is filled completely with an ideal liquid of mass 2 M, and closed at both ends. The tube is rotated uniformly in horizontal plane about one of its ends. If the force exerted by the liquid at the other end is F then angular velocity of the tube is √F in SI unit. The value of α is __________. αM CHEM-2025-0101-S2-Q049" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">CHEM-2025-0101-S2-Q049</span>
@@ -987,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q033" data-search="A solid sphere and a hollow sphere of the same mass and of same radius are rolled on an inclined plane. Let the time taken to reach the bottom by the solid sphere and the hollow sphere be t1 and t2, respectively, then CHEM-2025-0101-S2-Q033" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">CHEM-2025-0101-S2-Q033</span>
@@ -1004,7 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q045" data-search="Given below are two statements. One is labelled as Assertion CHEM-2025-0101-S2-Q045" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">CHEM-2025-0101-S2-Q045</span>
@@ -1021,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q033" data-search="A hemispherical vessel is completely filled with a liquid of refractive index μ. A small coin is kept at the lowest point (O) of the vessel as shown in figure. The minimum value of the refractive index of the liquid so that a person can see the coin from point E (at the level of the vessel) is CHEM-2025-0101-S1-Q033" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">CHEM-2025-0101-S1-Q033</span>
@@ -1038,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q045" data-search="In the circuit shown here, assuming threshold voltage of diode is negligibly small, then voltage VAB is correctly represented by: CHEM-2025-0101-S2-Q045" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">CHEM-2025-0101-S2-Q045</span>
@@ -1055,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q051" data-search="Concentrated nitric acid is labelled as 75% by mass. The volume in mL of the solution which contains 30 g of nitric acid is ____. Given: Density of nitric acid solution is 1.25 g/mL. (1) 40 (2) 32 (3) 45 (4) 55 CHEM-2025-0101-S2-Q051" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">CHEM-2025-0101-S2-Q051</span>
@@ -1072,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q033" data-search="Given below are two statements: one is labelled as Assertion CHEM-2025-0101-S1-Q033" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">CHEM-2025-0101-S1-Q033</span>
@@ -1089,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q044" data-search="Given below are two statements: one is labelled as Assertion CHEM-2025-0101-S1-Q044" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">CHEM-2025-0101-S1-Q044</span>

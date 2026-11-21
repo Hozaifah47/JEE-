@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+<div class="q-card" id="q-PHY-2021-0101-S2-Q020" data-search="Two identical antennas mounted on identical towers are separated from each other by a distance of 45 km. What should nearly be the minimum height of receiving antenna to receive the signals in line of sight? (Assume radius of earth is 6400 km ) PHY-2021-0101-S2-Q020" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S2-Q020</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q025" data-search="If one wants to remove all the mass of the earth to infinity in order to break it up completely. The amount of energy that needs to be supplied will be x GM 2 where is ________. 5 R x (Round off to the Nearest Integer) ( M is the mass of earth, R is the radius of earth, G is the gravitational constant) PHY-2021-0101-S2-Q025" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">PHY-2021-0101-S2-Q025</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="64">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q024" data-search="The radius in kilometer to which the present radius of earth (R = 6400 km) to be compressed so that the escape velocity is increased 10 time is _______. PHY-2021-0101-S1-Q024" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="64">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2021-0101-S1-Q024</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 64</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q004" data-search="A body weighs 49 N on a spring balance at the north pole. What will be its weight recorded on the same weighing machine, if it is shifted to the equator? GM s−2 [Use g = R2 = 9.8 m and radius of earth, R = 6400 km. ] PHY-2021-0101-S2-Q004" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2021-0101-S2-Q004</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q005" data-search="Two satellites A and B of masses 200 kg and 400 kg are revolving round the earth at height of 600 km and 1600 km respectively. If TA and TB are the time periods of A and B respectively then the value of TB −TA: [ Given: radius of earth = 6400 km, mass of earth = 6 × 1024 kg ] PHY-2021-0101-S1-Q005" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">PHY-2021-0101-S1-Q005</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="64">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q030" data-search="If the sum of the heights of transmitting and receiving antennas in the line of sight of communication is fixed at 160 m, then the maximum range of LOS communication is _______ km (Take radius of Earth = 6400 km ) PHY-2021-0101-S1-Q030" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="64">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2021-0101-S1-Q030</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 64</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q006" data-search="If RE be the radius of Earth, then the ratio between the acceleration due to gravity at a depth r below and a height r above the earth surface is: (Given: r&lt; RE) PHY-2021-0101-S2-Q006" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">PHY-2021-0101-S2-Q006</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q006" data-search="The approximate height from the surface of earth at which the weight of the body becomes 1 3 of its weight on the surface of earth is: [Radius of earth R = 6400 km and √3 = 1.732 ] PHY-2022-0101-S1-Q006" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">PHY-2022-0101-S1-Q006</span>
@@ -426,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q006" data-search="The variation of acceleration due to gravity (g) with distance (r) from the center of the earth is correctly represented by (Given R = radius of earth) PHY-2022-0101-S1-Q006" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">PHY-2022-0101-S1-Q006</span>
@@ -443,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q023" data-search="The elongation of a wire on the surface of the earth is 10−4 m. The same wire of same dimensions is elongated by 6 × 10−5 m on another planet. The acceleration due to gravity on the planet will be _____ m s−2. (Take acceleration due to gravity on the surface of earth = 10 m s−2 ) PHY-2022-0101-S1-Q023" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">PHY-2022-0101-S1-Q023</span>
@@ -460,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="192">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q030" data-search="The height of a transmitting antenna at the top of a tower is and that of receiving antenna is,. The 25 m 49 m maximum distance between them, for satisfactory communication in LOS (Line-Of-Sight) is K√5 × 102 m. The value of K is _____. (Assume radius of Earth is 64 × 105 m ) [Calculate upto nearest integer value] PHY-2022-0101-S1-Q030" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="192">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">PHY-2022-0101-S1-Q030</span>
@@ -477,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 192</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q008" data-search="The acceleration due to gravity at height h above the earth if h ≪R (Radius of earth) is given by PHY-2023-0101-S2-Q008" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">PHY-2023-0101-S2-Q008</span>
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q006" data-search="Assuming the earth to be a sphere of uniform mass density, the weight of a body at a depth d= R from the 2 surface of earth, if its weight on the surface of earth is 200 N, will be: (Given R= radius of earth) PHY-2023-0101-S1-Q006" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">PHY-2023-0101-S1-Q006</span>
@@ -511,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q005" data-search="The time period of a satellite, revolving above earth&#x27;s surface at a height equal to R will be (Given g= π2 m s−2, R= radius of earth) PHY-2023-0101-S2-Q005" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">PHY-2023-0101-S2-Q005</span>
@@ -528,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q005" data-search="The radii of two planets A and B are R and 4R and their densities are ρ and ρ respectively. The ratio of 3 acceleration due to gravity at their surfaces gA: gB will be PHY-2023-0101-S1-Q005" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">PHY-2023-0101-S1-Q005</span>
@@ -545,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q020" data-search="A transmitting antenna is kept on the surface of the earth. The minimum height of receiving antenna required to receive the signal in line of sight at 4 km distance from it is x× 10−2 m. The value of x is _____. (Let, radius of earth R= 6400 km) PHY-2023-0101-S1-Q020" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">PHY-2023-0101-S1-Q020</span>
@@ -562,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q008" data-search="A space ship of mass 2 × kg is launched into a circular orbit close to the earth surface. The additional velocity to be imparted to the space ship in the orbit to overcome the gravitational pull will be (if g = 10 m s−2 and radius of earth = 6400 km ): 2(√2 −1) 8(√2 −1) PHY-2023-0101-S2-Q008" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">PHY-2023-0101-S2-Q008</span>
@@ -579,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q008" data-search="The ratio of escape velocity of a planet to the escape velocity of earth will be:- Given: Mass of the planet is 16 times mass of earth and radius of the planet is 4 times the radius of earth. PHY-2023-0101-S1-Q008" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">PHY-2023-0101-S1-Q008</span>
@@ -596,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q008" data-search="A planet having mass 9 Me and radius 4Re, where Me and Re are mass and radius of earth respectively, has escape velocity in km s−1 given by: (Given escape velocity on earth Ve = 11.2 × 103 m s−1 ) PHY-2023-0101-S1-Q008" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">PHY-2023-0101-S1-Q008</span>
@@ -613,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q005" data-search="Two planets A and B of radii R and 1.5 R have densities ρ and respectively. The ratio of acceleration due to gravity at the surface of B to A is: 2 PHY-2023-0101-S2-Q005" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">PHY-2023-0101-S2-Q005</span>
@@ -630,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q005" data-search="The weight of a body at the surface of earth is 18 N. The weight of the body at an altitude of 3200 km above the earth&#x27;s surface is (given, radius of earth Re= 6400 km) PHY-2023-0101-S1-Q005" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">PHY-2023-0101-S1-Q005</span>
@@ -647,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q008" data-search="Assume that the earth is a solid sphere of uniform density and a tunnel is dug along its diameter throughout the earth. It is found that when a particle is released in this tunnel, it executes a simple harmonic motion. The mass of the particle is. The time period of the motion of the particle will be (approximately) 100 g (take g = 10 ms−2, radius of earth = 6400 km ) PHY-2023-0101-S1-Q008" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">PHY-2023-0101-S1-Q008</span>
@@ -664,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q003" data-search="An object is allowed to fall from a height R above the earth, where R is the radius of earth. Its velocity when it strikes the earth’s surface, ignoring air resistance, will be: PHY-2023-0101-S2-Q003" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">PHY-2023-0101-S2-Q003</span>
@@ -681,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q005" data-search="At a certain depth d below surface of earth, value of acceleration due to gravity becomes four times that of its value at a height 3R above earth surface. Where R is Radius of earth (Take R = 6400 km). The depth d is equal to PHY-2023-0101-S1-Q005" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">PHY-2023-0101-S1-Q005</span>
@@ -698,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q008" data-search="A body weight W, is projected vertically upwards from earth&#x27;s surface to reach a height above the earth which is equal to nine times the radius of earth. The weight of the body at that height will be: PHY-2023-0101-S2-Q008" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">PHY-2023-0101-S2-Q008</span>
@@ -715,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q005" data-search="A body placed at distance from surface of earth experiences gravitational pull of: 90 kg 2R ( R = Radius of earth, g = 10 m s−2 ) PHY-2024-0101-S2-Q005" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">PHY-2024-0101-S2-Q005</span>
@@ -732,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="600">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q023" data-search="The density and breaking stress of a wire are 6 × 104 kg/m3 and 1.2 × 108 N/m2 respectively. The wire is suspended from a rigid support on a planet where acceleration due to gravity is 1 rd of the value on the surface 3 of earth. The maximum length of the wire with breaking is _____ m (take, g = 10 m/s2 ). PHY-2024-0101-S1-Q023" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="600">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">PHY-2024-0101-S1-Q023</span>
@@ -749,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 600</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="13">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q022" data-search="If the radius of earth is reduced to three-fourth of its present value without change in its mass then value of duration of the day of earth will be ______ hours 30 minutes. PHY-2024-0101-S1-Q022" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="13">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">PHY-2024-0101-S1-Q022</span>
@@ -766,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 13</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q004" data-search="A satellite of 103 kg mass is revolving in circular orbit of radius 2R. If 6 J energy is supplied to the satellite, it would revolve in a new circular orbit of radius (use = 10 m/s2, = radius of earth) g R PHY-2024-0101-S2-Q004" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">PHY-2024-0101-S2-Q004</span>
@@ -783,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q006" data-search="At what distance above and below the surface of the earth a body will have same weight? (Take radius of earth as R ) PHY-2024-0101-S1-Q006" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">PHY-2024-0101-S1-Q006</span>
@@ -800,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q006" data-search="Escape velocity of a body from earth is 11.2 km s−1. If the radius of a planet be one-third the radius of earth and mass be one-sixth that of earth, the escape velocity from the plate is: PHY-2024-0101-S2-Q006" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">PHY-2024-0101-S2-Q006</span>

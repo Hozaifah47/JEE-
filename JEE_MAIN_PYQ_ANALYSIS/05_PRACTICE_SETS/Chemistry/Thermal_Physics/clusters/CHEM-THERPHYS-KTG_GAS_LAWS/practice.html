@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+<div class="q-card" id="q-CHEM-2021-0101-S2-Q054" data-search="An empty LPG cylinder weighs 14.8 kg. When full, it weighs 29.0 kg and shows a pressure of 3.47 atm. In the course of use at ambient temperature, the mass of the cylinder is reduced to 23.0 kg. The final pressure inside the cylinder is _____ atm. (Nearest integer) (Assume LPG to be an ideal gas) CHEM-2021-0101-S2-Q054" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S2-Q054</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2218">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q053" data-search="At 25°C, 50 g of iron reacts with HCl to form FeCl2. The evolved hydrogen gas expands against a constant pressure of 1 bar. The work done by the gas during this expansion is -_______ J. (Round off to the Nearest Integer) [Given: R = 8.314 J mol−1 K−1. Assume, hydrogen is an ideal gas] [Atomic mass off Fe is 55.85 u ] CHEM-2021-0101-S2-Q053" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2218">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S2-Q053</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2218</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="26">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q053" data-search="A home owner uses 4.00 × 103 m3 of methane CH4 gas, (assume CH4 is an ideal gas) in a year to heat his 105 home. Under the pressure of 1.0 atm and 300 K, mass of gas used is x × g. The value of x is ______. (Nearest integer) (Given R = 0.083 L atm K−1 mol−1) CHEM-2021-0101-S1-Q053" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="26">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 26</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="73">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q054" data-search="A homogeneous ideal gaseous reaction AB2(g) ⇌A(g) + 2 B(g) is carried out in a 25 litre flask at 27°C. The initial amount of AB2 was 1 mole and the equilibrium pressure was 1.9 atm. The value of Kp is x × 10−2. The value of x is (Integer answer) [R = 0.08206 dm3 atm K−1 mol−1] CHEM-2021-0101-S1-Q054" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="73">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S1-Q054</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 73</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="31">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q054" data-search="For water at 100°C and 1 bar, 102 mol−1 Δvap H −Δvap U = ̄× J (Round off to the Nearest Integer) [Use: R = 8.31 J mol−1 K−1] [Assume volume of H2O(l) is much smaller than volume of H2O(g). Assume H2O(g) treated as an ideal gas] CHEM-2021-0101-S1-Q054" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="31">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S1-Q054</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 31</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q032" data-search="Which one of the following is the correct PV vs P plot at constant temperature for an ideal gas? ( P and V stand for pressure and volume of the gas respectively) CHEM-2021-0101-S1-Q032" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S1-Q032</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q032" data-search="Bonding in which of the following diatomic molecule(s) become(s) stronger, on the basis of Theory, by MO removal of an electron? CHEM-2022-0101-S1-Q032" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2022-0101-S1-Q032</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q034" data-search="Which amongst the given plots is the correct plot for pressure (p) vs density CHEM-2022-0101-S2-Q034" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2022-0101-S2-Q034</span>
@@ -426,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q053" data-search="4.0 L of an ideal gas is allowed to expand isothermally into vacuum until the total volume is 20 L. The amount of heat absorbed in this expansion is L atm. CHEM-2022-0101-S1-Q053" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2022-0101-S1-Q053</span>
@@ -443,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q035" data-search="One mole of an ideal monoatomic gas is subjected to changes as shown in the graph. The magnitude of the work done (by the system or on the system) is _______ J (nearest integer) Given: log 2 = 0.3, ln 10 = 2.3 CHEM-2023-0101-S2-Q035" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2023-0101-S2-Q035</span>
@@ -460,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1362">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q054" data-search="A 300mL bottle of soft drink has 0.2MCO2 dissolved in it. Assuming CO2 behaves as an ideal gas, the volume of the dissolved CO2 at STP is _____ mL. (Nearest integer) Given: At STP, molar volume of an ideal gas is mol−1 22.7L CHEM-2023-0101-S1-Q054" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1362">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2023-0101-S1-Q054</span>
@@ -477,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1362</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q034" data-search="1 mole of ideal gas is allowed to expand reversibly and adiabatically from a temperature of 27°C. The work done is 3 kJ mol−1. The final temperature of the gas is _____ K (Nearest integer). Given Cv = 20 J mol−1 K−1 CHEM-2023-0101-S2-Q034" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2023-0101-S2-Q034</span>
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q032" data-search="Assume carbon burns according to following equation: 2C(s) + O2( g) →2 CO (s) when 12 g carbon is burnt in 48 g of oxygen, the volume of carbon monoxide produced is ______ × 10−1 L at STP [nearest integer] [Given: Assume CO as ideal gas, Mass of C is 12 g mol−1, mass of O is 16 g mol−1 and molar volume of an idal gas at STP is 22.7 L mol−1 ] CHEM-2023-0101-S2-Q032" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2023-0101-S2-Q032</span>
@@ -511,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q035" data-search="Choose the correct option for free expansion of an ideal gas under adiabatic condition from the following: CHEM-2024-0101-S1-Q035" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2024-0101-S1-Q035</span>
@@ -528,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="55">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q053" data-search="Consider the figure provided. 1 mol of an ideal gas is kept in a cylinder, fitted with a piston, at the position A, at 18∘C. If the piston is moved to position B, keeping the temperature unchanged, then &#x27; x &#x27; L atm work is done in this reversible process. x = ______ L atm. (nearest integer) [Given: Absolute temperature K−1 = ∘C + 273.15, R = 0.08206 L atm mol−1 ] CHEM-2024-0101-S1-Q053" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="55">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2024-0101-S1-Q053</span>
@@ -545,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 55</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q043" data-search="Identify the incorrect statements about group 15 elements: CHEM-2024-0101-S2-Q043" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2024-0101-S2-Q043</span>
@@ -562,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="200">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q054" data-search="An ideal gas undergoes a cyclic transformation starting from the point A and coming back to the same point by tracing the path A →B →C →A as shown in the diagram. The total work done in the process is _____ J. CHEM-2024-0101-S1-Q054" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="200">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2024-0101-S1-Q054</span>
@@ -579,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 200</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q037" data-search="Using the given P −V diagram, the work done by an ideal gas along the path ABCD is: CHEM-2025-0101-S2-Q037" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2025-0101-S2-Q037</span>
@@ -596,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q044" data-search="Given below are two statements. One is labelled as Assertion CHEM-2025-0101-S2-Q044" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2025-0101-S2-Q044</span>
@@ -613,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q044" data-search="For a particular ideal gas which of the following graphs represents the variation of mean squared velocity of the gas molecules with temperature? CHEM-2025-0101-S1-Q044" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2025-0101-S1-Q044</span>

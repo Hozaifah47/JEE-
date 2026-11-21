@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+<div class="q-card" id="q-PHY-2021-0101-S1-Q006" data-search="An electric appliance supplies 6000 J min−1, heat to the system. If the system delivers a power of 90 W. How long it would take to increase the internal energy by 103? 2.5 × J PHY-2021-0101-S1-Q006" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S1-Q006</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q009" data-search="A source supplies heat to a system at the rate of 1000 W. If the system performs work at a rate of 200 W. The rate at which internal energy of the system increases is PHY-2023-0101-S1-Q009" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">PHY-2023-0101-S1-Q009</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q008" data-search="A gas mixture consists of 2 moles of oxygen and 4 moles of neon at temperature T. Neglecting all vibrational modes, the total internal energy of the system will be: PHY-2023-0101-S2-Q008" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2023-0101-S2-Q008</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q007" data-search="1 g of a liquid is converted to vapour at 3 × 105 Pa pressure. If 10% of the heat supplied is used for increasing the volume by 1600 cm3 during this phase change, then the increase in internal energy in the process will be: PHY-2023-0101-S1-Q007" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2023-0101-S1-Q007</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="30">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q030" data-search="Statement I: When a Si sample is doped with Boron, it becomes P type and when doped by Arsenic it becomes N-type semi conductor such that P-type has excess holes and N-type has excess electrons. Statement II: When such P-type and N-type semi-conductors, are fused to make a junction, a current will automatically flow which can be detected with an externally connected ammeter. In the light of above statements, choose the most appropriate answer from the options given below. (1) Both Statement I and statement II are incorrect (2) Statement I is incorrect but statement II is correct (3) Both Statement I and statement II are correct (4) Statement I is correct but statement II is incorrect PHY-2023-0101-S2-Q030" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="30">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">PHY-2023-0101-S2-Q030</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 30</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q008" data-search="The pressure of a gas changes linearly with volume from A to B as shown in figure. If no heat is supplied to or extracted from the gas then change in the internal energy of the gas will be PHY-2023-0101-S1-Q008" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2023-0101-S1-Q008</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q008" data-search="A gas mixture consists of 8 moles of argon and 6 moles of oxygen at temperature T. Neglecting all vibrational modes, the total internal energy of the system is PHY-2024-0101-S2-Q008" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">PHY-2024-0101-S2-Q008</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2025-0101-S2-Q008" data-search="Let the point A divide the line segment joining the points P(−1, −1, 2) and Q(5, 5, 10) internally in the ratio − − − − → → → → r: 1(r &gt; 0). If O is the origin and (OQ ⋅OA) −1 |OP × OA|2 = 10, then the value of r is: 5 PHY-2025-0101-S2-Q008" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">PHY-2025-0101-S2-Q008</span>

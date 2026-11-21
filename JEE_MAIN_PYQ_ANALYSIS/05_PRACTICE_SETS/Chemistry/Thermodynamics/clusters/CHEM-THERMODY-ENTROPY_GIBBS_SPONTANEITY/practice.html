@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="336">
+<div class="q-card" id="q-CHEM-2021-0101-S2-Q052" data-search="For a given chemical reaction A →B at 300 K the free energy change is −49.4 kJ mol−1 and the enthalpy mol−1. JK−1 mol−1. of reaction is 51.4 kJ The entropy change of the reaction is _________ CHEM-2021-0101-S2-Q052" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="336">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S2-Q052</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 336</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="200">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q053" data-search="For a chemical reaction A + B = C + D (ΔrHΘ = 80 kJ mol−1) the entropy change ΔrSΘ depends on the ΔrSΘ 2T(JK−1 mol−1) temperature T (in K ) as =. Minimum temperature at which it will become spontaneous is K. (Integer) CHEM-2021-0101-S1-Q053" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="200">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 200</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q056" data-search="Consider the following cell reaction Cd(s) + Hg2 SO4( + 9 H2O(l) ⇌CdSO4 ⋅9 H2O(s) + 2 Hg(l). s) 5 5 The value of E0 is 4.315 V at 25°C. If ΔH°= −825.2 kJ mol−1, the standard entropy change ΔS° in cell J K−1 is _________. (Nearest integer) [Given: Faraday constant = 96487 C mol−1 ] CHEM-2021-0101-S1-Q056" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S1-Q056</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="983">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q058" data-search="Cu(s) + Sn2+(0.001M) →Cu2+(0.01M) + Sn(s) The Gibbs free energy change for the above reaction at 298 K is x × 10−1 kJ mol−1. The value of x is____[nearest integer] E⊖ E⊖ Cmol−1 [Given: Cu2+ / Cu = 0.34 V; Sn2+ / Sn = −0.14 V; F = 96500 ] CHEM-2022-0101-S2-Q058" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="983">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2022-0101-S2-Q058</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 983</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q033" data-search="Match List - I with List - II. List-I List-II CHEM-2022-0101-S1-Q033" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2022-0101-S1-Q033</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q055" data-search="Consider the graph of Gibbs free energy G vs extent of reaction. The number of statement/s from the following which are true with respect to points (a), (b) and (c) is ______ A. Reaction is spontaneous at (a) and (b) B. Reaction is at equilibrium at point (b) and non-spontaneous at point (c) C. Reaction is spontaneous at (a) and non-spontaneous at (c) D. Reaction is non-spontaneous at (a) and (b) CHEM-2023-0101-S1-Q055" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2023-0101-S1-Q055</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1070">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q052" data-search="30.4 kJ of heat is required to melt one mole of sodium chloride and the entropy change at the melting point is K–1 mol–1 at. The melting point of sodium chloride is _______ (Nearest Integer) 28.4 J 1 atm K CHEM-2023-0101-S1-Q052" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1070">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2023-0101-S1-Q052</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1070</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q052" data-search="For independent process at 300 K. kJmol−1 JK−1 Process ΔH / ΔS / A−25 -80 B−22 40 C 25 -50 D 22 20 The number of non-spontaneous process from the following is _____. CHEM-2023-0101-S1-Q052" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2023-0101-S1-Q052</span>
@@ -426,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q033" data-search="Which of the following is not correct? CHEM-2024-0101-S1-Q033" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2024-0101-S1-Q033</span>
@@ -443,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q056" data-search="Let us consider an endothermic reaction which is non-spontaneous at the freezing point of water. However, the reaction is spontaneous at boiling point of water. Choose the correct option. (1) Both ΔH and ΔS are (-ve) (2) ΔH is (-ve) but ΔS is (+ve) (3) ΔH is (+ve) but ΔS is (−ve) (4) Both ΔH and ΔS are (+ve) CHEM-2025-0101-S1-Q056" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2025-0101-S1-Q056</span>

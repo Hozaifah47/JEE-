@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -284,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -298,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(31 questions)</span>
     &nbsp;<a href="clusters/PHY-UNITMEAS-ERRORS_MEASURE/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+  <div class="q-card" id="q-PHY-2021-0101-S1-Q020" data-search="One main scale division of a vernier callipers is a cm and division of the vernier scale coincide with (n −1)th division of the main scale. The least count of the callipers in mm is: PHY-2021-0101-S1-Q020" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S1-Q020</span>
@@ -315,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q021" data-search="The resistance R = V, where V = (50 ± 2) V and I = (20 ± 0.2) A. The percentage error in R is x %. The I value of x to the nearest integer is ________. PHY-2021-0101-S1-Q021" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">PHY-2021-0101-S1-Q021</span>
@@ -332,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q020" data-search="The vernier scale used for measurement has a positive zero error of 0.2 mm. If while taking a measurement it was noted that 0 on the vernier scale lies between 8.5 cm and 8.6 cm. Vernier coincidence is 6, then the correct value of measurement is cm. (least count = 0.01 cm ) PHY-2021-0101-S1-Q020" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2021-0101-S1-Q020</span>
@@ -349,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="34">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q021" data-search="The radius of a sphere is measured to be (7.50 ± 0.85) cm. Suppose the percentage error in its volume is x. The value of, to the nearest, is ___. x x PHY-2021-0101-S2-Q021" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="34">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2021-0101-S2-Q021</span>
@@ -366,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 34</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q020" data-search="The pitch of the screw gauge is 1 mm and there are 100 divisions on the circular scale. When nothing is put in between the jaws, the zero of the circular scale lies 8 divisions below the reference line. When a wire is placed between the jaws, the first linear scale division is clearly visible while 72nd division on circular scale coincides with the reference line. The radius of the wire is PHY-2021-0101-S1-Q020" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">PHY-2021-0101-S1-Q020</span>
@@ -383,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="13">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q030" data-search="Student A and student B used two screw gauges of equal pitch and 100 equal circular divisions to measure the radius of a given wire. The actual value of the radius of the wire is 0.322 cm. The absolute value of the difference between the final circular scale readings observed by the students A and B is _______. [Figure shows position of reference O when jaws of screw gauge are closed] Given pitch = 0.1 cm. PHY-2021-0101-S1-Q030" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="13">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2021-0101-S1-Q030</span>
@@ -400,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 13</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q020" data-search="In a Screw Gauge, fifth division of the circular scale coincides with the reference line when the ratchet is closed. There are 50 divisions on the circular scale, and the main scale moves by 0.5 mm on a complete rotation. For a particular observation the reading on the main scale is 5 mm and the 20th division of the circular scale coincides with reference line. Calculate the true reading. PHY-2021-0101-S1-Q020" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">PHY-2021-0101-S1-Q020</span>
@@ -417,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q020" data-search="Assertion A: If in five complete rotations of the circular scale, the distance travelled on the main scale of the screw gauge is 5 mm and there are 50 total divisions on a circular scale, then the least count is 0.001 cm. Reason R: Least Count = Pitch Total divisions on circular scale In the light of the above statements, choose the most appropriate answer from the options given below. PHY-2021-0101-S1-Q020" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">PHY-2021-0101-S1-Q020</span>
@@ -434,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q001" data-search="A physical quantity y is represented by the formula y = m2r−4 2 If the percentage errors found in y, m, r, l and g are 18, 1, 0.5, 4 and p respectively, then find the value of x and p. PHY-2021-0101-S2-Q001" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">PHY-2021-0101-S2-Q001</span>
@@ -451,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="52">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q030" data-search="The diameter of a spherical bob is measured using a vernier callipers. 9 divisions of the main scale, in the vernier callipers, are equal to divisions of vernier scale. One main scale division is The main scale 10 1 mm. reading is 10 mm and 8th division of vernier scale was found to coincide exactly with one of the main scale division. If the given vernier callipers has positive zero error of 0.04 cm, then the radius of the bob is _____________ 10−2 × cm. PHY-2021-0101-S2-Q030" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="52">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">PHY-2021-0101-S2-Q030</span>
@@ -468,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 52</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="18">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q021" data-search="For z= a2x3y 1 2, where &#x27;a&#x27; is a constant. If percentage error in measurement of &#x27;x&#x27; and &#x27;y&#x27; are 4%and 12%, respectively, then the percentage error for &#x27;z&#x27; will be _____ %. PHY-2022-0101-S2-Q021" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="18">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">PHY-2022-0101-S2-Q021</span>
@@ -485,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 18</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q030" data-search="In a vernier callipers, each cm on the main scale is divided into 20 equal parts. If tenth vernier scale division coincides with nineth main scale division. Then the value of vernier constant will be _____ ×10−2 mm PHY-2022-0101-S1-Q030" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">PHY-2022-0101-S1-Q030</span>
@@ -502,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q001" data-search="A silver wire has a mass (0.6 ± 0.006)g, radius (0.5 ± 0.005) mm and length (4 ± 0.04) cm. The maximum percentage error in the measurement of its density will be PHY-2022-0101-S1-Q001" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">PHY-2022-0101-S1-Q001</span>
@@ -519,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="150">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q030" data-search="A student in the laboratory measures thickness of a wire using screw gauge. The readings are 1.22 mm, 1.23 mm, 1.19 mm and 1.20 mm. The percentage error is 121 x %. The value of x is _____. PHY-2022-0101-S2-Q030" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="150">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">PHY-2022-0101-S2-Q030</span>
@@ -536,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 150</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="180">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q030" data-search="The Vernier constant of Vernier callipers is 0.1 mm and it has zero error of (−0.05 cm). While measuring diameter of a sphere, the main scale reading is 1.7 cm and coinciding vernier division is 5. The corrected diameter will be _____ ×10−2. cm PHY-2022-0101-S2-Q030" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="180">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">PHY-2022-0101-S2-Q030</span>
@@ -553,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 180</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q001" data-search="Two resistance are given as R1 = ( 10 ± 0.5 ) Ω and R2 = ( 15 ± 0.5 ) Ω. The percentage error in the measurement of equivalent resistance when they are connected in parallel is PHY-2023-0101-S1-Q001" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">PHY-2023-0101-S1-Q001</span>
@@ -570,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q001" data-search="A physical quantity P is given as P= a2b3 c√d. The percentage error in the measurement of a, b, c and d are 1 %, 2 %, 3% and 4% respectively. The percentage error in the measurement of quantity P will be PHY-2023-0101-S1-Q001" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">PHY-2023-0101-S1-Q001</span>
@@ -587,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q020" data-search="In an experiment with vernier callipers of least count 0.1 mm, when two jaws are joined together the zero of vernier scale lies right to the zero of the main scale and 6th division of vernier scale coincides with the main scale division. While measuring the diameter of a spherical bob, the zero of vernier scale lies in between 3.2 cm and 3.3 cm marks and 4th division of vernier scale coincides with the main scale division. The diameter of bob is measured as PHY-2023-0101-S2-Q020" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">PHY-2023-0101-S2-Q020</span>
@@ -604,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="220">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q030" data-search="In a screw gauge, there are 100 divisions on the circular scale and the main scale moves by 0.5 mm on a complete rotation of the circular scale. The zero of circular scale lies 6 divisions below the line of graduation when two studs are brought in contact with each other. When a wire is placed between the studs, linear scale 4 divisions are clearly visible while 46th division the circular scale coincide with the reference line. The diameter of the wire is ______ × 10−2 mm. PHY-2023-0101-S1-Q030" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="220">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">PHY-2023-0101-S1-Q030</span>
@@ -621,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 220</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q001" data-search="The radius r, length l and resistance R of a metal wire was measured in the laboratory as r= 0.35 ± 0.05 cm, R= 100 ± 10 ohm, l= 15 ± 0.2 cm The percentage error in resistivity of the material of the wire is: PHY-2024-0101-S1-Q001" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">PHY-2024-0101-S1-Q001</span>
@@ -638,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q020" data-search="10 divisions on the main scale of a Vernier calliper coincide with divisions on the Vernier scale. If each 11 division on the main scale is of 5 units, the least count of the instrument is: 1 10 PHY-2024-0101-S1-Q020" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">PHY-2024-0101-S1-Q020</span>
@@ -655,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q020" data-search="A vernier callipers has 20 divisions on the vernier scale, which coincides with 19th division on the main scale. The least count of the instrument is 0.1 mm. One main scale division is equal to _____ mm. PHY-2024-0101-S2-Q020" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">PHY-2024-0101-S2-Q020</span>
@@ -672,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q020" data-search="While measuring diameter of wire using screw gauge the following readings were noted. Main scale reading is and circular scale reading is equal to 42 divisions. Pitch of screw gauge is and it has 100 1 mm 1 mm divisions on circular scale. The diameter of the wire is x mm. The value of x is: 50 PHY-2024-0101-S1-Q020" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">PHY-2024-0101-S1-Q020</span>
@@ -689,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q020" data-search="In a vernier calliper, when both jaws touch each other, zero of the vernier scale shifts towards left and its 4th division coincides exactly with a certain division on main scale. If 50 vernier scale divisions equal to 49 main scale divisions and zero error in the instrument is 0.04 mm then how many main scale divisions are there in 1 cm? PHY-2024-0101-S2-Q020" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">PHY-2024-0101-S2-Q020</span>
@@ -706,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q020" data-search="The diameter of a sphere is measured using a vernier caliper whose 9 divisions of main scale are equal to 10 divisions of vernier scale. The shortest division on the main scale is equal to 1 mm. The main scale reading is and second division of vernier scale coincides with a division on main scale. If mass of the sphere is 2 cm 8.635 g, the density of the sphere is: (1) 2.0 g/cm3 (2) 1.7 g/cm3 (3) g/cm3 (4) g/cm3 2.2 2.5 − − − Q21.Three vectors OP, → OQ → and OR → each of magnitude A are acting as shown in figure. The resultant of the three vectors is A√x. The value of x is ________. PHY-2024-0101-S1-Q020" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">PHY-2024-0101-S1-Q020</span>
@@ -723,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q019" data-search="Least count of a vernier caliper is 20 N cm. The value of one division on the main scale is 1 mm. Then the number of divisions of main scale that coincide with N divisions of vernier scale is: PHY-2024-0101-S2-Q019" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">PHY-2024-0101-S2-Q019</span>
@@ -740,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q020" data-search="There are 100 divisions on the circular scale of a screw gauge of pitch 1 mm. With no measuring quantity in between the jaws, the zero of the circular scale lies 5 divisions below the reference line. The diameter of a wire is then measured using this screw gauge. It is found that 4 linear scale divisions are clearly visible while 60 divisions on circular scale coincide with the reference line. The diameter of the wire is: PHY-2024-0101-S2-Q020" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">PHY-2024-0101-S2-Q020</span>
@@ -757,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q020" data-search="One main scale division of a vernier caliper is equal to units. If nth division of main scale coincides with m (n + 1)th division of vernier scale, the least count of the vernier caliper is: PHY-2024-0101-S1-Q020" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">PHY-2024-0101-S1-Q020</span>
@@ -774,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q001" data-search="The resistance R = V, where V = (200 ± 5) V and I = (20 ± 0.2) A, the percentage error in the I measurement of R is: PHY-2024-0101-S1-Q001" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">PHY-2024-0101-S1-Q001</span>
@@ -791,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q001" data-search="A physical quantity Q is found to depend on quantities a, b, c by the relation Q = a4b3. The percentage error in c2 a, b and c are 3%, 4% and 5% respectively. Then, the percentage error in Q is: PHY-2024-0101-S2-Q001" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">PHY-2024-0101-S2-Q001</span>
@@ -808,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q001" data-search="If the percentage errors in measuring the length and the diameter of a wire are 0.1% each. The percentage error in measuring its resistance will be: PHY-2024-0101-S1-Q001" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">PHY-2024-0101-S1-Q001</span>
@@ -832,7 +848,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(4 questions)</span>
     &nbsp;<a href="clusters/PHY-UNITMEAS-DIM_ANALYSIS/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+  <div class="q-card" id="q-PHY-2021-0101-S2-Q002" data-search="The force is given in terms of time t and displacement x by the equation F = A cos Bx + C sin Dt The dimensional formula of AD is: B PHY-2021-0101-S2-Q002" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">PHY-2021-0101-S2-Q002</span>
@@ -849,7 +865,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q002" data-search="The SI unit of a physical quantity is Pascal ‐ sec. The dimensional formula of this quantity will be PHY-2022-0101-S2-Q002" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">PHY-2022-0101-S2-Q002</span>
@@ -866,7 +882,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q002" data-search="If force (F), velocity (V ) and time (T) are considered as fundamental physical quantity, then dimensional formula of density will be: 4 −6 −4 −2 PHY-2023-0101-S2-Q002" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">PHY-2023-0101-S2-Q002</span>
@@ -883,7 +899,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q002" data-search="What is the dimensional formula of ab−1 in the equation (P + a )(V −b) = RT, where letters have their V2 usual meaning. PHY-2024-0101-S2-Q002" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">PHY-2024-0101-S2-Q002</span>
@@ -907,7 +923,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(2 questions)</span>
     
   </div>
-  <div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+  <div class="q-card" id="q-PHY-2024-0101-S2-Q003" data-search="A cricket player catches a ball of mass 120 g moving with 25 m s−1 speed. If the catching process is completed in 0.1 s then the magnitude of force exerted by the ball on the hand of player will be(in SI unit): PHY-2024-0101-S2-Q003" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">PHY-2024-0101-S2-Q003</span>
@@ -924,7 +940,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q025" data-search="A thin metallic wire having cross sectional area of 10−4 m2 is used to make a ring of radius 30 cm. A positive charge of is uniformly distributed over the ring, while another positive charge of is kept at the 2π C 30 pC centre of the ring. The tension in the ring is _______ N; provided that the ring does not get deformed (neglect the influence of gravity). (Given, 1 = 9 × 109 SI units) 4πε0 PHY-2024-0101-S1-Q025" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">PHY-2024-0101-S1-Q025</span>

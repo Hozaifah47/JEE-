@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+<div class="q-card" id="q-CHEM-2021-0101-S2-Q056" data-search="The molar solubility of Zn ( OH ) in 0.1MNaOH solution is x× 10-18M. The value of x is _____. (Nearest 2 integer) 10−20 Given: The solubility product of Zn(OH ) is 2 × 2 CHEM-2021-0101-S2-Q056" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S2-Q056</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="50">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q055" data-search="Two salts A2X and MX have the same value of solubility product of 4.0 × 10−12. The ratio of their molar solubilizes i.e. S(A2X) = ________. S(MX) (Round off to the Nearest Integer). CHEM-2021-0101-S1-Q055" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="50">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q055</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 50</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q033" data-search="Given below are two statements: One is labelled as Assertion A and the other labelled as reason R Assertion During the boiling of water having temporary hardness, is converted to A: Mg (HCO3)2 MgCO3 Reason R: The solubility product of Mg(OH)2 is greater than that of MgCO3. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2021-0101-S1-Q033" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S1-Q033</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q034" data-search="A solution is 0.1M in Cl− and 0.001M in CrO2−. 4 Solid AgNO3 is gradually added to it Assuming that the addition does not change in volume and Ksp(AgCl) = 1.7 × 10−10M2 and Ksp(Ag2 CrO4) = 1.9 × 10−12M3. Select correct statement from the following: CHEM-2021-0101-S2-Q034" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S2-Q034</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="141">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q055" data-search="The solubility product of PbI2 is 8.0 × 10−9. The solubility of lead iodide in 0.1 molar solution of lead nitrate is x × 10−6 mol /L. The value of x is _________ (Rounded off to the nearest integer) [Given √2 = 1.41 ] CHEM-2021-0101-S2-Q055" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="141">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S2-Q055</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 141</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q032" data-search="The solubility of Ca (OH)2 in water is: [Given: The solubility product of Ca (OH)2 in water = 5.5 × 10−6 ] CHEM-2021-0101-S2-Q032" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S2-Q032</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="108">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q053" data-search="A3B2 is a sparingly soluble salt of molar mass M(g mol−1) and solubility x g L−1. The solubility product 5. satisfies Ksp = a( M x ) The value of a is __________. (Integer answer) CHEM-2021-0101-S1-Q053" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="108">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 108</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q034" data-search="The Ksp for bismuth sulphide Bi2S3 is 1.08 × 10−73. The solubility of Bi2S3 in molL−1 at 298 K is CHEM-2022-0101-S2-Q034" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2022-0101-S2-Q034</span>
@@ -426,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q039" data-search="The solubility product of is 10−10 at. The solubility of in BaSO4 1 × 298 K BaSO4 0.1M K2 SO4(aq) solution is ------ ×10−9 g L−1 (nearest integer). Given: Molar mass of BaSO4 is 233 g mol−1 CHEM-2023-0101-S2-Q039" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2023-0101-S2-Q039</span>
@@ -443,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q039" data-search="25.0 mL of 0.050 M Ba (NO3)2 is mixed with 25.0 mL of 0.020 M NaF. Ksp of BaF2 is 0.5 × 10–6 at 298K. The ratio of [Ba2+][F−]2 and Ksp is ______. CHEM-2023-0101-S1-Q039" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2023-0101-S1-Q039</span>
@@ -460,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q038" data-search="At 298 K, the solubility of silver chloride in water is 1.434 × 10−3 g L−1. The value of −logKsp for silver chloride is mol−1 mol−1 (Given mass of Ag is 107.9 g, and mass of Cl is 35.5 g ) CHEM-2023-0101-S2-Q038" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2023-0101-S2-Q038</span>
@@ -477,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q035" data-search="Solubility of calcium phosphate (molecular mass, M) in water is Wg per 100 mL at 25°C. Its solubility product at 25°C will be approximately. CHEM-2024-0101-S2-Q035" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2024-0101-S2-Q035</span>
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q035" data-search="Given below are two statements: Statement I: On passing HCl(g) through a saturated solution of BaCl2, at room temperature white turbidity appears. Statement II: When HCl gas is passed through a saturated solution of NaCl, sodium chloride is precipitated due to common ion effect. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2024-0101-S2-Q035" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2024-0101-S2-Q035</span>
@@ -511,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q037" data-search="For a sparingly soluble salt AB2, the equilibrium concentrations of ions and ions are 1.2 × and 0.24 × 10−3M, respectively. The solubility product of AB2 is: CHEM-2024-0101-S2-Q037" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2024-0101-S2-Q037</span>
@@ -528,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="09">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q055" data-search="The at which Mg(OH)2[ 10−11] begins to precipitate from a solution containing Mg2+ pH Ksp = 1 × 0.10M ions is ______. CHEM-2024-0101-S1-Q055" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="09">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2024-0101-S1-Q055</span>
@@ -545,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 09</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q058" data-search="The molar solubility(s) of zirconium phosphate with molecular formula (Zr4+)3(PO3− )4 is given by relation: 4 (1) ( Ksp ) 1 3 (2) ( Ksp ) 1 7 9612 6912 (3) 1 (4) 1 ( Ksp ) 7 ( Ksp ) 6 8435 5348 CHEM-2025-0101-S2-Q058" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2025-0101-S2-Q058</span>
@@ -562,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q059" data-search="Arrange the following in increasing order of solubility product: Ca(OH)2, AgBr, PbS, HgS (1) HgS &lt; AgBr &lt; PbS &lt; Ca(OH)2 (2) Ca(OH)2 &lt; AgBr &lt; HgS &lt; PbS (3) PbS &lt; HgS &lt; Ca(OH)2 &lt; AgBr (4) HgS &lt; PbS &lt; AgBr &lt; Ca(OH)2 CHEM-2025-0101-S2-Q059" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2025-0101-S2-Q059</span>

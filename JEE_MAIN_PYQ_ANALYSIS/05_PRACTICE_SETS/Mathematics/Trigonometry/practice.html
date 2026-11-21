@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -284,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -298,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(47 questions)</span>
     &nbsp;<a href="clusters/MATH-TRIGONOM-TRIGONOMETRIC_IDENTITIES_EQUATIONS/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+  <div class="q-card" id="q-MATH-2021-0101-S1-Q087" data-search="Let f: (0, 2) →R be defined as f(x) = log2(1 + tan( πx 4 )). Then, lim 2 (f( 1 ) + f( 2 ) +.... +f(1)) is equal to ________. n→∞ n n n MATH-2021-0101-S1-Q087" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">MATH-2021-0101-S1-Q087</span>
@@ -315,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="481">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q085" data-search="If f(x) = sin(cos−1( 1−22x )) and its first derivative with respect to x is −b loge 2 when x = 1, where a and 1+22x a b are integers, then the minimum value of a2 −b2 is _______. MATH-2021-0101-S1-Q085" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="481">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">MATH-2021-0101-S1-Q085</span>
@@ -332,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 481</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q075" data-search="The real valued function f(x) = cosec−1x, where [x] denotes the greatest integer less than or equal to x, is √x−[x] defined for all belonging to: x MATH-2021-0101-S1-Q075" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">MATH-2021-0101-S1-Q075</span>
@@ -349,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q083" data-search="The number of solutions of the equation cot x = cot x + sin x in the interval [0, 2π] is MATH-2021-0101-S1-Q083" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">MATH-2021-0101-S1-Q083</span>
@@ -366,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q063" data-search="If sin4 cos4 for some then the value of sec6 cosec6 is equal to: 15 α + 10 α = 6, α ∈R, 27 α + 8 α MATH-2021-0101-S2-Q063" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">MATH-2021-0101-S2-Q063</span>
@@ -383,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q070" data-search="The value of tan(2 tan−1( 3 ) + sin−1( 5 )) is equal to: 5 13 MATH-2021-0101-S2-Q070" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">MATH-2021-0101-S2-Q070</span>
@@ -400,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q069" data-search="A possible value of tan( 1 sin−1 √63 ) is: 4 8 MATH-2021-0101-S2-Q069" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">MATH-2021-0101-S2-Q069</span>
@@ -417,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="13">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q084" data-search="If [ 0 −tan( θ ) ] [ a −b ], A = 2 and (I2 + A)(I2 −A)−1 = then 13(a2 + b2) is equal to _____. tan( θ ) 0 b a 2 ⎡ x y z ⎤ MATH-2021-0101-S1-Q084" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="13">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">MATH-2021-0101-S1-Q084</span>
@@ -434,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 13</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q064" data-search="If 0 &lt; x, y &lt; π and cos x + cos y −cos(x + y) = 3, then sin x + cos y is equal to: 2 MATH-2021-0101-S2-Q064" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">MATH-2021-0101-S2-Q064</span>
@@ -451,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q071" data-search="cosec [2 cot−1(5) + cos−1( 5 4 )] is equal to: MATH-2021-0101-S2-Q071" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">MATH-2021-0101-S2-Q071</span>
@@ -468,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q066" data-search="The value of cot π is: 24 MATH-2021-0101-S2-Q066" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">MATH-2021-0101-S2-Q066</span>
@@ -485,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q074" data-search="Let f(x) = cos(2 tan−1 sin(cot−1 √1−x )), 0 &lt; x &lt; 1. Then: x MATH-2021-0101-S1-Q074" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">MATH-2021-0101-S1-Q074</span>
@@ -502,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q072" data-search="The domain of the function cosec−1 ( 1+x x ) is: MATH-2021-0101-S2-Q072" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">MATH-2021-0101-S2-Q072</span>
@@ -519,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q067" data-search="The h→0{ √3 π π } value of lim sin( 6 +h)−cos( 6 +h) is: √3h(√3 cos h−sin h) MATH-2021-0101-S1-Q067" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">MATH-2021-0101-S1-Q067</span>
@@ -536,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q071" data-search="If sin−1 x cos−1 x tan−1 y πc a = b = c; 0 &lt; x &lt; 1, then the value of cos( a+b ) is: MATH-2021-0101-S1-Q071" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">MATH-2021-0101-S1-Q071</span>
@@ -553,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q071" data-search="2 sin(−πx 2 ), if x &lt; −1 Let: R→R be defined as f(x) = ⎨ ax2 f ⎩ + x + b, if −1 ≤x ≤1 sin(πx), if x &gt; 1 If f(x) is continuous on R, then a + b equals: MATH-2021-0101-S2-Q071" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">MATH-2021-0101-S2-Q071</span>
@@ -570,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q070" data-search="Let sin A = sin(A−C), where A, B, C are angles of a triangle ABC. If the lengths of the sides opposite these sin B sin(C−B) angles are a, b, c respectively, then MATH-2021-0101-S1-Q070" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">MATH-2021-0101-S1-Q070</span>
@@ -587,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q072" data-search="If (sin−1 −(cos−1 = a; 0 &lt; x &lt; 1, a ≠0, then the value of 2x2 −1 is MATH-2021-0101-S1-Q072" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">MATH-2021-0101-S1-Q072</span>
@@ -604,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q073" data-search="Let M and m respectively be the maximum and minimum values of the function f(x) = tan−1(sin x + cos x) in [0, π ]. Then the value of tan(M −m) is equal to: MATH-2021-0101-S2-Q073" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">MATH-2021-0101-S2-Q073</span>
@@ -621,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q064" data-search="If 1 then is equal to: sin θ + cos θ = 2, 16(sin(2θ) + cos(4θ) + sin(6θ)) MATH-2021-0101-S1-Q064" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">MATH-2021-0101-S1-Q064</span>
@@ -638,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q073" data-search="Let: →R be defined as f(x + y) + f(x −y) = 2f(x)f(y), f( 1 ) = −1. Then the value of f R 2 ∑20 1 is equal to: k=1 sin(k) sin(k+f(k)) MATH-2021-0101-S2-Q073" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">MATH-2021-0101-S2-Q073</span>
@@ -655,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q063" data-search="cosec 18° is a root of the equation: MATH-2021-0101-S1-Q063" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">MATH-2021-0101-S1-Q063</span>
@@ -672,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q064" data-search="If p and q are the lengths of the perpendiculars from the origin on the lines, x cosec α −y sec α = k cot 2α and x sin α + y cos α = k sin 2α respectively, then k2 is equal to: MATH-2021-0101-S1-Q064" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">MATH-2021-0101-S1-Q064</span>
@@ -689,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q063" data-search="The number of solutions of the equation cos(x + π ) cos( π −x) = 1 cos2 2x, x ∈[−3π, 3π] is: 3 3 4 MATH-2022-0101-S2-Q063" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">MATH-2022-0101-S2-Q063</span>
@@ -706,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q085" data-search="The number of values of x in the interval 4, for which 14 cosec2 x- 2sin2x= 21 - 4cos2x holds, is ______. 4 MATH-2022-0101-S1-Q085" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">MATH-2022-0101-S1-Q085</span>
@@ -723,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q066" data-search="lim sin(cos−1 x)−x is equal to x→1 1−tan(cos−1 x) √2 MATH-2022-0101-S1-Q066" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">MATH-2022-0101-S1-Q066</span>
@@ -740,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="80">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q084" data-search="If sin2(10°) sin(20°) sin(40°) sin(50°) sin(70°) = α− 1 sin(10°), then 16 + α−1 is equal to _____. 16 MATH-2022-0101-S1-Q084" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="80">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">MATH-2022-0101-S1-Q084</span>
@@ -757,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 80</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q062" data-search="16 sin(20°) sin(40°) sin(80°) is equal to MATH-2022-0101-S2-Q062" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">MATH-2022-0101-S2-Q062</span>
@@ -774,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q066" data-search="lim cos(sin x)−cos x is equal to x→0 x4 MATH-2022-0101-S2-Q066" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">MATH-2022-0101-S2-Q066</span>
@@ -791,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q063" data-search="The value of cos( 2π ) + cos( 4π ) + cos( 6π ) is equal to 7 7 7 MATH-2022-0101-S1-Q063" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">MATH-2022-0101-S1-Q063</span>
@@ -808,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q065" data-search="If and −5, where 3π and π, then the value of and the cot α = 1 sec β = 3 π &lt; α &lt; 2 2 &lt; β &lt; π tan(α + β) quadrant in which α + β lies, respectively are MATH-2022-0101-S2-Q065" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">MATH-2022-0101-S2-Q065</span>
@@ -825,7 +841,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="11">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q084" data-search="If x→1( sin(3x2−4x+1)−x2+1 ), then the value of is equal to lim 2x3−7x2+ax+b = −2 (a −b) MATH-2022-0101-S2-Q084" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="11">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">MATH-2022-0101-S2-Q084</span>
@@ -842,7 +858,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 11</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1275">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q082" data-search="Let [t] denote the greatest integer ≤t. Then 2 ∫ 5π 6 (8[cosec x] −5[cot x])dx is equal to _______ π π 6 MATH-2023-0101-S1-Q082" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1275">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">MATH-2023-0101-S1-Q082</span>
@@ -859,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1275</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q075" data-search="If S = {x ∈R: sin−1( x+1 ) −sin−1( x ) = π } then √x2+2x+2 √x2+1 4 ∑x∈S(sin((x2 + + 5) π ) −cos((x2 + + 5)π)) is equal to _________. x 2 x MATH-2023-0101-S1-Q075" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">MATH-2023-0101-S1-Q075</span>
@@ -876,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q068" data-search="If lim eax- cos(bx) - 2 = 17, then 5a2 + b2 is equal to x→0 1 - cos ( 2x) MATH-2023-0101-S2-Q068" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">MATH-2023-0101-S2-Q068</span>
@@ -893,7 +909,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q067" data-search="Let S = {θ ∈[0, 2π): tan(πcosθ) + tan(πsinθ) = 0}, then ∑θ∈S sin2(θ + π ) is equal to 4 MATH-2023-0101-S2-Q067" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">MATH-2023-0101-S2-Q067</span>
@@ -910,7 +926,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q072" data-search="⎧ 1−cos(x2−4px+q2+8q+16) Let x = 2 be a root of the equation x2 + px + q = 0 and f(x) = ⎨ ⎩ (x−2p)4, x ≠2p. Then 0, x = 2p x→2p+[f(x)] lim where [⋅] denotes greatest integer function, is MATH-2023-0101-S1-Q072" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">MATH-2023-0101-S1-Q072</span>
@@ -927,7 +943,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q071" data-search="Let f, g and h be the real valued functions defined on as { x, x ≠0 { sin(x+1), x ≠−1 f(x) = |x|, g(x) = (x+1) and h(x) = 2[x] −f(x), where [x] is the greatest integer 1, x = 0 1, x = −1 ≤x. Then the value of lim g(h(x −1)) is x→1 MATH-2023-0101-S2-Q071" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">MATH-2023-0101-S2-Q071</span>
@@ -944,7 +960,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="170">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q085" data-search="Let a &gt; 0 be a root of the equation 2x2 + x −2 = 0. If limx→1 16(1−cos(2+x−2x2)) = α + β√17, where a (1−ax)2 α, β ∈Z, then α + β is equal to_______ MATH-2024-0101-S2-Q085" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="170">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">MATH-2024-0101-S2-Q085</span>
@@ -961,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 170</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="39">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q084" data-search="In a triangle ABC, BC = 7, AC = 8, AB = α ∈N and cos A = 2. If 49 cos(3C) + 42 = m, where 3 n gcd(m, n) = 1, then m + n is equal to________ MATH-2024-0101-S2-Q084" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="39">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">MATH-2024-0101-S2-Q084</span>
@@ -978,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 39</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q072" data-search="tan((a+1)x)+b tan x, x &lt; 0 ⎨ x For a, b &gt; 0, let f(x) = 3, x = 0 be a continous function at x = 0. Then b a is equal to: ⎩ √ax+b2x2−√ax b√ax√x, x &gt; 0 MATH-2024-0101-S2-Q072" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">MATH-2024-0101-S2-Q072</span>
@@ -995,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q064" data-search="Let |cos θ cos(60 −θ) cos(60 + θ)| ≤1, θε[0, 2π]. Then, the sum of all θε[0, 2π], where cos 3θ attains its 8 maximum value, is: MATH-2024-0101-S1-Q064" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">MATH-2024-0101-S1-Q064</span>
@@ -1012,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q067" data-search="limx→π x3 (sin(2t1/3)+cos(t1/3))dt is equal to 2 (x−π )2 2 MATH-2024-0101-S2-Q067" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">MATH-2024-0101-S2-Q067</span>
@@ -1029,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="48">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q083" data-search="Let the set of all a ∈R such that the equation cos 2x + a sin x = 2a −7 has a solution be [p, q] and 1, then is equal to ________. r = tan 9°−tan 27°− cot 63° + tan 81° pqr MATH-2024-0101-S1-Q083" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="48">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">MATH-2024-0101-S1-Q083</span>
@@ -1046,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 48</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q075" data-search="If 3 3 ∫ √sin3 sin 2 x+cos 2 x dx = A√cos θ tan x −sin θ + B√cos θ −sin θ cot x + C, where C is the integration x cos3 x sin(x−θ) constant, then AB is equal to MATH-2024-0101-S2-Q075" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">MATH-2024-0101-S2-Q075</span>
@@ -1063,7 +1079,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q076" data-search="If sin( y ) = loge x + α is the solution of the differential equation x cos( y ) dy = y cos( y ) + x and y MATH-2024-0101-S2-Q076" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">MATH-2024-0101-S2-Q076</span>
@@ -1080,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="69">
+</div><div class="q-card" id="q-MATH-2025-0101-S1-Q072" data-search="A → B The molecule A changes into its isomeric form B by following a first order kinetics at a temperature of 1000 K. If the energy barrier with respect to reactant energy for such isomeric transformation is 191.48 kJ mol−1 and the frequency factor is 1020, the time required for 50% molecules of A to become B is _________ picoseconds (nearest integer). [R = 8.314 J K−1 mol−1] MATH-2025-0101-S1-Q072" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="69">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">MATH-2025-0101-S1-Q072</span>
@@ -1104,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(7 questions)</span>
     &nbsp;<a href="clusters/MATH-TRIGONOM-INVERSE_TRIGONOMETRIC_FUNCTIONS/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+  <div class="q-card" id="q-MATH-2021-0101-S2-Q070" data-search="cos−1 (cos( - 5) ) + sin−1 (sin(6) ) - tan−1 (tan(12) ) is equal to: (The inverse trigonometric functions take the principal values) MATH-2021-0101-S2-Q070" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">MATH-2021-0101-S2-Q070</span>
@@ -1121,7 +1137,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q069" data-search="Given that the inverse trigonometric functions take principal values only. Then, the number of real values of x which satisfy sin−1( 3x ) + sin−1( 4x ) = sin−1 x is equal to: 5 5 MATH-2021-0101-S2-Q069" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">MATH-2021-0101-S2-Q069</span>
@@ -1138,7 +1154,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q070" data-search="If the inverse trigonometric functions take principal values, then cos−1( 3 cos(tan−1( 4 )) + 2 sin(tan−1( 4 ))) is equal to 10 3 5 3 MATH-2022-0101-S2-Q070" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">MATH-2022-0101-S2-Q070</span>
@@ -1155,7 +1171,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q072" data-search="Given that the inverse trigonometric function assumes principal values only. Let, be any two real numbers x y in [−1, 1] such that cos−1 x −sin−1 y = α, −π ≤α ≤π. 2 Then, the minimum value of x2 + y2 + 2xy sin α is MATH-2024-0101-S2-Q072" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">MATH-2024-0101-S2-Q072</span>
@@ -1172,7 +1188,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="32">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q084" data-search="Let n − 2n + n − 8n +... + n − 2n⋅n2 be π, √n4+1 (n2+1)√n4+1 √n4+16 (n2+4)√n4+16 √n4+n4 (n2+n2)√n4+n4 k using only the principal values of the inverse trigonometric functions. Then k2 is equal to ________ MATH-2024-0101-S1-Q084" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="32">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">MATH-2024-0101-S1-Q084</span>
@@ -1189,7 +1205,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 32</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="0">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q086" data-search="Let the inverse trigonometric functions take principal values. The number of real solutions of the equation sin−1 cos−1 2π, is _______ 2 x + 3 x = 5 MATH-2024-0101-S2-Q086" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">MATH-2024-0101-S2-Q086</span>
@@ -1206,7 +1222,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q070" data-search="Considering only the principal values of inverse trigonometric functions, the number of positive real values of x satisfying tan−1 (x) + tan−1 (2x) = π is: 4 MATH-2024-0101-S2-Q070" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">MATH-2024-0101-S2-Q070</span>

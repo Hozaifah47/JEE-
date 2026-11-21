@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+<div class="q-card" id="q-PHY-2021-0101-S2-Q008" data-search="A glass tumbler having inner depth of 17.5 cm is kept on a table. A student starts pouring water μ= 4 into it 3 while looking at the surface of water from the above. When he feels that the tumbler is half filled, he stops pouring water. Up to what height, the tumbler is actually filled? PHY-2021-0101-S2-Q008" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S2-Q008</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q020" data-search="In the given figure, each diode has a forward bias resistance of 30 Ω and infinite resistance in reverse bias. The current will be: I1 PHY-2021-0101-S2-Q020" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">PHY-2021-0101-S2-Q020</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q006" data-search="The pressure acting on a submarine is 3 × 105 Pa at a certain depth. If the depth is doubled, the percentage 105 increase in the pressure acting on the submarine would be: (Assume that atmospheric pressure is 1 × Pa density of water is 103 kg m−3, g = 10 ms−2 ) PHY-2021-0101-S1-Q006" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2021-0101-S1-Q006</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q029" data-search="The value of power dissipated across the zener diode (Vz = 15 V) connected in the circuit as shown in the figure is x × 10−1 W. The value of x to the nearest integer is _______. PHY-2021-0101-S1-Q029" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2021-0101-S1-Q029</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q001" data-search="A car accelerates from rest at a constant rate α for some time after which it decelerates at a constant rate β to come to rest. If the total time elapsed is t seconds, the total distance travelled is: PHY-2021-0101-S1-Q001" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">PHY-2021-0101-S1-Q001</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q017" data-search="Three rays of light, namely red (R), green (G) and blue PHY-2021-0101-S2-Q017" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2021-0101-S2-Q017</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q020" data-search="The correct relation between α (ratio of collector current to emitter current) and β (ratio of collector current to base current) of a transistor is: PHY-2021-0101-S2-Q020" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">PHY-2021-0101-S2-Q020</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="200">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q029" data-search="The typical output characteristics curve for a transistor working in the common-emitter configuration is shown in the figure. The estimated current gain from the figure is PHY-2021-0101-S2-Q029" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="200">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">PHY-2021-0101-S2-Q029</span>
@@ -426,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 200</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="192">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q029" data-search="A zener diode having zener voltage 8 V and power dissipation rating of 0.5 W is connected across a potential divider arranged with maximum potential drop across zener diode is as shown in the diagram. The value of protective resistance Rp is _____ Ω. PHY-2021-0101-S2-Q029" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="192">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">PHY-2021-0101-S2-Q029</span>
@@ -443,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 192</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="25">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q030" data-search="For the forward biased diode characteristics shown in the figure, the dynamic resistance at ID = 3 mA will be ________ Ω. PHY-2021-0101-S2-Q030" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">PHY-2021-0101-S2-Q030</span>
@@ -460,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q019" data-search="Consider a situation in which reverse biased current of a particular P −N junction increases when it is exposed to a light of wavelength ≤621 nm. During this process, enhancement in carrier concentration takes place due to generation of hole-electron pairs. The value of band gap is nearly. PHY-2021-0101-S1-Q019" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">PHY-2021-0101-S1-Q019</span>
@@ -477,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="500">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q030" data-search="In a given circuit diagram, a 5 V zener diode along with a series resistance is connected across a 50 V power supply. The minimum value of the resistance required, if the maximum zener current is 90 mA will be Ω. PHY-2021-0101-S1-Q030" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="500">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">PHY-2021-0101-S1-Q030</span>
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 500</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q019" data-search="Zener breakdown occurs in a p −n junction having p and n both: PHY-2021-0101-S2-Q019" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">PHY-2021-0101-S2-Q019</span>
@@ -511,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q020" data-search="Given below are two statements: Statement I: p −n junction diodes can be used to function as a transistor, simply by connecting two diodes, back to back, which acts as the base terminal Statement II: In the study of transistors, the amplification factor β indicates ratio of the collector current to the base current. In the light of the above statements, choose the correct answer from the options given below. PHY-2021-0101-S2-Q020" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">PHY-2021-0101-S2-Q020</span>
@@ -528,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q023" data-search="A uniform metallic wire is elongated by 0.04 m when subjected to a linear force F. The elongation, if its length and diameter is doubled and subjected to the same force will be _________ cm. PHY-2021-0101-S2-Q023" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">PHY-2021-0101-S2-Q023</span>
@@ -545,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q006" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: The escape velocities of planet A and B are same. But A and B are of unequal mass. Reason R: The product of their mass and radius must be same. M1R1 = M2R2 In the light of the above statements, choose the most appropriate answer from the options given below: PHY-2021-0101-S1-Q006" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">PHY-2021-0101-S1-Q006</span>
@@ -562,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q007" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion: When a rod lying freely is heated, no thermal stress is developed in it. A Reason R: On heating, the length of the rod increases. In the light of the above statements, choose the correct answer from the options given below: PHY-2021-0101-S1-Q007" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">PHY-2021-0101-S1-Q007</span>
@@ -579,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q019" data-search="For extrinsic semiconductors; when doping level is increased; PHY-2021-0101-S2-Q019" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">PHY-2021-0101-S2-Q019</span>
@@ -596,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="208">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q024" data-search="A reversible heat engine converts one-fourth of the heat input into work. When the temperature of the sink is reduced by its efficiency is doubled. The temperature in Kelvin of the source will be ___. 52 K, PHY-2021-0101-S2-Q024" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="208">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">PHY-2021-0101-S2-Q024</span>
@@ -613,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 208</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q004" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Moment of inertia of a circular disc of mass M and radius R about X, Y axes (passing through its plane) and Z-axis which is perpendicular to its plane were found to be Ix, Iy and Iz, respectively. The respective radii of gyration about all the three axes will be the same. Reason R: A rigid body making rotational motion has fixed mass and shape. In the light of the above statements, choose the most appropriate answer from the options given below: PHY-2021-0101-S1-Q004" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">PHY-2021-0101-S1-Q004</span>
@@ -630,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q019" data-search="Identify the logic operation carried out. PHY-2021-0101-S1-Q019" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">PHY-2021-0101-S1-Q019</span>
@@ -647,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q005" data-search="The instantaneous velocity of a particle moving in a straight line is given as v = αt + βt2, where α and β are constants. The distance travelled by the particle between and is: 1 s 2 s PHY-2021-0101-S2-Q005" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">PHY-2021-0101-S2-Q005</span>
@@ -664,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q008" data-search="A heat engine has an efficiency of 1. When the temperature of sink is reduced by 62°C, its efficiency get 6 doubled. The temperature of the source is: PHY-2021-0101-S2-Q008" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">PHY-2021-0101-S2-Q008</span>
@@ -681,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q029" data-search="In a semiconductor, the number density of intrinsic charge carriers at is 1016 m−3. If the 27°C 1.5 × semiconductor is doped with an impurity atom, the hole density increases to 4.5 × 1022 m−3. The electron density in the doped semiconductor is _______ ×109 m−3 PHY-2021-0101-S2-Q029" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">PHY-2021-0101-S2-Q029</span>
@@ -698,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q018" data-search="Identify the logic operation carried out by the given circuit: PHY-2021-0101-S1-Q018" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">PHY-2021-0101-S1-Q018</span>
@@ -715,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q019" data-search="Statement I: By doping silicon semiconductors with pentavalent material, the electrons density increases. Statement II: The n− type of semiconductor has a net negative charge. In the above statements, choose the most appropriate answer from the options given below: PHY-2021-0101-S1-Q019" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">PHY-2021-0101-S1-Q019</span>
@@ -732,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="120">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q030" data-search="For the given circuit, the power across zener diode is _____ mW. PHY-2021-0101-S2-Q030" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="120">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">PHY-2021-0101-S2-Q030</span>
@@ -749,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 120</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q016" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: An electron microscope can achieve better resolving power than an optical microscope. Reason R: The de Broglie&#x27;s wavelength of the electrons emitted from an electron gun is much less than wavelength of visible light. In the light of the above statements, choose the correct answer from the options given below: PHY-2021-0101-S1-Q016" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">PHY-2021-0101-S1-Q016</span>
@@ -766,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q020" data-search="LED is constructed from Ga −As −P semiconducting material. The energy gap of this LED is 1.9 eV. 10−34 108 s−1 Calculate the wavelength of light emitted and its colour. h = 6.63 × J −s and c = 3 × m PHY-2021-0101-S1-Q020" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">PHY-2021-0101-S1-Q020</span>
@@ -783,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="9">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q029" data-search="The zener diode has a. The current passing through the diode for the following circuit is___ Vz = 30 V mA. PHY-2021-0101-S2-Q029" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="9">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">PHY-2021-0101-S2-Q029</span>
@@ -800,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 9</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q020" data-search="For a transistor in CE mode to be used as an amplifier, it must be operated in: PHY-2021-0101-S1-Q020" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">PHY-2021-0101-S1-Q020</span>
@@ -817,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q010" data-search="Figure shows a rod AB, which is bent in a 120° circular arc of radius R. A charge (−Q) is uniformly distributed over rod AB. What is the electric filed → E at the centre of curvature O? PHY-2021-0101-S2-Q010" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">PHY-2021-0101-S2-Q010</span>
@@ -834,7 +850,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q019" data-search="For a transistor α and β are given as α = IC and β = IC. Then the correct relation between α and β will be: IE IB PHY-2021-0101-S2-Q019" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">PHY-2021-0101-S2-Q019</span>
@@ -851,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="20">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q030" data-search="A zener diode of power rating 2 W is to be used as a voltage regulator. If the zener diode has a breakdown of 10 V and it has to regulate voltage fluctuated between 6 V and 14 V, the value of Rs for safe operation should be _____ Ω. PHY-2021-0101-S2-Q030" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="20">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">PHY-2021-0101-S2-Q030</span>
@@ -868,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 20</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q012" data-search="The relative permittivity of distilled water is 81. The velocity of light in it will be: ( Given μr = 1) PHY-2021-0101-S1-Q012" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">PHY-2021-0101-S1-Q012</span>
@@ -885,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q023" data-search="The water is filled up to a height of 12 m in a tank having vertical sidewalls. A hole is made in one of the walls at a depth h below the water level. The value of h for which the emerging stream of water strikes the ground at the maximum range is _____ m. PHY-2021-0101-S2-Q023" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">PHY-2021-0101-S2-Q023</span>
@@ -902,7 +918,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q019" data-search="Choose the correct waveform that can represent the voltage across R of the following circuit, assuming the diode is ideal one: PHY-2021-0101-S1-Q019" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">PHY-2021-0101-S1-Q019</span>
@@ -919,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q008" data-search="Two thin metallic spherical shells of radii r1 and r2r1 &lt; r2 are placed with their centres coinciding. A material of thermal conductivity K is filled in the space between the shells. The inner shell is maintained at temperature θ1 and the outer shell at temperature θ2θ1 &lt; θ2. The rate at which heat flows radially through the material is: PHY-2021-0101-S2-Q008" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">PHY-2021-0101-S2-Q008</span>
@@ -936,7 +952,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3840">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q024" data-search="A resistor dissipates 192 J of energy in 1 s when a current of 4 A is passed through it. Now, when the current is doubled, the amount of thermal energy dissipated in 5 s is _____________ J. PHY-2021-0101-S2-Q024" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3840">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">PHY-2021-0101-S2-Q024</span>
@@ -953,7 +969,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3840</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q014" data-search="Given below are two statements: One is labelled as Assertion PHY-2022-0101-S1-Q014" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">PHY-2022-0101-S1-Q014</span>
@@ -970,7 +986,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q003" data-search="A stone of mass m, tied to a string is being whirled in a vertical circle with a uniform speed. The tension in the string is PHY-2022-0101-S2-Q003" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">PHY-2022-0101-S2-Q003</span>
@@ -987,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q019" data-search="The photodiode is used to detect the optical signals. These diodes are preferably operated in reverse biased mode because PHY-2022-0101-S1-Q019" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">PHY-2022-0101-S1-Q019</span>
@@ -1004,7 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q002" data-search="Given below are two statements. One is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Two identical balls A and B thrown with same velocity &#x27;u&#x27; at two different angles with horizontal attained the same range R. If A and B reached the maximum height h1 and h2 respectively, then R= 4√h1h2 Reason R: Product of said heights. h1h2 = u2sin2θ · u2cos2θ 2g 2g PHY-2022-0101-S2-Q002" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">PHY-2022-0101-S2-Q002</span>
@@ -1021,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="250">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q026" data-search="When a gas filled in a closed vessel is heated by raising the temperature by 1°C, its pressure increases by 0.4% The initial temperature of the gas is _____ K. PHY-2022-0101-S2-Q026" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="250">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">PHY-2022-0101-S2-Q026</span>
@@ -1038,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 250</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="15">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q030" data-search="In an experiment of CE configuration of n- p- n transistor, the transfer characteristics are observed as given in figure. If the input resistance is 200Ω and output resistance is 60Ω, the voltage gain in this experiment will be _____. PHY-2022-0101-S2-Q030" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="15">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">PHY-2022-0101-S2-Q030</span>
@@ -1055,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 15</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q019" data-search="The characteristics of a junction diode in forward bias is shown in the figure. The ratio of I −V p −n dynamic resistance, corresponding to forward bias voltage of 2 V and 4 V respective is PHY-2022-0101-S1-Q019" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">PHY-2022-0101-S1-Q019</span>
@@ -1072,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q005" data-search="Given below are two statements: One is labelled as Assertion A and the other is labelled as Reason R. Assertion A: If we move from poles to equator, the direction of acceleration due to gravity of earth always points towards the center of earth without any variation in its magnitude. Reason R: At equator, the direction of acceleration due to the gravity is towards the center of earth. In the light of above statements, choose the correct answer from the options given below PHY-2022-0101-S2-Q005" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">PHY-2022-0101-S2-Q005</span>
@@ -1089,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q019" data-search="The positive feedback is required by an amplifier to act as an oscillator. The feedback here means PHY-2022-0101-S2-Q019" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">PHY-2022-0101-S2-Q019</span>
@@ -1106,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q008" data-search="The velocity of a small ball of mass m and density d1, when dropped in a container filled with glycerine, becomes constant after some time. If the density of glycerine is d2, then the viscous force acting on the ball, will be PHY-2022-0101-S1-Q008" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">PHY-2022-0101-S1-Q008</span>
@@ -1123,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q006" data-search="A stone tide to a string of length L is whirled in a vertical circle with the other end of the string at the centre. At a certain instant of time, the stone is at its lowest position and has a speed u. The magnitude of change in its velocity, as it reaches a position where the string is horizontal, is √x(u2. The value of is −gL) x PHY-2022-0101-S2-Q006" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">PHY-2022-0101-S2-Q006</span>
@@ -1140,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q019" data-search="For a transistor to act as a switch, it must be operated in PHY-2022-0101-S2-Q019" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">PHY-2022-0101-S2-Q019</span>
@@ -1157,7 +1173,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q030" data-search="The cut-off voltage of the diodes (shown in figure) in forward bias is 0.6 V. The current through the resister of 40Ω is _____ mA. PHY-2022-0101-S2-Q030" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">PHY-2022-0101-S2-Q030</span>
@@ -1174,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q018" data-search="For using a multimeter to identify diode from electrical components, choose the correct statement out of the following about the diode PHY-2022-0101-S1-Q018" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">PHY-2022-0101-S1-Q018</span>
@@ -1191,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q019" data-search="Given below are two statements: One is labelled as Assertion A and the other is labelled as Reason R. Assertion A: n −p −n transistor permits more current than a p −n −p transistor. Reason R: Electrons have greater mobility as a charge carrier. PHY-2022-0101-S1-Q019" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">PHY-2022-0101-S1-Q019</span>
@@ -1208,7 +1224,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q021" data-search="A hanging mass M is connected to a four times bigger mass by using a string pulley arrangement, as shown in the figure. The bigger mass is placed on a horizontal ice-slab and being pulled by 2 Mg force. In this situation, tension in the string is x Mg for x = _____. Neglect mass of the string and friction of the block (bigger mass) 5 with ice slab. (Given g = acceleration due to gravity) PHY-2022-0101-S1-Q021" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">PHY-2022-0101-S1-Q021</span>
@@ -1225,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q022" data-search="A pendulum is suspended by a string of length 250 cm. The mass of the bob of the pendulum is 200 g. The bob is pulled aside until the string is at 60° with vertical as shown in the figure. After releasing the bob, the maximum velocity attained by the bob will be _____ m s−1. (if g = 10 m s−2 ) PHY-2022-0101-S1-Q022" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">PHY-2022-0101-S1-Q022</span>
@@ -1242,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q010" data-search="What will be the effect on the root mean square velocity of oxygen molecules if the temperature is doubled and oxygen molecule dissociates into atomic oxygen? PHY-2022-0101-S2-Q010" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">PHY-2022-0101-S2-Q010</span>
@@ -1259,7 +1275,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q014" data-search="A coil is placed in a time varying magnetic field. If the number of turns in the coil were to be halved and the radius of wire doubled, the electrical power dissipated due to the current induced in the coil would be (Assume the coil to be short circuited.) PHY-2022-0101-S2-Q014" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">PHY-2022-0101-S2-Q014</span>
@@ -1276,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q019" data-search="In the given circuit the input voltage Vin is shown in figure. The cut-in voltage of p −n junction diode ( D1 or ) is. Which of the following output voltage waveform across the diode is correct? D2 0.6 V (V0) PHY-2022-0101-S2-Q019" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">PHY-2022-0101-S2-Q019</span>
@@ -1293,7 +1309,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="700">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q023" data-search="A body is performing simple harmonic with an amplitude of 10 cm. The velocity of the body was tripled by air Jet when it is at 5 cm from its mean position. The new amplitude of vibration is √x cm. The value of x is _____. PHY-2022-0101-S1-Q023" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="700">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">PHY-2022-0101-S1-Q023</span>
@@ -1310,7 +1326,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 700</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q001" data-search="A small toy starts moving from the position of rest under a constant acceleration. If it travels a distance of 10 m in t s, the distance travelled by the toy in the next t s will be: PHY-2022-0101-S2-Q001" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">PHY-2022-0101-S2-Q001</span>
@@ -1327,7 +1343,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="14">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q029" data-search="A potential barrier of 0.4 V exists across a p-n junction. An electron enters the junction from the n -side with a speed of 6.0 × 105 m s−1. The speed with which electron enters the p side will be x × 105 m s−1, then the 3 value of x is _____.: (Given mass of electron = 9 × 10−31 kg, charge on electron = 1.6 × 10−19 C.) PHY-2022-0101-S2-Q029" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="14">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">PHY-2022-0101-S2-Q029</span>
@@ -1344,7 +1360,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 14</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q019" data-search="Match the List I with List II List I List II AIntrinsic Semiconductor I Fermi-level near valence band Fermi-level at middle of valence and conduction B n-type semiconductor II band C p-type semiconductor III Fermi-level near conduction band DMetals IVFermi-level inside conduction band Choose the correct answer from the options given below: PHY-2023-0101-S1-Q019" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">PHY-2023-0101-S1-Q019</span>
@@ -1361,7 +1377,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q003" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: When a body is projected at an angle 45°, its range is maximum. Reason R: For maximum range, the value of sin 2θ should be equal to one. In the light of the above statements, choose the correct answer from the options given below: PHY-2023-0101-S1-Q003" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">PHY-2023-0101-S1-Q003</span>
@@ -1378,7 +1394,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q007" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Earth has atmosphere whereas moon doesn’t have any atmosphere. Reason R: The escape velocity on moon is very small as compared to that on earth. In the light of the above statements, choose the correct answer from the options given below: PHY-2023-0101-S1-Q007" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">PHY-2023-0101-S1-Q007</span>
@@ -1395,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q019" data-search="The resistivity ( ρ) of semiconductor varies with temperature. Which of the following curve represents the correct behaviour? PHY-2023-0101-S1-Q019" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">PHY-2023-0101-S1-Q019</span>
@@ -1412,7 +1428,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="50">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q029" data-search="A pole is vertically submerged in swimming pool, such that it gives a length of shadow 2.15 m within water when sunlight is incident at an angle of 30° with the surface of water. If swimming pool is filled to a height of 1.5 m, then the height of the pole above the water surface in centimeters is (nw= 4 ) ________. 3 PHY-2023-0101-S1-Q029" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="50">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">PHY-2023-0101-S1-Q029</span>
@@ -1429,7 +1445,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 50</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q010" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: When you squeeze one end of a tube to get toothpaste out from the other end, Pascal’s principle is observed. Reason R: A change in the pressure applied to an enclosed incompressible fluid is transmitted undiminished to every portion of the fluid and to the walls of its container. In the light of the above statements, choose the most appropriate answer from the options given below. PHY-2023-0101-S2-Q010" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">PHY-2023-0101-S2-Q010</span>
@@ -1446,7 +1462,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q026" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: The phase difference of two light waves change if they travel through different media having same thickness, but different indices of refraction. Reason R: The wavelengths of waves are different in different media. In the light of the above statements, choose the most appropriate answer from the options given below (1) Both A and R are correct but R is NOT the (2) A is not correct but R is correct correct explanation of A (3) A is correct but R is not correct (4) Both A and R are correct and R is the correct explanation of A o o PHY-2023-0101-S2-Q026" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">PHY-2023-0101-S2-Q026</span>
@@ -1463,7 +1479,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q029" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: Diffusion current in a p −n junction is greater than the drift current in magnitude if the junction is forward biased. Reason R: Diffusion current in a p −n junction is form the n -side to the p -side if the junction is forward biased. In the light of the above statements, choose the most appropriate answer from the options given below. (1) Both A and R are correct but R is NOT the (2) A is correct but R is not correct correct explanation of A (3) A is not correct but R is correct (4) Both A and R is correct and R is the correct explanation of A PHY-2023-0101-S2-Q029" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">PHY-2023-0101-S2-Q029</span>
@@ -1480,7 +1496,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q002" data-search="Given below are two statements: Statement I: Area under velocity-time graph gives the distance travelled by the body in a given time. Statement II: Area under acceleration-time graph is equal to the change in velocity in the given time. In the light of given statements, choose the correct answer from the options given below. PHY-2023-0101-S2-Q002" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">PHY-2023-0101-S2-Q002</span>
@@ -1497,7 +1513,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q019" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Electromagnets are made of soft iron. Reason R: Soft iron has high permeability and low retentivity. In the light of above statements, choose the most appropriate answer from the options given below. PHY-2023-0101-S2-Q019" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">PHY-2023-0101-S2-Q019</span>
@@ -1514,7 +1530,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="30">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q029" data-search="For a given transistor amplifier circuit in CE configuration VCC = 1 V, RC = 1 kΩ, Rb = 100 kΩ and β = 100. Value of base current Ib is (1) Ib = 1.0 μA (2) Ib = 0.1 μA (3) Ib = 100 μA (4) Ib = 10 μA PHY-2023-0101-S2-Q029" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="30">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">PHY-2023-0101-S2-Q029</span>
@@ -1531,7 +1547,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 30</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q013" data-search="Given below are two statements: Statement I: If the number of turns in the coil of a moving coil galvanometer is doubled then the current sensitivity becomes double. Statement II: Increasing current sensitivity of a moving coil galvanometer by only increasing the number of turns in the coil will also increase its voltage sensitivity in the same ratio In the light of the above statements, choose the correct answer from the options given below: PHY-2023-0101-S1-Q013" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">PHY-2023-0101-S1-Q013</span>
@@ -1548,7 +1564,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q019" data-search="A zener diode of power rating 1.6 W is to be used as voltage regulator. If the zener diode has a breakdown of 8 V and it has to regulate voltage fluctuating between 3 V and 10 V The value of resistance Rs for safe operation of diode will be PHY-2023-0101-S1-Q019" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">PHY-2023-0101-S1-Q019</span>
@@ -1565,7 +1581,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q003" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: An electric fan continues to rotate for some time after the current is switched off. Reason R: Fan continues to rotate due to inertia of motion. In the light of above statements, choose the most appropriate answer from the options given below. PHY-2023-0101-S2-Q003" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">PHY-2023-0101-S2-Q003</span>
@@ -1582,7 +1598,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q018" data-search="If each diode has a forward bias resistance of 25Ω in the below circuit, Which of the following options is correct? PHY-2023-0101-S2-Q018" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">PHY-2023-0101-S2-Q018</span>
@@ -1599,7 +1615,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q019" data-search="The logic performed by the circuit shown in figure is equivalent to PHY-2023-0101-S1-Q019" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q78</span>
     <span class="q-id">PHY-2023-0101-S1-Q019</span>
@@ -1616,7 +1632,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q005" data-search="A block of mass 5 kg starting from rest pulled up on a smooth incline plane making an angle of 30° with horizontal with an effective acceleration of 1 m s−2. The power delivered by the puling force at t = 10 s from the start is _____ W. [Use g = 10 m s−2 ] (Calculate the nearest integer value) PHY-2023-0101-S2-Q005" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q79</span>
     <span class="q-id">PHY-2023-0101-S2-Q005</span>
@@ -1633,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q020" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: A bar magnet dropped through a metallic cylindrical pipe takes more time to come down compared to a non-magnetic bar with same geometry and mass. Reason R: For the magnetic bar, Eddy currents are produced in the metallic pipe which oppose the motion of the magnetic bar. In the light of the above statements, choose the correct answer from the options given below PHY-2023-0101-S2-Q020" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q80</span>
     <span class="q-id">PHY-2023-0101-S2-Q020</span>
@@ -1650,7 +1666,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="625">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q029" data-search="The logic operations performed by the given digital circuit is equivalent to: (1) NOR (2) AND (3) OR (4) NAND PHY-2023-0101-S2-Q029" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="625">
   <div class="q-header">
     <span class="q-num">Q81</span>
     <span class="q-id">PHY-2023-0101-S2-Q029</span>
@@ -1667,7 +1683,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 625</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q016" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: If an electric dipole of dipole moment 30 × 10–5 C m is enclosed by a closed surface, the net flux coming out of the surface will be zero. Reason R: Electric dipole consists of two equal and opposite charges. In the light of above, statements, choose the correct answer from the options given below. PHY-2023-0101-S1-Q016" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q82</span>
     <span class="q-id">PHY-2023-0101-S1-Q016</span>
@@ -1684,7 +1700,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="100">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q029" data-search="In an n-p-n common emitter (CE) transistor the collector current changes from 5 mA to 16 mA for the change in base current from 100 μA and 200 μA, respectively. The current gain of transistor is _____. (1) 110 (2) 210 (3) 0.9 (4) 9 PHY-2023-0101-S1-Q029" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="100">
   <div class="q-header">
     <span class="q-num">Q83</span>
     <span class="q-id">PHY-2023-0101-S1-Q029</span>
@@ -1701,7 +1717,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 100</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q023" data-search="A vessel of depth d is half filled with oil of refractive index n1 and the other half is filled with water of refractive index n2. The apparent depth of this vessel when viewed from above will be- (1) 2d(n1+n2) (2) d(n1+n2) n1+n2 2n1n2 (3) dn1n2 (4) dn1n2 2(n1+n2) (n1+n2) PHY-2023-0101-S1-Q023" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q84</span>
     <span class="q-id">PHY-2023-0101-S1-Q023</span>
@@ -1718,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q029" data-search="From the given transfer characteristic of a transistor in CE configuration, the value of power gain of this configuration is 10x, for RB = 10 kΩ, and RC = 1 kΩ. The value of x is _____. PHY-2023-0101-S1-Q029" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q85</span>
     <span class="q-id">PHY-2023-0101-S1-Q029</span>
@@ -1735,7 +1751,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q002" data-search="The distance travelled by an object in time t is given by s= 2.5t2. The instantaneous speed of the object at t= 5 s will be: PHY-2023-0101-S2-Q002" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q86</span>
     <span class="q-id">PHY-2023-0101-S2-Q002</span>
@@ -1752,7 +1768,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q004" data-search="A vehicle of mass 200 kg is moving along a levelled curved road of radius 70 m with angular velocity of 0.2 rad s−1. The centripetal force acting on the vehicle is: PHY-2023-0101-S2-Q004" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q87</span>
     <span class="q-id">PHY-2023-0101-S2-Q004</span>
@@ -1769,7 +1785,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q007" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: A spherical body of radius ( 5 ± 0.1 ) mm having a particular density is falling through a liquid of constant density. The percentage error in the calculation of its terminal velocity is 4%. Reason R: The terminal velocity of the spherical body falling through the liquid is inversely proportional to its radius. In the light of the above statements, choose the correct answer from the options given below PHY-2023-0101-S2-Q007" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q88</span>
     <span class="q-id">PHY-2023-0101-S2-Q007</span>
@@ -1786,7 +1802,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="15">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q022" data-search="A light rope is wound around a hollow cylinder of mass 5 kg and radius 70 cm. The rope is pulled with a force of 52.5 N. The angular acceleration of the cylinder will be _____ rad s−2. PHY-2023-0101-S2-Q022" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="15">
   <div class="q-header">
     <span class="q-num">Q89</span>
     <span class="q-id">PHY-2023-0101-S2-Q022</span>
@@ -1803,7 +1819,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 15</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q007" data-search="A wire of length L and radius r is clamped rigidly at one end. When the other end of the wire is pulled by a force f, its length increases by l. Another wire of same material of length 2L and radius 2r is pulled by a force 2f. Then the increase in its length will be: PHY-2023-0101-S1-Q007" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q90</span>
     <span class="q-id">PHY-2023-0101-S1-Q007</span>
@@ -1820,7 +1836,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q012" data-search="Two long straight wires P and Q carrying equal current 10 A each were kept parallel to each other at 5 cm distance. Magnitude of magnetic force experienced by 10 cm length of wire P is F1. If distance between wires is halved and currents on them are doubled, force F2 on 10 cm length of wire P will be: PHY-2023-0101-S1-Q012" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q91</span>
     <span class="q-id">PHY-2023-0101-S1-Q012</span>
@@ -1837,7 +1853,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q019" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Photodiodes are preferably operated in reverse bias condition for light intensity measurement. Reason R: The current in the forward bias is more than the current in the reverse bias for a p- n junction diode. In the light of the above statement, choose the correct answer from the options given below: PHY-2023-0101-S1-Q019" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q92</span>
     <span class="q-id">PHY-2023-0101-S1-Q019</span>
@@ -1854,7 +1870,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="12">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q024" data-search="A hole is drilled in a metal sheet. At 27 °C, the diameter of hole is 5 cm. When the sheet is heated to 10−3 177 °C, the change in the diameter of hole is d× cm. The value of d will be _____, if coefficient of linear expansion of the metal is 1.6 × 10−5 / ∘C PHY-2023-0101-S1-Q024" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="12">
   <div class="q-header">
     <span class="q-num">Q93</span>
     <span class="q-id">PHY-2023-0101-S1-Q024</span>
@@ -1871,7 +1887,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 12</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q003" data-search="The velocity-time graph of a body moving in a straight line is shown in figure. The ratio of displacement and distance travelled by the body in time 0 to 10 s is PHY-2023-0101-S2-Q003" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q94</span>
     <span class="q-id">PHY-2023-0101-S2-Q003</span>
@@ -1888,7 +1904,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q008" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: A pendulum clock when taken to Mount Everest becomes fast. Reason R: The value of g (acceleration due to gravity) is less at Mount Everest than its value on the surface of earth. In the light of the above statements, choose the most appropriate answer from the options given below PHY-2023-0101-S2-Q008" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q95</span>
     <span class="q-id">PHY-2023-0101-S2-Q008</span>
@@ -1905,7 +1921,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q010" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion PHY-2023-0101-S2-Q010" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q96</span>
     <span class="q-id">PHY-2023-0101-S2-Q010</span>
@@ -1922,7 +1938,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q011" data-search="A bowl filled with very hot soup cools from 98°C to 86∘C in 2 minutes when the room temperature is 22∘C. 75∘C 69∘C How long it will take to cool from to? PHY-2023-0101-S1-Q011" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q97</span>
     <span class="q-id">PHY-2023-0101-S1-Q011</span>
@@ -1939,7 +1955,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="52">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q029" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: Photodiodes are used in forward bias usually for measuring the light intensity. Reason R: For a junction diode, at applied voltage the current in the forward bias is more than the p −n V current in the reverse bias for |Vz| &gt; ±V ≥|V0| where V0 is the threshold voltage and Vz is the breakdown voltage. In the light of the above statements, choose the correct answer from the options given below (1) Both A and R are true and R is correct (2) Both A and R are true but R is NOT the correct explanation A explanation A (3) A is false but R is true (4) A is true but R is false PHY-2023-0101-S1-Q029" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="52">
   <div class="q-header">
     <span class="q-num">Q98</span>
     <span class="q-id">PHY-2023-0101-S1-Q029</span>
@@ -1956,7 +1972,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 52</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q002" data-search="The distance travelled by a particle is related to time as = 4t2. The velocity of the particle at = 5 s is t x t PHY-2023-0101-S2-Q002" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q99</span>
     <span class="q-id">PHY-2023-0101-S2-Q002</span>
@@ -1973,7 +1989,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q012" data-search="A bicycle tyre is filled with air having pressure of 270 kPa at 27°C. The approximate pressure of the air in the tyre when the temperature increases to 36°C is PHY-2023-0101-S1-Q012" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q100</span>
     <span class="q-id">PHY-2023-0101-S1-Q012</span>
@@ -1990,7 +2006,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="24">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q028" data-search="Which of the following statement is not correct in the case of light emitting diodes? A. It is a heavily doped p-n junction. B. It emits light only when it is forward biased. C. It emits light only when it is reverse biased. D. The energy of the light emitted is equal to or slightly less than the energy gap of the semiconductor used. Choose the correct answer from the options given below: (1) C and D (2) A (3) C (4) B PHY-2023-0101-S1-Q028" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="24">
   <div class="q-header">
     <span class="q-num">Q101</span>
     <span class="q-id">PHY-2023-0101-S1-Q028</span>
@@ -2007,7 +2023,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 24</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="50">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q021" data-search="A horse rider covers half the distance with 5 m s−1 speed. The remaining part of the distance was travelled with speed 10 m s−1 for half the time and with speed 15 m s−1 for other half of the time. The mean speed of the rider averaged over the whole time of motion is x m s−1. The value of x is ______. 7 PHY-2023-0101-S1-Q021" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="50">
   <div class="q-header">
     <span class="q-num">Q102</span>
     <span class="q-id">PHY-2023-0101-S1-Q021</span>
@@ -2024,7 +2040,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 50</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q011" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Efficiency of a reversible heat engine will be highest at temperature of cold reservoir. –273 °C Reason R: The efficiency of Carnot’s engine depends not only on temperature of cold reservoir but it depends on the temperature of hot reservoir too and is given as η = (1 −T2 ) T1 In the light of the above statements, choose the correct answer from the options given below: PHY-2023-0101-S2-Q011" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q103</span>
     <span class="q-id">PHY-2023-0101-S2-Q011</span>
@@ -2041,7 +2057,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q027" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: The nuclear density of nuclides 10 6 56 20 209 can be arranged as 5B, 3Li, 26Fe, 10Ne and 83Bi ρN &gt; ρN &gt; ρN &gt; ρN &gt; ρN Bi Fe Ne B Li 1 Reason R: The radius R of nucleus is related to its mass number A as R = R0 A 3, where R0 is a constant. In the light of the above statement, choose the correct answer from the options given below: (1) Both A and R are true and R is the correct (2) A is false but R is true explanation of A (3) A is true but R is false (4) Both A and R are true but R is NOT the correct explanation of A PHY-2023-0101-S2-Q027" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q104</span>
     <span class="q-id">PHY-2023-0101-S2-Q027</span>
@@ -2058,7 +2074,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q016" data-search="Given below are two statements: One is labelled as Assertion A and the other is labelled as Reason R Assertion A: The beam of electrons shows wave nature and exhibit interference and diffraction. Reason R: Davisson Germer Experimentally verified the wave nature of electrons. In the light of the above statements. Choose the most appropriate answer from the options given below: PHY-2023-0101-S1-Q016" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q105</span>
     <span class="q-id">PHY-2023-0101-S1-Q016</span>
@@ -2075,7 +2091,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q019" data-search="The effect of increase in temperature on the number of electrons in conduction band ( ne) and resistance of a semiconductor will be as: PHY-2023-0101-S1-Q019" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q106</span>
     <span class="q-id">PHY-2023-0101-S1-Q019</span>
@@ -2092,7 +2108,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="60">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q024" data-search="A thin rod having a length of 1 m and area of cross-section 3 × 10−6 m2 is suspended vertically from one end. The rod is cooled from 210°C to 160°C. After cooling, a mass M is attached at the lower end of the rod such that the length of rod again becomes 1 m. Young&#x27;s modulus and coefficient of linear expansion of the rod are 2 × 1011 N m−2 and 2 × 10−5 K−1, respectively. The value of M is ______ kg. (Take g= 10 m s−2 ) PHY-2023-0101-S1-Q024" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="60">
   <div class="q-header">
     <span class="q-num">Q107</span>
     <span class="q-id">PHY-2023-0101-S1-Q024</span>
@@ -2109,7 +2125,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 60</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="48">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q029" data-search="Given below are two statements: Statement I: In a typical transistor, all three regions emitter, base and collector have same doping level. Statement II: in a transistor, collector is the thickest and base is the thinnest segment. In the light of the above statements, choose the most appropriate answer from the options given below. (1) Both Statement I and Statement II are correct (2) Both Statement I and Statement II are incorrect (3) Statement I is incorrect but Statement II is (4) Statement I is correct but Statement II is correct incorrect PHY-2023-0101-S2-Q029" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="48">
   <div class="q-header">
     <span class="q-num">Q108</span>
     <span class="q-id">PHY-2023-0101-S2-Q029</span>
@@ -2126,7 +2142,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 48</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q019" data-search="In the given circuit if the power rating of Zener diode is 10 mW, the value of series resistance Rs to regulate the input unregulated supply is: PHY-2024-0101-S1-Q019" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q109</span>
     <span class="q-id">PHY-2024-0101-S1-Q019</span>
@@ -2143,7 +2159,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q022" data-search="The identical spheres each of mass 2M are placed at the corners of a right angled triangle with mutually perpendicular sides equal to each. Taking point of intersection of these two sides as origin, the 4 m magnitude of position vector of the centre of mass of the system is 4√2 x, where the value of x is ________. PHY-2024-0101-S1-Q022" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q110</span>
     <span class="q-id">PHY-2024-0101-S1-Q022</span>
@@ -2160,7 +2176,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q014" data-search="To measure the temperature coefficient of resistivity α of a semiconductor, an electrical arrangement shown in the figure is prepared. The arm BC is made up of the semiconductor. The experiment is being conducted at 25°C and resistance of the semiconductor arm is 3 mΩ. Arm BC is cooled at a constant rate of 2 °C s−1. If the galvanometer G shows no deflection after 10 s, then α is: PHY-2024-0101-S2-Q014" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q111</span>
     <span class="q-id">PHY-2024-0101-S2-Q014</span>
@@ -2177,7 +2193,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q020" data-search="Conductivity of a photodiode starts changing only if the wavelength of incident light is less than 660 nm. The band gap of photodiode is found to be X eV. The value of X is: 8 (Given h = 6.6 × 10−34 J s, e = 1.6 × 10−19 C) PHY-2024-0101-S2-Q020" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q112</span>
     <span class="q-id">PHY-2024-0101-S2-Q020</span>
@@ -2194,7 +2210,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q017" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Number of photons increases with increase in frequency of light. Reason R: Maximum kinetic energy of emitted electrons increases with the frequency of incident radiation. In the light of the above statements, choose the most appropriate answer from the options given below: PHY-2024-0101-S2-Q017" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q113</span>
     <span class="q-id">PHY-2024-0101-S2-Q017</span>
@@ -2211,7 +2227,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q020" data-search="Which of the diode circuit shows correct biasing used for the measurement of dynamic resistance of p-n junction diode: PHY-2024-0101-S2-Q020" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q114</span>
     <span class="q-id">PHY-2024-0101-S2-Q020</span>
@@ -2228,7 +2244,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="40">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q021" data-search="A bus moving along a straight highway with speed of 72 km/h is brought to halt within 4s after applying the brakes. The distance travelled by the bus during this time (Assume the retardation is uniform) is _____m. PHY-2024-0101-S2-Q021" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="40">
   <div class="q-header">
     <span class="q-num">Q115</span>
     <span class="q-id">PHY-2024-0101-S2-Q021</span>
@@ -2245,7 +2261,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="177">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q023" data-search="Mercury is filled in a tube of radius 2 cm up to a height of 30 cm. The force exerted by mercury on the bottom of the tube is _____ N. (Given, atmospheric pressure = 105Nm−2, density of mercury = 1.36 × 104 kg m− 3, g = 10 m s−2, π = 22 ) 7 PHY-2024-0101-S2-Q023" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="177">
   <div class="q-header">
     <span class="q-num">Q116</span>
     <span class="q-id">PHY-2024-0101-S2-Q023</span>
@@ -2262,7 +2278,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 177</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q019" data-search="The acceptor level of a p-type semiconductor is 6eV. The maximum wavelength of light which can create a hole would be: Given hc = 1242eVnm. PHY-2024-0101-S2-Q019" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q117</span>
     <span class="q-id">PHY-2024-0101-S2-Q019</span>
@@ -2279,7 +2295,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q028" data-search="A square loop PQRS having 10 turns, area 3.6 × 10−3 m2 and resistance 100Ω is slowly and uniformly being pulled out of a uniform magnetic field of magnitude B = 0.5 T as shown. Work done in pulling the loop out of ×10−6 the field in 1.0 s is ______ J. PHY-2024-0101-S1-Q028" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q118</span>
     <span class="q-id">PHY-2024-0101-S1-Q028</span>
@@ -2296,7 +2312,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q012" data-search="Water boils in an electric kettle in 20 minutes after being switched on. Using the same main supply, the length of the heating element should be _____ to _____ times of its initial length if the water is to be boiled in 15 minutes. PHY-2024-0101-S2-Q012" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q119</span>
     <span class="q-id">PHY-2024-0101-S2-Q012</span>
@@ -2313,7 +2329,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q030" data-search="A potential divider circuit is connected with a dc source of 20 V, a light emitting diode of glow in voltage 1.8 V and a zener diode of breakdown voltage of 3.2 V. The length (PR) of the resistive wire is 20 cm. The minimum length of PQ to just glow the LED is _____ cm PHY-2024-0101-S2-Q030" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q120</span>
     <span class="q-id">PHY-2024-0101-S2-Q030</span>
@@ -2330,7 +2346,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q019" data-search="A light emitting diode (LED) is fabricated using GaAs semiconducting material whose band gap is 1.42eV. The wavelength of light emitted from the LED is: PHY-2024-0101-S1-Q019" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q121</span>
     <span class="q-id">PHY-2024-0101-S1-Q019</span>
@@ -2347,7 +2363,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q019" data-search="The I −V characteristics of an electronic device shown in the figure. The device is: PHY-2024-0101-S2-Q019" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q122</span>
     <span class="q-id">PHY-2024-0101-S2-Q019</span>
@@ -2364,7 +2380,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q006" data-search="Given below are two statements: one is labelled as Assertion PHY-2024-0101-S2-Q006" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q123</span>
     <span class="q-id">PHY-2024-0101-S2-Q006</span>
@@ -2381,7 +2397,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q007" data-search="Given below are two statements: one is labelled as Assertion PHY-2024-0101-S2-Q007" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q124</span>
     <span class="q-id">PHY-2024-0101-S2-Q007</span>
@@ -2398,7 +2414,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q020" data-search="Given below are two statements: one is labelled as Assertion PHY-2024-0101-S2-Q020" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q125</span>
     <span class="q-id">PHY-2024-0101-S2-Q020</span>
@@ -2415,7 +2431,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q020" data-search="In the given circuit, the breakdown voltage of the Zener diode is 3.0 V. What is the value of Iz? PHY-2024-0101-S1-Q020" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q126</span>
     <span class="q-id">PHY-2024-0101-S1-Q020</span>
@@ -2432,7 +2448,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q007" data-search="A wire of length L and radius r is clamped at one end. If its other end is pulled by a force F, its length increases by. If the radius of the wire and the applied force both are reduced to half of their original values keeping l original length constant, the increase in length will become: PHY-2024-0101-S2-Q007" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q127</span>
     <span class="q-id">PHY-2024-0101-S2-Q007</span>
@@ -2449,7 +2465,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q007" data-search="Young&#x27;s modules of material of a wire of length L and cross-sectional area A is Y. If the length of the wire is doubled and cross-sectional area is halved then Young&#x27;s modules will be: PHY-2024-0101-S1-Q007" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q128</span>
     <span class="q-id">PHY-2024-0101-S1-Q007</span>
@@ -2466,7 +2482,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q020" data-search="A Zener diode of breakdown voltage 10 V is used as a voltage regulator as shown in the figure. The current through the Zener diode is PHY-2024-0101-S1-Q020" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q129</span>
     <span class="q-id">PHY-2024-0101-S1-Q020</span>
@@ -2483,7 +2499,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="175">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q021" data-search="The displacement and the increase in the velocity of a moving particle in the time interval of to are t (t + 1) s 125 m and 50 m s−1, respectively. The distance travelled by the particle in (t + 2)th s is ___________ m. PHY-2024-0101-S1-Q021" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="175">
   <div class="q-header">
     <span class="q-num">Q130</span>
     <span class="q-id">PHY-2024-0101-S1-Q021</span>
@@ -2500,7 +2516,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 175</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q003" data-search="Three blocks A, B and C are pulled on a horizontal smooth surface by a force of 80 N as shown in figure. The tensions T1 and T2 in the string are respectively: PHY-2024-0101-S2-Q003" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q131</span>
     <span class="q-id">PHY-2024-0101-S2-Q003</span>
@@ -2517,7 +2533,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q020" data-search="Identify the logic operation performed by the given circuit. PHY-2024-0101-S1-Q020" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q132</span>
     <span class="q-id">PHY-2024-0101-S1-Q020</span>
@@ -2534,7 +2550,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q017" data-search="In a photoelectric effect experiment a light of frequency 1.5 times the threshold frequency is made to fall on the surface of photosensitive material. Now if the frequency is halved and intensity is doubled, the number of photo electrons emitted will be: PHY-2024-0101-S2-Q017" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q133</span>
     <span class="q-id">PHY-2024-0101-S2-Q017</span>
@@ -2551,7 +2567,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q009" data-search="Let P be the foot of the perpendicular from the point Q(10, −3, −1) on the line x−3 = y−2 = z+1. Then the 7 −1 −2 area of the right angled triangle PQR, where R is the point (3, −2, 1), is PHY-2025-0101-S1-Q009" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q134</span>
     <span class="q-id">PHY-2025-0101-S1-Q009</span>
@@ -2568,7 +2584,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q027" data-search="Consider the following statements: A. The junction area of solar cell is made very narrow compared to a photo diode. B. Solar cells are not connected with any external bias. C. LED is made of lightly doped p-n junction. D. Increase of forward current results in continuous increase of LED light intensity. E. LEDs have to be connected in forward bias for emission of light. Choose the correct answer from the options given below: (1) B, E Only (2) B, D, E Only (3) A, C Only (4) A, C, E Only PHY-2025-0101-S1-Q027" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q135</span>
     <span class="q-id">PHY-2025-0101-S1-Q027</span>
@@ -2585,7 +2601,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option JEE">
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q001" data-search="Let O be the origin, the point A be z1 = √3 + 2√2i, the point B (z2) be such that √3 |z2| = |z1| and π arg (z2) = arg (z1) + 6. Then PHY-2025-0101-S1-Q001" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option JEE">
   <div class="q-header">
     <span class="q-num">Q136</span>
     <span class="q-id">PHY-2025-0101-S1-Q001</span>
@@ -2602,7 +2618,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option JEE</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q011" data-search="Let A(x, y, z) be a point in xy -plane, which is equidistant from three points (0, 3, 2), (2, 0, 3) and ( 0, 0, 1 ). Let B = (1, 4, −1) and C = (2, 0, −2). Then among the statements (S1): △ABC is an isosceles right angled triangle, and (S2): the area of △ABC is 9√2, 2 PHY-2025-0101-S1-Q011" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q137</span>
     <span class="q-id">PHY-2025-0101-S1-Q011</span>
@@ -2619,7 +2635,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q027" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R Assertion A: A sound wave has higher speed in solids than gases. Reason R: Gases have higher value of Bulk modulus than solids. In the light of the above statements, choose the correct answer from the options given below (1) Both A and R are true but R is NOT the correct (2) A is true but R is false explanation of A (3) A is false but R is true (4) Both A and R are true and R is the correct explanation of A PHY-2025-0101-S1-Q027" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q138</span>
     <span class="q-id">PHY-2025-0101-S1-Q027</span>
@@ -2636,7 +2652,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q030" data-search="Given below are two statements: one is labelled as Assertion (A) and the other is labelled as Reason (R). Assertion (A): Electromagnetic waves carry energy but not momentum. Reason ( R ): Mass of a photon is zero. In the light of the above statements, choose the most appropriate answer from the options given below: (A) (R) (R) (1) Both (A) and (R) are true and (R) is the correct (2) Both and are true but is not the explanation of (A) correct explanation of (A) (3) (A) is false but (R) is true (4) (A) is true but ( R ) is false PHY-2025-0101-S1-Q030" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q139</span>
     <span class="q-id">PHY-2025-0101-S1-Q030</span>
@@ -2653,7 +2669,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2025-0101-S2-Q006" data-search="Let the line meet the axes of and at A and B, respectively. A right angled triangle AMN is x + y = 1 x y inscribed in the triangle OAB, where O is the origin and the points M and N lie on the lines OB and AB, respectively. If the area of the triangle AMN is 4 9 of the area of the triangle OAB and AN: NB = λ: 1, then the sum of all possible value(s) of is: λ PHY-2025-0101-S2-Q006" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q140</span>
     <span class="q-id">PHY-2025-0101-S2-Q006</span>

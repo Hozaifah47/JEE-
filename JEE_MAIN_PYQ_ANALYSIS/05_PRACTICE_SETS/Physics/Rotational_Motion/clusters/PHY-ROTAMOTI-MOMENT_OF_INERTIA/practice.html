@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+<div class="q-card" id="q-PHY-2021-0101-S2-Q024" data-search="A 2 kg steel rod of length 0.6 m is clamped on a table vertically at its lower end and is free to rotate in the vertical plane. The upper end is pushed so that the rod falls under gravity. Ignoring the friction due to clamping at its lower end, the speed of the free end of the rod when it passes through its lowest position is _______m s−1. (Take g= 10 m s−2 ) PHY-2021-0101-S2-Q024" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S2-Q024</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q005" data-search="Four equal masses, m each are placed at the corners of a square of length (l) as shown in the figure. The moment of inertia of the system about an axis passing through A and parallel to DB would be: PHY-2021-0101-S1-Q005" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">PHY-2021-0101-S1-Q005</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q005" data-search="A mass M hangs on a massless rod of length l which rotates at a constant angular frequency. The mass M moves with steady speed in a circular path of constant radius. Assume that the system is in steady circular motion with constant angular velocity ω. The angular momentum of M about point A is LA which lies in the positive z direction and the angular momentum of M about B is LB. The correct statement for this system is: PHY-2021-0101-S1-Q005" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2021-0101-S1-Q005</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q004" data-search="A thin circular ring of mass M and radius r is rotating about its axis with an angular speed ω. Two particles having mass m each are now attached at diametrically opposite points. The angular speed of the ring will become: PHY-2021-0101-S1-Q004" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2021-0101-S1-Q004</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q002" data-search="If the angular velocity of earth&#x27;s spin is increased such that the bodies at the equator start floating, the duration of the day would be approximately: (Take: g = 10 ms−2, the radius of earth, R = 6400 × 103 m, Take π = 3.14 ) PHY-2021-0101-S2-Q002" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">PHY-2021-0101-S2-Q002</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q005" data-search="Consider a uniform wire of mass M and length L. It is bent into a semicircle. Its moment of inertia about a line perpendicular to the plane of the wire passing through the centre is: PHY-2021-0101-S2-Q005" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2021-0101-S2-Q005</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q022" data-search="Two bodies, a ring and a solid cylinder of same material are rolling down without slipping an inclined plane. The radii of the bodies are same. The ratio of velocity of the centre of mass at the bottom of the inclined plane of the ring to that of the cylinder is √x. Then, the value of x is 2 PHY-2021-0101-S2-Q022" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">PHY-2021-0101-S2-Q022</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="200">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q023" data-search="A body rotating with an angular speed of is uniformly accelerated to in The 600 rpm 1800 rpm 10 sec. number of rotations made in the process is PHY-2021-0101-S2-Q023" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="200">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">PHY-2021-0101-S2-Q023</span>
@@ -426,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 200</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q005" data-search="Consider a situation in which a ring, a solid cylinder and a solid sphere roll down on the same inclined plane without slipping. Assume that they start rolling from rest and having identical diameter. The correct statement for this situation is PHY-2021-0101-S1-Q005" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">PHY-2021-0101-S1-Q005</span>
@@ -443,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q024" data-search="The centre of a wheel rolling on a plane surface moves with a speed v0. A particle on the rim of the wheel at the same level as the centre will be moving at a speed Then the value of is √xv0. x. PHY-2021-0101-S1-Q024" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">PHY-2021-0101-S1-Q024</span>
@@ -460,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q003" data-search="Moment of inertia M. I. of four bodies, having same mass and radius, are reported as; I1 = M. I. of thin circular ring about its diameter, I2 = M. I. of circular disc about an axis perpendicular to disc and going through the centre, I3 = M. I. of solid cylinder about its axis and I4 = M. I. of solid sphere about its diameter. Then: PHY-2021-0101-S1-Q003" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">PHY-2021-0101-S1-Q003</span>
@@ -477,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q003" data-search="A circular hole of radius ( a 2 ) is cut out of a circular disc of radius a as shown in figure. The centroid of the remaining circular portion with respect to point O will be: PHY-2021-0101-S2-Q003" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">PHY-2021-0101-S2-Q003</span>
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="8">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q022" data-search="A uniform thin bar of mass 6 kg and length 2.4 meter is bent to make an equilateral hexagon. The moment of inertia about an axis passing through the centre of mass and perpendicular to the plane of hexagon is ___________ ×10−1 kg m2. PHY-2021-0101-S2-Q022" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">PHY-2021-0101-S2-Q022</span>
@@ -511,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q022" data-search="A solid disc of radius and mass is rotating with an angular velocity of, about an axis 20 cm 10 kg 600 rpm normal to its circular plane and passing through its centre of mass. The retarding torque required to bring the disc at rest in 10 s is _________ π × 10−1 N m PHY-2021-0101-S2-Q022" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">PHY-2021-0101-S2-Q022</span>
@@ -528,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="52">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q023" data-search="Consider a badminton racket with length scales as shown in the figure. If the mass of the linear and circular portions of the badminton racket are same ( M ) and the mass of the threads are negligible, the moment of inertia of the racket about an axis perpendicular to the handle and in the plane of the ring at, r distance from the end A of the handle will be ______ Mr2.2 PHY-2021-0101-S1-Q023" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="52">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">PHY-2021-0101-S1-Q023</span>
@@ -545,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 52</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q006" data-search="The solid cylinder of length 80 cm and mass M has a radius of 20 cm. Calculate the density of the material m2 used if the moment of inertia of the cylinder about an axis CD parallel to AB as shown in figure is 2.7 kg. PHY-2021-0101-S2-Q006" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">PHY-2021-0101-S2-Q006</span>
@@ -562,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q005" data-search="Four identical solid spheres each of mass m and radius a are placed with their centres on the four corners of a square of side b. The moment of inertia of the system about one side of square where the axis of rotation is parallel to the plane of the square is: PHY-2021-0101-S1-Q005" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">PHY-2021-0101-S1-Q005</span>
@@ -579,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q007" data-search="A cord is wound round the circumference of wheel of radius r, The axis of the wheel is horizontal and the moment of inertia about it is. A weight is attached to the cord at the end. The weight falls from rest. After I mg falling through a distance h, the square of angular velocity of wheel will be PHY-2021-0101-S2-Q007" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">PHY-2021-0101-S2-Q007</span>
@@ -596,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q005" data-search="Moment of inertia of a square plate of side l about the axis passing through one of the corner and perpendicular to the plane of square plate is given by: Ml2 PHY-2021-0101-S1-Q005" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">PHY-2021-0101-S1-Q005</span>
@@ -613,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q005" data-search="The figure shows two solid discs with radius R and r respectively. If mass per unit area is the same for both, what is the ratio of MI of bigger disc around axis AB (Which is ⊥ to the plane of the disc and passing through its centre) of MI of smaller disc around one of its diameters lying on its plane? Given M is the mass of the larger disc. ( stands for a moment of inertia) MI PHY-2021-0101-S1-Q005" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">PHY-2021-0101-S1-Q005</span>
@@ -630,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q023" data-search="In a uniform magnetic field, the magnetic needle has a magnetic moment 9.85 × 10−2 A m−2 and moment of inertia 5 × 10−6 kg m2. If it performs 10 complete oscillations in 5 seconds then the magnitude of the π2 magnetic field is ____ mT [Take as 9.85] PHY-2021-0101-S1-Q023" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">PHY-2021-0101-S1-Q023</span>
@@ -647,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q005" data-search="A system consists of two identical spheres each of mass 1.5 kg and radius 50 cm at the ends of a light rod. The distance between the centres of the two spheres is 5 m. What will be the moment of inertia of the system about an axis perpendicular to the rod passing through its midpoint? PHY-2021-0101-S2-Q005" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">PHY-2021-0101-S2-Q005</span>
@@ -664,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q003" data-search="A disc with a flat small bottom beaker placed on it at a distance R from its center is revolving about an axis passing through the center and perpendicular to its plane with an angular velocity ω. The coefficient of static friction between the bottom of the beaker and the surface of the disc is μ. The beaker will revolve with the disc if: R≤μg R≤μg PHY-2022-0101-S2-Q003" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">PHY-2022-0101-S2-Q003</span>
@@ -681,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q024" data-search="Moment of Inertia (M.I.) of four bodies having same mass M and radius 2R are as follows I1 = M.I. of solid sphere about its diameter I2 = M.I. of solid cylinder about its axis I3 = M.I. of solid circular disc about its diameter I4 = M.I. of thin circular ring about its diameter If 2I2 + I3 + I4 = xI1 then the value of x will be _____. PHY-2022-0101-S2-Q024" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">PHY-2022-0101-S2-Q024</span>
@@ -698,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q005" data-search="A thin circular ring of mass M and radius R is rotating with a constant angular velocity 2 rad s−1 in a horizontal plane about an axis vertical to its plane and passing through the center of the ring. If two objects each of mass m be attached gently to the opposite ends of a diameter of ring, the ring will then rotate with an angular velocity (in s−1 ). rad PHY-2022-0101-S1-Q005" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">PHY-2022-0101-S1-Q005</span>
@@ -715,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q016" data-search="A metallic conductor of length 1 m rotates in a vertical plane parallel to east-west direction about one of its end with angular velocity 5 rad s−1. If the horizontal component of earth&#x27;s magnetic field is 0.2 × 10−4 T, then emf induced between the two ends of the conductor is PHY-2022-0101-S2-Q016" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">PHY-2022-0101-S2-Q016</span>
@@ -732,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="16">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q028" data-search="A metallic rod of length 20 cm is placed in North-South direction and is moved at a constant speed of 10−3 20 m s−1 towards East. The horizontal component of the Earth&#x27;s magnetic field at that place is 4 × T and the angle of dip is 45°. The emf induced in the rod is _____ mV. PHY-2022-0101-S2-Q028" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="16">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">PHY-2022-0101-S2-Q028</span>
@@ -749,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 16</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q004" data-search="Match List-I with List-II List-I List-II Moment of inertia of solid sphere PHY-2022-0101-S1-Q004" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">PHY-2022-0101-S1-Q004</span>
@@ -766,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="8">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q021" data-search="The moment of inertia of a uniform thin rod about a perpendicular axis passing through one end is I1. The xπ2 same rod is bent into a ring and its moment of inertia about a diameter is I2. If I2 I1 is 3, then the value of x will be ______. PHY-2022-0101-S2-Q021" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">PHY-2022-0101-S2-Q021</span>
@@ -783,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q013" data-search="The induced emf can be produced in a coil by A. moving the coil with uniform speed inside uniform magnetic field B. moving the coil with non uniform speed inside uniform magnetic field C. rotating the coil inside the uniform magnetic field D. changing the area of the coil inside the uniform magnetic field Choose the correct answer from the options given below: PHY-2023-0101-S1-Q013" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">PHY-2023-0101-S1-Q013</span>
@@ -800,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="176">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q023" data-search="Two identical solid spheres each of mass 2 kg and radii 10 cm are fixed at the ends of a light rod. The separation between the centres of the spheres is 40 cm. The moment of inertia of the system about an axis perpendicular to the rod passing through its middle point is______ – 3 m2 × 10 kg. PHY-2023-0101-S1-Q023" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="176">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">PHY-2023-0101-S1-Q023</span>
@@ -817,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 176</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q006" data-search="A ring and a solid sphere rotating about an axis passing through their centres have same radii of gyration. The axis of rotation is perpendicular to plane of ring. The ratio of radius of ring to that of sphere is √2. The value x of x is _____. PHY-2023-0101-S2-Q006" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">PHY-2023-0101-S2-Q006</span>
@@ -834,7 +850,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q007" data-search="The moment of inertia of a semicircular ring about an axis, passing through the center and perpendicular to the 1 MR2 plane of ring, is x, where R is the radius and M is the mass of the semicircular ring. The value of x will be _______. PHY-2023-0101-S1-Q007" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">PHY-2023-0101-S1-Q007</span>
@@ -851,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="30">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q021" data-search="An emf of 0.08 V is induced in a metal rod of length 10 cm held normal to a uniform magnetic field of 0.4 T, when move with a velocity of: (1) 0.5 m s−1 (2) 20 m s−1 (3) 3.2 m s−1 (4) 2 m s−1 PHY-2023-0101-S2-Q021" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="30">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">PHY-2023-0101-S2-Q021</span>
@@ -868,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 30</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q003" data-search="A coin placed on a rotating table just slips when it is placed at a distance of 1 cm from the centre. If the angular velocity of the table is halved, it will just slip when placed at a distance of _____ from the centre: PHY-2023-0101-S1-Q003" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">PHY-2023-0101-S1-Q003</span>
@@ -885,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="35">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q023" data-search="A solid sphere of mass 500 g radius 5 cm is rotated about one of its diameter with angular speed of s−1. If the moment of inertia of the sphere about its tangent is 10−2 times its angular momentum 10 rad x× about the diameter. Then the value of x will be PHY-2023-0101-S1-Q023" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="35">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">PHY-2023-0101-S1-Q023</span>
@@ -902,7 +918,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 35</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q007" data-search="A circular plate is rotating in horizontal plane, about an axis passing through its centre and perpendicular to the plate, with an angular velocity ω. A person sits at the centre having two dumbbells in his hands. When he stretched out his hands, the moment of inertia of the system becomes triple. If E be the initial Kinetic energy of the system, then final Kinetic energy will be E. The value of x is x 104 PHY-2023-0101-S2-Q007" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">PHY-2023-0101-S2-Q007</span>
@@ -919,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q002" data-search="Match List I with List II List-I List-II A Spring constant I [T –1] B Angular speed II [MT –2] C Angular momentum III [ML2] [ML2T –1] D Moment of Inertia IV Choose the correct answer from the options given below: PHY-2023-0101-S1-Q002" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">PHY-2023-0101-S1-Q002</span>
@@ -936,7 +952,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q002" data-search="A disc is rolling without slipping on a surface. The radius of the disc is R. At t = 0, the top most point on the disc is A as shown in figure. When the disc completes half of its rotation, the displacement of point A from its initial position is PHY-2023-0101-S1-Q002" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">PHY-2023-0101-S1-Q002</span>
@@ -953,7 +969,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q007" data-search="A solid sphere is rolling on a horizontal plane without slipping. If the ratio of angular momentum about axis of rotation of the sphere to the total energy of moving sphere is π: 22 then, the value of its angular speed will be _________rad s−1. PHY-2023-0101-S1-Q007" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">PHY-2023-0101-S1-Q007</span>
@@ -970,7 +986,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q022" data-search="A solid sphere and a solid cylinder of same mass and radius are rolling on a horizontal surface without slipping. The ratio of their radius of gyrations respectively (ksph: kcyl) is 2: √x. The value of x is _______. PHY-2023-0101-S1-Q022" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">PHY-2023-0101-S1-Q022</span>
@@ -987,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="110">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q023" data-search="Solid sphere A is rotating about an axis PQ. If the radius of the sphere is 5 cm, then its radius of gyration about PQ will be √x cm. The value of x is _____. PHY-2023-0101-S1-Q023" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="110">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">PHY-2023-0101-S1-Q023</span>
@@ -1004,7 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 110</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q006" data-search="A uniform solid cylinder with radius R and length L has moment of inertia I1, about the axis of cylinder. A concentric solid cylinder of radius R′ = R and length L′ = L is carved out of the original cylinder. If I2 is the 2 2 moment of inertia of the carved out portion of the cylinder then I1 = __________. I2 (Both I1 and I2 are about the axis of the cylinder) PHY-2023-0101-S2-Q006" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">PHY-2023-0101-S2-Q006</span>
@@ -1021,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="100">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q021" data-search="A metallic rod of length L is rotated with an angular speed of ω normal to a uniform magnetic field B about an axis passing through one end of rod as shown in figure. The induced emf will be:. (1) 1 B2L2ω (2) 1 BL2ω 2 1 1 4 (3) 2 BL2ω (4) 4 B2Lω PHY-2023-0101-S2-Q021" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="100">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">PHY-2023-0101-S2-Q021</span>
@@ -1038,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 100</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q007" data-search="ICM is moment of inertia of a circular disc about an axis (CM) passing through its center and perpendicular to the plane of disc. IAB is its moment of inertia about an axis AB perpendicular to plane and parallel to axis CM at a distance 2 from center, where R is the radius of the disc. The ratio of and is. The value of is 3 R IAB ICM x: 9 x ______. PHY-2023-0101-S1-Q007" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">PHY-2023-0101-S1-Q007</span>
@@ -1055,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q007" data-search="If a solid sphere of mass 5 kg and a disc of mass 4 kg have the same radius, then the ratio of moment of inertia of the disc about a tangent in its plane to the moment of inertia of the sphere about its tangent will be x. The 7 value of x is ______. PHY-2023-0101-S2-Q007" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">PHY-2023-0101-S2-Q007</span>
@@ -1072,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q007" data-search="A solid sphere of mass 2 kg is making pure rolling on a horizontal surface with kinetic energy 2240 J. The velocity of centre of mass of the sphere will be ______ m s−1. PHY-2023-0101-S1-Q007" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">PHY-2023-0101-S1-Q007</span>
@@ -1089,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q022" data-search="A thin uniform rod of length 2 m, cross sectional area A and density d is rotated about an axis passing through the centre and perpendicular to its length with angular velocity ω. If value of ω in terms of its rotational kinetic energy is αE Ad, then the value of is ______. E √ α PHY-2023-0101-S1-Q022" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">PHY-2023-0101-S1-Q022</span>
@@ -1106,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q003" data-search="A stone of mass 1 kg is tied to end of a massless string of length 1 m. If the breaking tension of the string is 400 N, then maximum linear velocity, the stone can have without breaking the string, while rotating in horizontal plane, is: PHY-2023-0101-S2-Q003" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">PHY-2023-0101-S2-Q003</span>
@@ -1123,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q007" data-search="Two discs of same mass and different radii are made of different materials such that their thicknesses are 1 cm and 0.5 cm respectively. The densities of materials are in the ratio 3: 5. The moment of inertia of these discs x respectively about their diameters will be in the ratio of 6. The value of x is ______. PHY-2023-0101-S2-Q007" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">PHY-2023-0101-S2-Q007</span>
@@ -1140,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q006" data-search="A ball of mass 0.5 kg is attached to a string of length 50 cm. The ball is rotated on a horizontal circular path about its vertical axis. The maximum tension that the string can bear is 400 N. The maximum possible value of angular velocity of the ball in rad s−1 is,: PHY-2024-0101-S1-Q006" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">PHY-2024-0101-S1-Q006</span>
@@ -1157,7 +1173,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q005" data-search="A disc of radius R and mass M is rolling horizontally without slipping with speed v. It then moves up an inclined smooth surface as shown in figure. The maximum height that the disc can go up the incline is: PHY-2024-0101-S2-Q005" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">PHY-2024-0101-S2-Q005</span>
@@ -1174,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="0">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q028" data-search="A rod of length 60 cm rotates with a uniform angular velocity about its perpendicular bisector, in a uniform magnetic filed 0.5T. The direction of magnetic field is parallel to the axis of rotation. The potential difference between the two ends of the rod is _____V. PHY-2024-0101-S2-Q028" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">PHY-2024-0101-S2-Q028</span>
@@ -1191,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q006" data-search="Ratio of radius of gyration of a hollow sphere to that of a solid cylinder of equal mass, for moment of Inertia √8/x about their diameter axis AB as shown in figure is. The value of x is: PHY-2024-0101-S1-Q006" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">PHY-2024-0101-S1-Q006</span>
@@ -1208,7 +1224,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q004" data-search="A thin circular disc of mass and radius is rotating in a horizontal plane about an axis passing through its M R centre and perpendicular to its plane with angular velocity ω. If another disc of same dimensions but of mass M/2 is placed gently on the first disc co-axially, then the new angular velocity of the system is: PHY-2024-0101-S2-Q004" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">PHY-2024-0101-S2-Q004</span>
@@ -1225,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q022" data-search="A circular table is rotating with an angular velocity of ωrad/s about its axis (see figure). There is a smooth groove along a radial direction on the table. A steel ball is gently placed at a distance of on the groove. All 1 m the surfaces are smooth. If the radius of the table is 3 m, the radial velocity of the ball w.r.t. the table at the time ball leaves the table is x√2ωm/s, where the value of x is _____. PHY-2024-0101-S2-Q022" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">PHY-2024-0101-S2-Q022</span>
@@ -1242,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="100">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q022" data-search="A string is wrapped around the rim of a wheel of moment of inertia 0.40kgm2 and radius 10 cm. The wheel is free to rotate about its axis. Initially the wheel is at rest. The string is now pulled by a force of 40 N. The angular velocity of the wheel after 10 s is xrad/s, where x is _______ PHY-2024-0101-S1-Q022" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="100">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">PHY-2024-0101-S1-Q022</span>
@@ -1259,7 +1275,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 100</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="16">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q022" data-search="Four particles, each of mass 1 kg are placed at four corners of a square of side 2 m. The moment of inertia of the system about an axis perpendicular to its plane and passing through one of its vertex is ______ kg m2. PHY-2024-0101-S1-Q022" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="16">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">PHY-2024-0101-S1-Q022</span>
@@ -1276,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 16</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="250">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q022" data-search="Consider a disc of mass 5 kg, radius 2 m, rotating with angular velocity of 10 rad s−1 about an axis perpendicular to the plane of rotation. An identical disc is kept gently over the rotating disc along the same axis. The energy dissipated so that both the discs continue to rotate together without slipping is _________ J. PHY-2024-0101-S1-Q022" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="250">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">PHY-2024-0101-S1-Q022</span>
@@ -1293,7 +1309,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 250</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="32">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q027" data-search="A ceiling fan having 3 blades of length 80 cm each is rotating with an angular velocity of 1200 rpm. The magnetic field of earth in that region is 0.5 G and angle of dip is 30°. The emf induced across the blades is Nπ × 10−5 V. The value of N is _______. PHY-2024-0101-S1-Q027" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="32">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">PHY-2024-0101-S1-Q027</span>
@@ -1310,7 +1326,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 32</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="24">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q022" data-search="Two discs of moment of inertia I1 = 4 kg m2 and I2 = 2 kg m2 about their central axes &amp; normal to their s−1 s−1 planes, rotating with angular speeds 10 rad &amp; 4 rad respectively are brought into contact face to face with their axe of rotation coincident. The loss in kinetic energy of the system in the process is _________J. PHY-2024-0101-S2-Q022" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="24">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">PHY-2024-0101-S2-Q022</span>
@@ -1327,7 +1343,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 24</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="53">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q021" data-search="Two identical spheres each of mass and radius are fixed at the ends of a light rod so that the 2 kg 50 cm separation between the centers is 150 cm. Then, moment of inertia of the system about an axis perpendicular to the rod and passing through its middle point is x kg m2, where the value of x is 20 PHY-2024-0101-S2-Q021" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="53">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">PHY-2024-0101-S2-Q021</span>
@@ -1344,7 +1360,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 53</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q028" data-search="A uniform circular disc of radius &#x27; R &#x27; and mass &#x27; M &#x27; is rotating about an axis perpendicular to its plane and passing through its centre. A small circular part of radius R/2 is removed from the original disc as shown in the figure. Find the moment of inertia of the remaining part of the original disc about the axis as given above. (1) 7 MR2 (2) 9 MR2 32 32 (3) 17 MR2 (4) 13 MR2 32 32 PHY-2025-0101-S1-Q028" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">PHY-2025-0101-S1-Q028</span>
@@ -1361,7 +1377,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2025-0101-S2-Q005" data-search="A rod of length eight units moves such that its ends A and B always lie on the lines x −y + 2 = 0 and y + 2 = 0, respectively. If the locus of the point P, that divides the rod AB internally in the ratio 2: 1 is 9 (x2 + αy2 + βxy + γx + 28y) −76 = 0, then α −β −γ is equal to: PHY-2025-0101-S2-Q005" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">PHY-2025-0101-S2-Q005</span>
@@ -1378,7 +1394,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q027" data-search="A coil of area A and N turns is rotating with angular velocity ω in a uniform magnetic field about an axis perpendicular to. Magnetic flux φ and induced emf ε across it, at an instant when is parallel to the plane of coil, are: (1) φ = AB, ε = 0 (2) φ = 0, ε = 0 (3) φ = 0, ε = NABω (4) φ = AB, ε = NABω PHY-2025-0101-S1-Q027" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">PHY-2025-0101-S1-Q027</span>

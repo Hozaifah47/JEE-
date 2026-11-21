@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -284,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -298,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(69 questions)</span>
     &nbsp;<a href="clusters/PHY-WORKENER-WORK_DONE_VARIABLE/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="500">
+  <div class="q-card" id="q-PHY-2021-0101-S2-Q021" data-search="The average translational kinetic energy of gas molecules at _________∘C becomes equal to the of an N2 K. E. electron accelerated from rest through a potential difference of 0.1 volt. (Given kB= 1.38 × 10−23 J K−1 (Fill the nearest integer). PHY-2021-0101-S2-Q021" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="500">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S2-Q021</span>
@@ -315,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 500</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q011" data-search="A charge is moving → distance in the magnetic field →. Find the value of work done by →. Q d l B B PHY-2021-0101-S2-Q011" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">PHY-2021-0101-S2-Q011</span>
@@ -332,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q003" data-search="A boy is rolling a 0.5 kg ball on the frictionless floor with the speed of 20 m s−1. The ball gets deflected by an obstacle on the way. After deflection it moves with 5% of its initial kinetic energy. What is the speed of the ball now? PHY-2021-0101-S1-Q003" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2021-0101-S1-Q003</span>
@@ -349,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q005" data-search="If the kinetic energy of a moving body becomes four times its initial kinetic energy, then the percentage change in its momentum will be: PHY-2021-0101-S2-Q005" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2021-0101-S2-Q005</span>
@@ -366,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q004" data-search="A porter lifts a heavy suitcase of mass 80 kg and at the destination lowers it down by a distance of 80 cm with a constant velocity. Calculate the work done by the porter in lowering the suitcase. (take g = 9.8 ms−2 ) PHY-2021-0101-S1-Q004" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">PHY-2021-0101-S1-Q004</span>
@@ -383,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q018" data-search="A nucleus with mass number 184 initially at rest emits an α− particle. If the Q value of the reaction is 5.5 MeV, calculate the kinetic energy of the α− particle. PHY-2021-0101-S1-Q018" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2021-0101-S1-Q018</span>
@@ -400,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="50">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q023" data-search="In a certain thermodynamical process, the pressure of a gas depends on its volume as kV 3. The work done when the temperature changes from 100 °C to 300 °C will be xnR where n denotes number of moles of a gas find x; PHY-2021-0101-S1-Q023" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="50">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">PHY-2021-0101-S1-Q023</span>
@@ -417,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 50</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="450">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q021" data-search="A force of F = (5y + 20)ˆj N acts on a particle. The work done by this force when the particle is moved from y = 0 m to y = 10 m is ________ J. PHY-2021-0101-S2-Q021" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="450">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">PHY-2021-0101-S2-Q021</span>
@@ -434,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 450</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="40">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q022" data-search="A uniform chain of length 3 m and mass 3 kg overhangs a smooth table with 2 m laying on the table. If K is the kinetic energy of the chain in J as it completely slips off the table, then the value of K is (Take g = 10 m s−2) PHY-2021-0101-S1-Q022" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="40">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">PHY-2021-0101-S1-Q022</span>
@@ -451,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q017" data-search="The de-Broglie wavelength of a particle having kinetic energy E is λ. How much extra energy must be given to this particle so that the de-Broglie wavelength reduces to 75% of the initial value? PHY-2021-0101-S2-Q017" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">PHY-2021-0101-S2-Q017</span>
@@ -468,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q013" data-search="Two ions of masses 4 amu and 16 amu have charges +2 e and +3 e respectively. These ions pass through the region of the constant perpendicular magnetic field. The kinetic energy of both ions is the same. Then: PHY-2021-0101-S1-Q013" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">PHY-2021-0101-S1-Q013</span>
@@ -485,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q007" data-search="Two discs have moments of intertia I1 and I2 about their respective axes perpendicular to the plane and passing through the centre. They are rotating with angular speeds, ω1 and ω2 respectively and are brought into contact face to face with their axes of rotation coaxial. The loss in kinetic energy of the system in the process is given by: I1I2 −ω2)2 (ω1−ω2)2 PHY-2021-0101-S2-Q007" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">PHY-2021-0101-S2-Q007</span>
@@ -502,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="9">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q024" data-search="In the given figure, two wheels P and Q are connected by a belt B. The radius of P is three times that of Q. In the case of the same rotational kinetic energy, the ratio of rotational inertias ( I1 ) will be x: 1. The value of I2 x will be ______. PHY-2021-0101-S2-Q024" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="9">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">PHY-2021-0101-S2-Q024</span>
@@ -519,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 9</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q022" data-search="A block moving horizontally on a smooth surface with a speed of 40 m s−1 splits into two equal parts. If one of the parts moves at 60 m s−1 in the same direction, then the fractional change in the kinetic energy will be x: 4 where x = ________. PHY-2021-0101-S1-Q022" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">PHY-2021-0101-S1-Q022</span>
@@ -536,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q005" data-search="A particle experiences a variable force F = (4xˆi + 3y2ˆj) in a horizontal x −y plane. Assume distance in meters and force is newton. If the particle moves from point (1, 2) to point (2, 3) in the x −y plane, then Kinetic Energy changes by: PHY-2022-0101-S1-Q005" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">PHY-2022-0101-S1-Q005</span>
@@ -553,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q008" data-search="A Carnot engine takes 5000 kcal of heat from a reservoir at 727°C and gives heat to a sink at 127°C. The work done by the engine is PHY-2022-0101-S2-Q008" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">PHY-2022-0101-S2-Q008</span>
@@ -570,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q012" data-search="A long cylindrical volume contains a uniformly distributed charge of density ρ. The radius of cylindrical volume is R. A charge particle (q) revolves around the cylinder in a circular path. The kinetic energy of the particle is: PHY-2022-0101-S2-Q012" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">PHY-2022-0101-S2-Q012</span>
@@ -587,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q016" data-search="A proton, a deuteron and an α -particle with same kinetic energy enter into a uniform magnetic field at right angle to magnetic field. The ratio of the radii of their respective circular paths is: PHY-2022-0101-S2-Q016" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">PHY-2022-0101-S2-Q016</span>
@@ -604,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q003" data-search="Arrange the four graphs in descending order of total work done; where W1, W2, W3 and W4 are the work done corresponding to figure a, b, c and d respectively. PHY-2022-0101-S2-Q003" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">PHY-2022-0101-S2-Q003</span>
@@ -621,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q004" data-search="A solid spherical ball is rolling on a frictionless horizontal plane surface about its axis of symmetry. The ratio of rotational kinetic energy of the ball to its total kinetic energy is PHY-2022-0101-S2-Q004" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">PHY-2022-0101-S2-Q004</span>
@@ -638,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q007" data-search="A flask contains argon and oxygen in the ratio of 3: 2 in mass and the mixture is kept at 27°C. The ratio of their average kinetic energy per molecule respectively PHY-2022-0101-S2-Q007" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">PHY-2022-0101-S2-Q007</span>
@@ -655,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q018" data-search="An α particle and a carbon 12 atom has same kinetic energy K. The ratio of their de-Broglie wavelengths (λα: λC12) is PHY-2022-0101-S1-Q018" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">PHY-2022-0101-S1-Q018</span>
@@ -672,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q029" data-search="A deuteron and a proton moving with equal kinetic energy enter into to a uniform magnetic field at right angle to the field. If and are the radii of their circular paths respectively, then the ratio rd will be where rd rp rp √x: 1 x is _____. PHY-2022-0101-S2-Q029" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">PHY-2022-0101-S2-Q029</span>
@@ -689,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="10">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q028" data-search="A singly ionized magnesium atom (A = 24) ion is accelerated to kinetic energy 5 keV, and is projected perpendicularly into a magnetic field of the magnitude 0.5 T. The radius of path formed will be _____ cm. B PHY-2022-0101-S1-Q028" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="10">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">PHY-2022-0101-S1-Q028</span>
@@ -706,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 10</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q005" data-search="A particle of mass 500 g is moving in a straight line with velocity v = bx 2. The work done by the net force during its displacement from x = 0 to x = 4 m is (Take b = 0.25 m −3 s−1 ). 2 PHY-2022-0101-S1-Q005" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">PHY-2022-0101-S1-Q005</span>
@@ -723,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q008" data-search="A sample of gas at temperature T is adiabatically expanded to double its volume. The work done by the gas in the process is given, (given 3 2): γ= PHY-2023-0101-S1-Q008" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">PHY-2023-0101-S1-Q008</span>
@@ -740,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q009" data-search="The average kinetic energy of a molecule of the gas is PHY-2023-0101-S1-Q009" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">PHY-2023-0101-S1-Q009</span>
@@ -757,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="40">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q021" data-search="A small particle moves to position 5 ^i−2 ^j+ ^k from its initial position 2 ^i+ 3 ^j−4 ^k under the action of force ^i+ ^j+ ^k 5 2 7 N. The value of work done will be ______ J. PHY-2023-0101-S1-Q021" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="40">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">PHY-2023-0101-S1-Q021</span>
@@ -774,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q016" data-search="The kinetic energy of an electron, α- particle and a proton are given as 4K, 2K and K respectively. The de- Broglie wavelength associated with electron ( λe), α- particle ( λα) and the proton (λp) are as follows: PHY-2023-0101-S1-Q016" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">PHY-2023-0101-S1-Q016</span>
@@ -791,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="375">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q021" data-search="A proton with a kinetic energy of 2.0 eV moves into a region of uniform magnetic field of magnitude π 2 × 10−3 T. The angle between the direction of magnetic field and velocity of proton is 60o. The pitch of the helical path taken by the proton is ____. (Take, mass of proton 10−27 and charge on proton cm = 1.6 × kg = 1.6 × 10−19 C ). PHY-2023-0101-S2-Q021" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="375">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">PHY-2023-0101-S2-Q021</span>
@@ -808,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 375</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q006" data-search="The momentum of a body is increased by 50%. The percentage increase in the kinetic energy of the body is_ _______%. PHY-2023-0101-S1-Q006" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">PHY-2023-0101-S1-Q006</span>
@@ -825,7 +841,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q005" data-search="A body of mass is moving with a momentum of s−1. Now a force of acts on the body in the 5 kg 10 kg m 2 N direction of its motion for 5 s. The increase in the Kinetic energy of the body is _____ J. PHY-2023-0101-S2-Q005" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">PHY-2023-0101-S2-Q005</span>
@@ -842,7 +858,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q012" data-search="The temperature at which the kinetic energy of oxygen molecules becomes double than its value at 27°C is PHY-2023-0101-S2-Q012" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">PHY-2023-0101-S2-Q012</span>
@@ -859,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="245">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q021" data-search="A closed circular tube of average radius cm, whose inner walls are rough, is kept in vertical plane. A block 15 of mass 1 kg just fit inside the tube. The speed of block is 22 m s−1, when it is introduced at the top of tube. After completing five oscillations, the block stops at the bottom region of tube. The work done by the tube on the block is ________ J. (Given s−2). g= 10 m 1 PHY-2023-0101-S1-Q021" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="245">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">PHY-2023-0101-S1-Q021</span>
@@ -876,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 245</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q009" data-search="The variation of kinetic energy (KE) of a particle executing simple harmonic motion with the displacement (x) starting from mean position to extreme position (A) is given by PHY-2023-0101-S1-Q009" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">PHY-2023-0101-S1-Q009</span>
@@ -893,7 +909,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="32">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q022" data-search="A → ^i force F= 2 + 3x acts on a particle in the x direction where F is in Newton and x is in meter. The work done by this force during a displacement from x = 0 to x= 4 m is _____ J. PHY-2023-0101-S1-Q022" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="32">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">PHY-2023-0101-S1-Q022</span>
@@ -910,7 +926,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 32</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q027" data-search="The ratio of the de-Broglie wavelengths of proton and electron having same kinetic energy: (Assume mp = me × 1849 ) (1) 1: 43 (2) 1: 30 (3) (4) 1: 62 2: 43 PHY-2023-0101-S2-Q027" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">PHY-2023-0101-S2-Q027</span>
@@ -927,7 +943,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q004" data-search="Given below are two statements: Statement I: A truck and a car moving with same kinetic energy are brought to rest by applying breaks which provide equal retarding forces. Both come to rest in equal distance. Statement II: A car moving towards east takes a turn and moves towards north, the speed remains unchanged. The acceleration of the car is zero. In the light of given statements, choose the most appropriate answer from the options given below PHY-2023-0101-S1-Q004" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">PHY-2023-0101-S1-Q004</span>
@@ -944,7 +960,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q006" data-search="For rolling spherical shell, the ratio of rotational kinetic energy and total kinetic energy is x. The value of x is _____. 5 PHY-2023-0101-S1-Q006" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">PHY-2023-0101-S1-Q006</span>
@@ -961,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q004" data-search="A body of mass (5 ± 0.5) kg is moving with a velocity of (20 ± 0.4) m s−1. Its kinetic energy will be PHY-2023-0101-S1-Q004" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">PHY-2023-0101-S1-Q004</span>
@@ -978,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q014" data-search="At a given point of time the value of displacement of a simple harmonic oscillator is given as y = A cos(30°). 10x If amplitude is 40 cm and kinetic energy at that time is 200 J, the value of force constant 1.0 × N m–1. The value of x is _____. PHY-2023-0101-S1-Q014" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">PHY-2023-0101-S1-Q014</span>
@@ -995,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q008" data-search="A thermodynamic system is taken through cyclic process. The total work done in the process is: PHY-2023-0101-S1-Q008" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">PHY-2023-0101-S1-Q008</span>
@@ -1012,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="40">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q022" data-search="A spherical body of mass 2 kg starting from rest acquires a kinetic energy of 10000 J at the end of 5th second. The force acted on the body is _____ N. PHY-2023-0101-S1-Q022" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="40">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">PHY-2023-0101-S1-Q022</span>
@@ -1029,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="44">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q026" data-search="An α particle, a proton and an electron have the same kinetic energy. Which one of the following is correct in case of their de-Broglie wavelength: (1) λα &gt; λp &gt; λe (2) λα &lt; λp &lt; λe (3) = = (4) &gt; &lt; λα λp λe λα λp λe PHY-2023-0101-S2-Q026" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="44">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">PHY-2023-0101-S2-Q026</span>
@@ -1046,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 44</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q003" data-search="A stone is projected at angle 30° to the horizontal. The ratio of kinetic energy of the stone at point of projection to its kinetic energy at the highest point of flight will be: PHY-2023-0101-S1-Q003" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">PHY-2023-0101-S1-Q003</span>
@@ -1063,7 +1079,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q012" data-search="A flask contains hydrogen and oxygen in the ratio of 2: 1 by mass at temperature 27 °C. The ratio of average kinetic energy per molecule of hydrogen and oxygen respectively is: PHY-2023-0101-S2-Q012" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">PHY-2023-0101-S2-Q012</span>
@@ -1080,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q022" data-search="A lift of mass M= 500 kg is descending with speed of 2 m s−1. Its supporting cable begins to slip thus allowing it to fall with a constant acceleration of 2 m s−2. The kinetic energy of the lift at the end of fall through to a distance of will be ______ kJ. 6 m PHY-2023-0101-S1-Q022" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">PHY-2023-0101-S1-Q022</span>
@@ -1097,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="10">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q023" data-search="A solid sphere of mass 1 kg rolls without slipping on a plane surface. Its kinetic energy is 7 × 10−3 J. The speed of the centre of mass of the sphere is ______ cm s−1. PHY-2023-0101-S1-Q023" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="10">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">PHY-2023-0101-S1-Q023</span>
@@ -1114,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 10</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q008" data-search="A sample of gas at temperature T is adiabatically expanded to double its volume. Adiabatic constant for the gas is γ = 3/2. The work done by the gas in the process is: (μ = 1 mole) PHY-2024-0101-S2-Q008" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">PHY-2024-0101-S2-Q008</span>
@@ -1131,7 +1147,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q005" data-search="A body of mass 50 kg is lifted to a height of 20 m from the ground in the two different ways as shown in the figures. The ratio of work done against the gravity in both the respective cases, will be: PHY-2024-0101-S1-Q005" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">PHY-2024-0101-S1-Q005</span>
@@ -1148,7 +1164,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q022" data-search="A hollow sphere is rolling on a plane surface about its axis of symmetry. The ratio of rotational kinetic energy to its total kinetic energy is x. The value of is _____. 5 x PHY-2024-0101-S2-Q022" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">PHY-2024-0101-S2-Q022</span>
@@ -1165,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q005" data-search="A bullet of mass 50 g is fired with a speed 100 m/s on a plywood and emerges with 40 m/s. The percentage loss of kinetic energy is: PHY-2024-0101-S1-Q005" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">PHY-2024-0101-S1-Q005</span>
@@ -1182,7 +1198,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q006" data-search="Four particles A, B, C, D of mass m, m, 2m, 4m, have same momentum, respectively. The particle with maximum kinetic energy is: 2 PHY-2024-0101-S1-Q006" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">PHY-2024-0101-S1-Q006</span>
@@ -1199,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q007" data-search="To project a body of mass m from earth&#x27;s surface to infinity, the required kinetic energy is (assume, the radius of earth is RE, g = acceleration due to gravity on the surface of earth): PHY-2024-0101-S1-Q007" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">PHY-2024-0101-S1-Q007</span>
@@ -1216,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q005" data-search="When kinetic energy of a body becomes 36 times of its original value, the percentage increase in the momentum of the body will be: PHY-2024-0101-S2-Q005" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">PHY-2024-0101-S2-Q005</span>
@@ -1233,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="100">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q027" data-search="A coil having 100 turns, area of 10−3 m2, carrying current of is placed in uniform magnetic field of 5 × 1 mA 0.20 T such a way that plane of coil is perpendicular to the magnetic field. The work done in turning the coil through 90∘ is _______ μJ. PHY-2024-0101-S2-Q027" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="100">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">PHY-2024-0101-S2-Q027</span>
@@ -1250,7 +1266,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 100</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q004" data-search="A particle of mass m moves on a straight line with its velocity increasing with distance according to the equation v = α√x, where α is a constant. The total work done by all the forces applied on the particle during its displacement from x = 0 to x = d, will be: PHY-2024-0101-S1-Q004" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">PHY-2024-0101-S1-Q004</span>
@@ -1267,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q008" data-search="A sample of 1 mole gas at temperature is adiabatically expanded to double its volume. If adiabatic constant T for the gas is γ = 3, then the work done by the gas in the process is: 2 PHY-2024-0101-S1-Q008" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">PHY-2024-0101-S1-Q008</span>
@@ -1284,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q007" data-search="A real gas within a closed chamber at 27∘C undergoes the cyclic process as shown in figure. The gas obeys PV 3 = RT equation for the path A to B. The net work done in the complete cycle is (assuming R = 8 J/molK ): PHY-2024-0101-S2-Q007" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">PHY-2024-0101-S2-Q007</span>
@@ -1301,7 +1317,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="58">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q022" data-search="A force (3x2 + 2x −5)N displaces a body from x = 2 m to x = 4 m. Work done by this force is ________ J. PHY-2024-0101-S2-Q022" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="58">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">PHY-2024-0101-S2-Q022</span>
@@ -1318,7 +1334,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 58</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q009" data-search="The average kinetic energy of a monatomic molecule is 0.414 eV at temperature: (Use KB = 1.38 × 10−23 J mol−1 K−1 ) PHY-2024-0101-S1-Q009" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">PHY-2024-0101-S1-Q009</span>
@@ -1335,7 +1351,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q009" data-search="The total kinetic energy of 1 mole of oxygen at 27°C is: mol−1 K−1 [Use universal gas constant (R) = 8.31 J ] PHY-2024-0101-S2-Q009" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">PHY-2024-0101-S2-Q009</span>
@@ -1352,7 +1368,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q008" data-search="A thermodynamic system is taken from an original state A to an intermediate state B by a linear process as shown in the figure. Its volume is then reduced to the original value from B to C by an isobaric process. The total work done by the gas from A to B and B to C would be: PHY-2024-0101-S1-Q008" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">PHY-2024-0101-S1-Q008</span>
@@ -1369,7 +1385,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="9">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q024" data-search="When the displacement of a simple harmonic oscillator is one third of its amplitude, the ratio of total energy to the kinetic energy is x 8, where x = _________. PHY-2024-0101-S1-Q024" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="9">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">PHY-2024-0101-S1-Q024</span>
@@ -1386,7 +1402,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 9</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q008" data-search="A small liquid drop of radius R is divided into 27 identical liquid drops. If the surface tension is T, then the work done in the process will be: PHY-2024-0101-S2-Q008" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">PHY-2024-0101-S2-Q008</span>
@@ -1403,7 +1419,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q007" data-search="An artillery piece of mass M1 fires a shell of mass M2 horizontally. Instantaneously after the firing, the ratio of kinetic energy of the artillery and that of the shell is: PHY-2024-0101-S1-Q007" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">PHY-2024-0101-S1-Q007</span>
@@ -1420,7 +1436,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q011" data-search="The parameter that remains the same for molecules of all gases at a given temperature is: PHY-2024-0101-S1-Q011" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">PHY-2024-0101-S1-Q011</span>
@@ -1437,7 +1453,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q022" data-search="A solid circular disc of mass 50 kg rolls along a horizontal floor so that its center of mass has a speed of 0.4 m s−1. The absolute value of work done on the disc to stop it is ______ J. PHY-2024-0101-S1-Q022" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">PHY-2024-0101-S1-Q022</span>
@@ -1454,7 +1470,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-PHY-2025-0101-S2-Q027" data-search="A ball having kinetic energy KE, is projected at an angle of 60∘ from the horizontal. What will be the kinetic energy of ball at the highest point of its flight? (1) (KE) (2) (KE) 8 2 (3) (KE) (4) (KE) 16 4 PHY-2025-0101-S2-Q027" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">PHY-2025-0101-S2-Q027</span>
@@ -1478,7 +1494,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(36 questions)</span>
     &nbsp;<a href="clusters/PHY-WORKENER-CONSERVATION_OF_ENERGY/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="16">
+  <div class="q-card" id="q-PHY-2021-0101-S2-Q022" data-search="An engine is attached to a wagon through a shock absorber of length 1.5 m. The system with a total mass of 40, 000 kg is moving with a speed of 72 km h−1 when the brakes are applied to bring it to rest. In the process of the system being brought to rest, the spring of the shock absorber gets compressed by 1.0 m. If 90% of energy of the wagon is lost due to friction, the spring constant is _________ × 105 N m−1. PHY-2021-0101-S2-Q022" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="16">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">PHY-2021-0101-S2-Q022</span>
@@ -1495,7 +1511,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 16</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q011" data-search="For what value of displacement the kinetic energy and potential energy of a simple harmonic oscillation become equal? PHY-2021-0101-S1-Q011" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">PHY-2021-0101-S1-Q011</span>
@@ -1512,7 +1528,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q021" data-search="In a spring gun having spring constant 100 N m−1 a small ball B of mass 100 g is put in its barrel (as shown in figure) by compressing the spring through 0.05 m. There should be a box placed at a distance d on the ground so that the ball falls in it. If the ball leaves the gun horizontally at a height of 2 m above the ground. The value of d is m. s−2) (g = 10 m PHY-2021-0101-S1-Q021" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">PHY-2021-0101-S1-Q021</span>
@@ -1529,7 +1545,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q003" data-search="The motion of a mass on a spring, with spring constant K is as shown in figure. √K The equation of motion is given by, x(t) = A sin ωt+B cos ωt with ω = m. Suppose that at time = 0, the position of mass is x(0) and velocity v(0), then its displacement can also be t represented as x(t) = C cos(ωt −φ), where C and φ are PHY-2021-0101-S1-Q003" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">PHY-2021-0101-S1-Q003</span>
@@ -1546,7 +1562,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q002" data-search="If two similar springs each of spring constant K1 are joined in series, the new spring constant and time period would be changed by a factor: 1 2√2 1 √2 PHY-2021-0101-S1-Q002" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">PHY-2021-0101-S1-Q002</span>
@@ -1563,7 +1579,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="243">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q026" data-search="27 similar drops of mercury are maintained at 10 V each. All these spherical drops combine into a single big drop. The potential energy of the bigger drop is ___________ times that of a smaller drop. PHY-2021-0101-S2-Q026" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="243">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">PHY-2021-0101-S2-Q026</span>
@@ -1580,7 +1596,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 243</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q009" data-search="The variation of displacement with time of a particle executing free simple harmonic motion is shown in the figure. The potential energy U(x) versus time (t) plot of the particle is correctly shown in figure: PHY-2021-0101-S1-Q009" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">PHY-2021-0101-S1-Q009</span>
@@ -1597,7 +1613,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q023" data-search="A body of mass (2M) splits into four masses {m, M −m, m, M −m}, which are rearranged to form a square as shown in the figure. The ratio of M m for which, the gravitational potential energy of the system becomes maximum is x: 1. The value of x is ________. KW−1 PHY-2021-0101-S1-Q023" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">PHY-2021-0101-S1-Q023</span>
@@ -1614,7 +1630,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q004" data-search="Given below is the plot of a potential energy function U(x) for a system, in which a particle is in one dimensional motion, while a conservative force F(x) acts on it. Suppose that Emech = 8 J, the incorrect statement for this system is: PHY-2021-0101-S2-Q004" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q78</span>
     <span class="q-id">PHY-2021-0101-S2-Q004</span>
@@ -1631,7 +1647,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q024" data-search="A particle of mass 1 kg is hanging from a spring of force constant 100 N m−1. The mass is pulled slightly downward and released so that it executes free simple harmonic motion with time period T. The time when the kinetic energy and potential energy of the system will become equal, is T. The value of n is ________. n PHY-2021-0101-S1-Q024" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q79</span>
     <span class="q-id">PHY-2021-0101-S1-Q024</span>
@@ -1648,7 +1664,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q011" data-search="For a body executing S.H.M.: PHY-2021-0101-S2-Q011" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q80</span>
     <span class="q-id">PHY-2021-0101-S2-Q011</span>
@@ -1665,7 +1681,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q004" data-search="Potential energy as a function of r is given by U = r10 A −B r5, where r is the interatomic distance, A and B are positive constants. The equilibrium distance between the two atoms will be: PHY-2022-0101-S2-Q004" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q81</span>
     <span class="q-id">PHY-2022-0101-S2-Q004</span>
@@ -1682,7 +1698,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q009" data-search="Two massless springs with spring constants and, carry and masses at their free ends. These 2k 9k 50 g 100 g two masses oscillate vertically such that their maximum velocities are equal. Then, the ratio of their respective amplitudes will be: PHY-2022-0101-S2-Q009" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q82</span>
     <span class="q-id">PHY-2022-0101-S2-Q009</span>
@@ -1699,7 +1715,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q020" data-search="In Bohr&#x27;s atomic model of hydrogen, let K, P and E are the kinetic energy, potential energy and total energy of the electron respectively. Choose the correct option when the electron undergoes transitions to a higher level: PHY-2022-0101-S2-Q020" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q83</span>
     <span class="q-id">PHY-2022-0101-S2-Q020</span>
@@ -1716,7 +1732,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="600">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q023" data-search="A block moving at a speed of ms−1 compresses a spring through a distance when its 0.5 kg 12 30 cm speed is halved. The spring constant of the spring will be _____ Nm−1 PHY-2022-0101-S1-Q023" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="600">
   <div class="q-header">
     <span class="q-num">Q84</span>
     <span class="q-id">PHY-2022-0101-S1-Q023</span>
@@ -1733,7 +1749,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 600</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q005" data-search="One end of a massless spring of spring constant k and natural length l0 is fixed while the other end is connected to a small object of mass m lying on a frictionless table. The spring remains horizontal on the table. If the object is made to rotate at an angular velocity ω about an axis passing trough fixed end, then the elongation of the spring will be PHY-2022-0101-S2-Q005" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q85</span>
     <span class="q-id">PHY-2022-0101-S2-Q005</span>
@@ -1750,7 +1766,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q007" data-search="Four spheres each of mass m form a square of side d (as shown in figure). A fifth sphere of mass M is situated at the centre of square. The total gravitational potential energy of the system is PHY-2022-0101-S2-Q007" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q86</span>
     <span class="q-id">PHY-2022-0101-S2-Q007</span>
@@ -1767,7 +1783,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q004" data-search="Water falls from a 40 m high dam at the rate of 9 × 104 kg per hour. Fifty percentage of gravitational potential energy can be converted into electrical energy. Using this hydro electric energy number of 100 W lamps, that can be lit, is (Take g = 10 ms−2 ) PHY-2022-0101-S2-Q004" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q87</span>
     <span class="q-id">PHY-2022-0101-S2-Q004</span>
@@ -1784,7 +1800,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q024" data-search="The amplitude of a particle executing SHM is 3 cm. The displacement at which its kinetic energy will be 25% more than the potential energy is: ______ cm. PHY-2023-0101-S1-Q024" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q88</span>
     <span class="q-id">PHY-2023-0101-S1-Q024</span>
@@ -1801,7 +1817,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q004" data-search="A small particle of mass m moves in such a way that its potential energy U = 1 mω2r2 where ω is constant and 2 r is the distance of the particle from origin. Assuming Bohr’s quantization of momentum and circular orbit, the radius of nth orbit will be proportional to PHY-2023-0101-S2-Q004" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q89</span>
     <span class="q-id">PHY-2023-0101-S2-Q004</span>
@@ -1818,7 +1834,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q008" data-search="Given below are two statements: Statement I: If E be the total energy of a satellite moving around the earth, then its potential energy will be E. 2 Statement II: The kinetic energy of a satellite revolving in an orbit is equal to the half the magnitude of total energy E. In the light of the above statements, choose the most appropriate answer from the options given below. PHY-2023-0101-S1-Q008" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q90</span>
     <span class="q-id">PHY-2023-0101-S1-Q008</span>
@@ -1835,7 +1851,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q007" data-search="Two satellites A and B move round the earth in the same orbit. The mass of A is twice the mass of B. The quantity which is same for the two satellites will be PHY-2023-0101-S1-Q007" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q91</span>
     <span class="q-id">PHY-2023-0101-S1-Q007</span>
@@ -1852,7 +1868,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q014" data-search="A particle is executing simple harmonic motion (SHM). The ratio of potential energy and kinetic energy of the particle when its displacement is half of its amplitude will be PHY-2023-0101-S1-Q014" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q92</span>
     <span class="q-id">PHY-2023-0101-S1-Q014</span>
@@ -1869,7 +1885,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q010" data-search="The elastic potential energy stored in a steel wire of length stretched through is The cross 20 m 2 cm 80 J. sectional area of the wire is _____ mm2. (Given, Y = 2.0 × 1011 N m–2 ) PHY-2023-0101-S1-Q010" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q93</span>
     <span class="q-id">PHY-2023-0101-S1-Q010</span>
@@ -1886,7 +1902,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q013" data-search="Which graph represents the difference between total energy and potential energy of a particle executing SHM vs its distance from mean position? PHY-2023-0101-S1-Q013" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q94</span>
     <span class="q-id">PHY-2023-0101-S1-Q013</span>
@@ -1903,7 +1919,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q010" data-search="A particle executes SHM of amplitude A. The distance from the mean position when its kinetic energy becomes equal to its potential energy is: 1 PHY-2023-0101-S2-Q010" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q95</span>
     <span class="q-id">PHY-2023-0101-S2-Q010</span>
@@ -1920,7 +1936,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q004" data-search="A body of mass 200 g is tied to a spring of spring constant 12.5 N m−1, while the other end of spring is fixed at point O. If the body moves about O in a circular path on a smooth horizontal surface with constant angular speed 5 rad s−1, then the ratio of extension in the spring to its natural length will be: PHY-2023-0101-S2-Q004" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q96</span>
     <span class="q-id">PHY-2023-0101-S2-Q004</span>
@@ -1937,7 +1953,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q008" data-search="A body of mass is taken from earth surface to the height h equal to twice the radius of earth (Re), the increase in potential energy will be: ( g = acceleration due to gravity on the surface of earth) PHY-2023-0101-S2-Q008" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q97</span>
     <span class="q-id">PHY-2023-0101-S2-Q008</span>
@@ -1954,7 +1970,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q011" data-search="Given below are two statements. One is labelled as Assertion A and the other is labelled as Reason R. Assertion A: If dQ and dW represent the heat supplied to the system and the work done on the system respectively. Then according to the first law of thermodynamics dQ = dU −dW. Reason R: First law of thermodynamics is based on law of conservation of energy. In the light of the above statements, choose the correct answer from the option given below: PHY-2023-0101-S1-Q011" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q98</span>
     <span class="q-id">PHY-2023-0101-S1-Q011</span>
@@ -1971,7 +1987,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q023" data-search="The general displacement of a simple harmonic oscillator is x= A sin ωt. Let T be its time period. The slope of its potential energy (U) – time (t) curve will be maximum when t= β. T The value of β is ______. PHY-2023-0101-S1-Q023" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q99</span>
     <span class="q-id">PHY-2023-0101-S1-Q023</span>
@@ -1988,7 +2004,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q003" data-search="If G be the gravitational constant and u be the energy density then which of the following quantity have the dimensions as that of the √uG: PHY-2024-0101-S1-Q003" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q100</span>
     <span class="q-id">PHY-2024-0101-S1-Q003</span>
@@ -2005,7 +2021,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q019" data-search="An electron rotates in a circle around a nucleus having positive charge Ze. Correct relation between total energy (E) of electron to its potential energy (U) is: PHY-2024-0101-S1-Q019" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q101</span>
     <span class="q-id">PHY-2024-0101-S1-Q019</span>
@@ -2022,7 +2038,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q001" data-search="To find the spring constant (k) of a spring experimentally, a student commits 2% positive error in the measurement of time and 1% negative error in measurement of mass. The percentage error in determining value of k is: PHY-2024-0101-S1-Q001" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q102</span>
     <span class="q-id">PHY-2024-0101-S1-Q001</span>
@@ -2039,7 +2055,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q005" data-search="The potential energy function (in J ) of a particle in a region of space is given as U = (2x2 + 3y3 + 2z). Here x, y and z are in meter. The magnitude of x - component of force (in N ) acting on the particle at point P(1, 2, 3) m is: PHY-2024-0101-S1-Q005" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q103</span>
     <span class="q-id">PHY-2024-0101-S1-Q005</span>
@@ -2056,7 +2072,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q019" data-search="The ratio of the magnitude of the kinetic energy to the potential energy of an electron in the 5th excited state of a hydrogen atom is: PHY-2024-0101-S1-Q019" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q104</span>
     <span class="q-id">PHY-2024-0101-S1-Q019</span>
@@ -2073,7 +2089,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2025-0101-S2-Q028" data-search="Two bodies A and B of equal mass are suspended from two massless springs of spring constant k1 and k2, respectively. If the bodies oscillate vertically such that their amplitudes are equal, the ratio of the maximum velocity of A to the maximum velocity of B is k1 (1) k2 (2) √k1 k2 (3) √k2 (4) k2 k1 k1 PHY-2025-0101-S2-Q028" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q105</span>
     <span class="q-id">PHY-2025-0101-S2-Q028</span>
@@ -2097,7 +2113,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(20 questions)</span>
     &nbsp;<a href="clusters/PHY-WORKENER-COLLISIONS_1D_2D/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="30">
+  <div class="q-card" id="q-PHY-2021-0101-S1-Q024" data-search="A ball of mass 10 kg moving with a velocity 10√3 m s−1 along X -axis, hits another ball of mass 20 kg which is at rest. After the collision, the first ball comes to rest and the second one disintegrates into two equal pieces. One of the pieces starts moving along Y -axis at a speed of 10 m s−1. The second piece starts moving at a speed of 20 m s−1 at an angle θ (degree) with respect to the X -axis. The configuration of pieces after the collision is shown in the figure. The value of θ to the nearest integer is _________. PHY-2021-0101-S1-Q024" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="30">
   <div class="q-header">
     <span class="q-num">Q106</span>
     <span class="q-id">PHY-2021-0101-S1-Q024</span>
@@ -2114,7 +2130,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 30</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q004" data-search="A large block of wood of mass M = 5.99 kg is hanging from two long massless cords. A bullet of mass m = 10 g is fired into the block and gets embedded in it. The (block + bullet) then swing upwards, their center of mass rising a vertical distance before the (block bullet) pendulum comes momentarily to rest h = 9.8 cm + at the end of its arc. The speed of the bullet just before the collision is: (Take g = 9.8 m s−2 ) PHY-2021-0101-S2-Q004" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q107</span>
     <span class="q-id">PHY-2021-0101-S2-Q004</span>
@@ -2131,7 +2147,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="20">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q024" data-search="A ball of mass 10 kg moving with a velocity 10√3 m s−1 along the x -axis, hits another ball of mass 20 kg which is at rest. After the collision, first ball comes to rest while the second ball disintegrates into two equal pieces. One piece starts moving along y -axis with a speed of 10 m s−1. The second piece starts moving at an angle of 30° with respect to the x -axis. The velocity of the ball moving at 30° with x -axis is x m s−1. The configuration of pieces after the collision is shown in the figure below. The value of x to the nearest integer is PHY-2021-0101-S1-Q024" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="20">
   <div class="q-header">
     <span class="q-num">Q108</span>
     <span class="q-id">PHY-2021-0101-S1-Q024</span>
@@ -2148,7 +2164,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 20</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q004" data-search="An object of mass m1 collides with another object of mass m2, which is at rest. After the collision the objects move with equal speeds in opposite direction. The ratio of the masses m2: m1 is: PHY-2021-0101-S2-Q004" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q109</span>
     <span class="q-id">PHY-2021-0101-S2-Q004</span>
@@ -2165,7 +2181,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q023" data-search="A rod of mass and length is lying on a horizontal frictionless surface. A particle of mass travelling M L m along the surface hits at one end of the rod with a velocity u in a direction perpendicular to the rod. The collision is completely elastic. After collision, particle comes to rest. The ratio of masses ( M m ) is x 1. The value of will be x PHY-2021-0101-S1-Q023" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q110</span>
     <span class="q-id">PHY-2021-0101-S1-Q023</span>
@@ -2182,7 +2198,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q023" data-search="A ball with a speed of 9 m s−1 collides with another identical ball at rest. After the collision, the direction of each ball makes an angle of with the original direction. If the ratio of velocities of the balls after the 30° collision is x: y, then what is the value of x? PHY-2021-0101-S1-Q023" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q111</span>
     <span class="q-id">PHY-2021-0101-S1-Q023</span>
@@ -2199,7 +2215,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q021" data-search="A body of mass 2 kg moving with a speed of 4 m s−1 makes an elastic collision with another body at rest and continues to move in the original direction but with one fourth of its initial speed. The speed of the two body centre of mass is $x/10$. Find the value of x. PHY-2021-0101-S1-Q021" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q112</span>
     <span class="q-id">PHY-2021-0101-S1-Q021</span>
@@ -2216,7 +2232,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q004" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Body P having mass M moving with speed u has head-on collision elastically with another body Q having mass m initially at rest. If m ≪M, body Q will have a maximum speed equal to 2u after collision. Reason R: During elastic collision, the momentum and kinetic energy are both conserved. In the light of the above statements, choose the most appropriate answer from the options given below: PHY-2021-0101-S1-Q004" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q113</span>
     <span class="q-id">PHY-2021-0101-S1-Q004</span>
@@ -2233,7 +2249,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q003" data-search="Three objects A, B and C are kept in a straight line on a frictionless horizontal surface. The masses of A, B and C are m, 2m and 2m respectively. A moves towards B with a speed of 9 m s−1 and makes an elastic collision with it. Thereafter makes a completely inelastic collision with C. All motions occur along the same B straight line. The final speed of C is: PHY-2021-0101-S1-Q003" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q114</span>
     <span class="q-id">PHY-2021-0101-S1-Q003</span>
@@ -2250,7 +2266,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q004" data-search="A body of mass M moving at speed V0 collides elastically with a mass m at rest. After the collision, the two masses move at angles θ1 and θ2 with respect to the initial direction of motion of the body of mass M.. The M largest possible value of the ratio m, for which the angles θ1 and θ2 will be equal, is: PHY-2021-0101-S1-Q004" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q115</span>
     <span class="q-id">PHY-2021-0101-S1-Q004</span>
@@ -2267,7 +2283,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q006" data-search="What percentage of kinetic energy of a moving particle is transferred to a stationary particle when it strikes the stationary particle of 5 times its mass? (Assume the collision to be head-on elastic collision) PHY-2022-0101-S1-Q006" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q116</span>
     <span class="q-id">PHY-2022-0101-S1-Q006</span>
@@ -2284,7 +2300,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q010" data-search="The number of air molecules per cm3 is increased from 3 × 1019 to 12 × 1019. The ratio of collision frequency of air molecules before and after the increase in number respectively is: PHY-2023-0101-S1-Q010" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q117</span>
     <span class="q-id">PHY-2023-0101-S1-Q010</span>
@@ -2301,7 +2317,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q004" data-search="A particle of mass m moving with velocity v collides with a stationary particle of mass 2m. After collision, they stick together and continue to move together with velocity PHY-2023-0101-S1-Q004" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q118</span>
     <span class="q-id">PHY-2023-0101-S1-Q004</span>
@@ -2318,7 +2334,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q006" data-search="A body of mass 1 kg collides head on elastically with a stationary body of mass 3 kg. After collision, the smaller body reverses its direction of motion and moves with a speed of 2 m s−1. The initial speed of the smaller body before collision is ______ s−1. m PHY-2023-0101-S2-Q006" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q119</span>
     <span class="q-id">PHY-2023-0101-S2-Q006</span>
@@ -2335,7 +2351,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q004" data-search="As per the given figure, a small ball P slides down the quadrant of a circle and hits the other ball Q of equal mass which is initially at rest. Neglecting the effect of friction and assume the collision to be elastic, the velocity of ball Q after collision will be: ( g = 10 m s−2 ) PHY-2023-0101-S1-Q004" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q120</span>
     <span class="q-id">PHY-2023-0101-S1-Q004</span>
@@ -2352,7 +2368,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q005" data-search="A ball of mass 200 g rests on a vertical post of height 20 m. A bullet of mass 10 g, travelling in horizontal direction, hits the centre of the ball. After collision both travels independently. The ball hits the ground at a distance and the bullet at a distance of from the foot of the post. The value of initial velocity of 30 m 120 m the bullet will be (if g= 10 m s−2): PHY-2023-0101-S1-Q005" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q121</span>
     <span class="q-id">PHY-2023-0101-S1-Q005</span>
@@ -2369,7 +2385,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q006" data-search="A ball is dropped from a height of 20 m. If the coefficient of restitution for the collision between ball and floor is 0.5, after hitting the floor, the ball rebounds to a height of ______ m. PHY-2023-0101-S2-Q006" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q122</span>
     <span class="q-id">PHY-2023-0101-S2-Q006</span>
@@ -2386,7 +2402,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q012" data-search="If the collision frequency of hydrogen molecules in a closed chamber at 27∘C is Z, then the collision frequency of the same system at 127∘C is: PHY-2024-0101-S1-Q012" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q123</span>
     <span class="q-id">PHY-2024-0101-S1-Q012</span>
@@ -2403,7 +2419,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q029" data-search="As shown below, bob A of a pendulum having massless string of length &#x27; R &#x27; is released from 60∘ to the vertical. It hits another bob B of half the mass that is at rest on a friction less table in the center. Assuming elastic collision, the magnitude of the velocity of bob A after the collision will be (take g as acceleration due to gravity.) (1) 4 √Rg (2) 2 √Rg 3 3 (3) √Rg (4) 1 √Rg 3 PHY-2025-0101-S1-Q029" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q124</span>
     <span class="q-id">PHY-2025-0101-S1-Q029</span>
@@ -2420,7 +2436,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-PHY-2025-0101-S2-Q026" data-search="Given below are two statements. One is labelled as Assertion (A) and the other is labelled as Reason (R). Assertion (A): Three identical spheres of same mass undergo one dimensional motion as shown in figure with initial velocities vA = 5 m/s, vB = 2 m/s, vC = 4 m/s. If we wait sufficiently long for elastic collision to happen, then vA = 4 m/s, vB = 2 m/s, vC = 5 m/s will be the final velocities. Reason (R): In an elastic collision between identical masses, two objects exchange their velocities. In the light of the above statements, choose the correct answer from the options given below: (1) (A) is false but (R) is true (2) Both (A) and (R) are true but (R) is NOT the correct explanation of (A) (3) Both (A) and (R) are true and (R) is the correct (4) (A) is true but (R) is false explanation of (A) PHY-2025-0101-S2-Q026" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q125</span>
     <span class="q-id">PHY-2025-0101-S2-Q026</span>
@@ -2444,7 +2460,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(6 questions)</span>
     &nbsp;<a href="clusters/PHY-WORKENER-POWER_EFFICIENCY/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+  <div class="q-card" id="q-PHY-2021-0101-S1-Q003" data-search="A constant power delivering machine has towed a box, which was initially at rest, along a horizontal straight line. The distance moved by the box in time t is proportional to:- PHY-2021-0101-S1-Q003" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q126</span>
     <span class="q-id">PHY-2021-0101-S1-Q003</span>
@@ -2461,7 +2477,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q003" data-search="A body at rest is moved along a horizontal straight line by a machine delivering a constant power. The distance moved by the body in time t is proportional to: 3 1 PHY-2021-0101-S2-Q003" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q127</span>
     <span class="q-id">PHY-2021-0101-S2-Q003</span>
@@ -2478,7 +2494,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q005" data-search="An automobile of mass m accelerates starting from the origin and initially at rest, while the engine supplies constant power P. The position is given as a function of time by: 1 1 PHY-2021-0101-S2-Q005" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q128</span>
     <span class="q-id">PHY-2021-0101-S2-Q005</span>
@@ -2495,7 +2511,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q003" data-search="A particle of mass m is moving in a circular path of constant radius r such that its centripetal acceleration ac is varying with time t as ac = k2rt2, where k is a constant. The power delivered to the particle by the force acting on it is - PHY-2022-0101-S1-Q003" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q129</span>
     <span class="q-id">PHY-2022-0101-S1-Q003</span>
@@ -2512,7 +2528,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q006" data-search="A body of mass 2 kg is initially at rest. It starts moving unidirectionally under the influence of a source of constant power P. Its displacement in 4 s is 3 1 α2√P m. The value of α will be ______. PHY-2023-0101-S2-Q006" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q130</span>
     <span class="q-id">PHY-2023-0101-S2-Q006</span>
@@ -2529,7 +2545,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q005" data-search="A body is moving unidirectionally under the influence of a constant power source. Its displacement in time t is proportional to: PHY-2024-0101-S2-Q005" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q131</span>
     <span class="q-id">PHY-2024-0101-S2-Q005</span>
@@ -2553,7 +2569,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(1 question)</span>
     
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+  <div class="q-card" id="q-PHY-2021-0101-S2-Q004" data-search="A block moving horizontally on a smooth surface with a speed of 40 m s−1 splits into two parts with masses in the ratio of 1: 2. If the smaller part moves at 60 m s−1 in the same direction, then the fractional change in kinetic energy is: 1 2 PHY-2021-0101-S2-Q004" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q132</span>
     <span class="q-id">PHY-2021-0101-S2-Q004</span>

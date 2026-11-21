@@ -192,6 +192,7 @@ def filter_controls():
     return """
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -289,9 +290,20 @@ COMMON_CSS = """
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -438,6 +450,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -446,12 +459,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -511,7 +527,7 @@ def render_question(q, num, show_cluster_badge=True, media_prefix="../../assets/
     media = q.get("media_asset")
     media = f"{media_prefix}{media}" if media else ""
     media_html = f'<img class="question-media" src="{escape(media)}" alt="Figure or table from source paper" loading="lazy">' if media else ""
-    return f"""<div class="q-card" data-year="{escape(str(year))}" data-shift="{escape(str(shift))}" data-difficulty="{escape(str(diff or 'Unknown').title())}" data-type="{escape(str(qtype))}" data-answer="{escape(normalize_text(ans))}">
+    return f"""<div class="q-card" id="q-{escape(str(qid), quote=True)}" data-search="{escape(normalize_text(text), quote=True)} {escape(str(qid), quote=True)}" data-year="{escape(str(year))}" data-shift="{escape(str(shift))}" data-difficulty="{escape(str(diff or 'Unknown').title())}" data-type="{escape(str(qtype))}" data-answer="{escape(normalize_text(ans))}">
   <div class="q-header">
     <span class="q-num">Q{num}</span>
     <span class="q-id">{qid}</span>
@@ -842,7 +858,7 @@ def build_bucket_practice(bucket_num, questions_sample, out_path):
     out_path.write_text(html, encoding="utf-8")
 
 # ─────────────────────── INDEX PAGE ──────────────────────────
-def build_index(subject_data, cluster_counts, bucket_stats):
+def build_index(subject_data, cluster_counts, bucket_stats, questions):
     """
     subject_data: { subject: { chapter: (total_q, slug, bucket) } }
     """
@@ -867,6 +883,20 @@ def build_index(subject_data, cluster_counts, bucket_stats):
     b2n = bucket_stats.get(2, 0)
     b3n = bucket_stats.get(3, 0)
 
+    search_items = []
+    for q in questions:
+        qid = str(q.get('question_id', ''))
+        subject = q.get('subject', '')
+        chapter = q.get('chapter', '')
+        search_items.append({
+            'id': qid,
+            'text': normalize_text(q.get('question_text', '')),
+            'subject': subject,
+            'chapter': chapter,
+            'href': f"{subject}/{slugify(chapter)}/practice.html#q-{qid}",
+        })
+    search_json = json.dumps(search_items, ensure_ascii=False).replace('</', '<\\/')
+
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -887,6 +917,12 @@ def build_index(subject_data, cluster_counts, bucket_stats):
     <div class="stat-chip">Bucket 3 Chapters: <strong>{b3n}</strong></div>
   </div>
 
+  <section class="library-search" aria-label="Search all questions">
+    <label for="library-search-input">Search all {len(questions):,} questions</label>
+    <input id="library-search-input" type="search" placeholder="Search by question text, ID, subject, or chapter" autocomplete="off">
+    <div id="library-search-results" aria-live="polite"></div>
+  </section>
+
   <h2 style="margin-bottom:12px;font-size:1.1rem">🎯 Mixed PCM Practice Sets</h2>
   <div class="bucket-links">
     <a class="bucket-link b1" href="bucket_1_mixed_practice.html">🟢 Bucket 1 Mixed (30 Q)</a>
@@ -897,6 +933,17 @@ def build_index(subject_data, cluster_counts, bucket_stats):
   {subjects_html}
 </div>
 {FOOTER_HTML_ROOT}
+<script>
+const QUESTION_SEARCH_INDEX = {search_json};
+const searchInput = document.getElementById('library-search-input');
+const searchResults = document.getElementById('library-search-results');
+searchInput.addEventListener('input', function() {{
+  const query = searchInput.value.trim().toLowerCase();
+  if (query.length < 2) {{ searchResults.innerHTML = ''; return; }}
+  const matches = QUESTION_SEARCH_INDEX.filter(item => (item.id + ' ' + item.text + ' ' + item.subject + ' ' + item.chapter).toLowerCase().includes(query)).slice(0, 50);
+  searchResults.innerHTML = matches.length ? matches.map(item => `<a class="search-result" href="${{item.href}}"><strong>${{item.id}}</strong><span>${{item.subject}} · ${{item.chapter}}</span><div>${{item.text.slice(0, 220)}}${{item.text.length > 220 ? '…' : ''}}</div></a>`).join('') : '<p class="search-empty">No matching questions found.</p>';
+}});
+</script>
 </body></html>"""
 
     (PS_DIR / "index.html").write_text(html, encoding="utf-8")
@@ -993,7 +1040,7 @@ def main():
             if b:
                 bucket_counts[b] += 1
 
-    build_index(subject_data, cluster_sets_count, bucket_counts)
+    build_index(subject_data, cluster_sets_count, bucket_counts, questions)
     print("  ✓ index.html")
 
     total_html = total_chapter_files + total_cluster_files + 3 + 1  # 3 bucket + index

@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -284,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -298,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(56 questions)</span>
     &nbsp;<a href="clusters/CHEM-DAND-STD_CONCEPT/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="64">
+  <div class="q-card" id="q-CHEM-2021-0101-S2-Q057" data-search="If 80 g of copper sulphate CuSO4 · 5H2O is dissolved in deionised water to make 5 L of solution. The concentration of the copper sulphate solution is x× 10−3 mol L−1. The value of x is _____. [ Atomic masses Cu: 63.54u, S: 32u, O: 16u, H: 1u] CHEM-2021-0101-S2-Q057" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="64">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S2-Q057</span>
@@ -315,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 64</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q045" data-search="Which of the following is Lindlar catalyst? CHEM-2021-0101-S1-Q045" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q045</span>
@@ -332,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q044" data-search="In the above reaction, the reagent &quot; A &quot; is: CHEM-2021-0101-S2-Q044" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S2-Q044</span>
@@ -349,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q046" data-search="Which of the following reagent is used for the following reaction?? CH3CH2CH3 →CH3CH2CHO CHEM-2021-0101-S1-Q046" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S1-Q046</span>
@@ -366,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q043" data-search="Which one of the following lanthanoids does not form MO2? [ M is lanthanoid metal] CHEM-2021-0101-S1-Q043" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S1-Q043</span>
@@ -383,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q039" data-search="Match List- I with List- II List- I List- II CHEM-2021-0101-S2-Q039" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S2-Q039</span>
@@ -400,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="316">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q055" data-search="When 10 mL of an aqueous solution of KMnO4 was titrated in acidic medium, equal volume of 0.1M of an aqueous solution of ferrous sulphate was required for complete discharge of colour. The strength of KMnO4 in grams per litre is _______ ×10−2. (Nearest integer) [Atomic mass of K = 39, Mn = 55, O = 16 ] CHEM-2021-0101-S1-Q055" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="316">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S1-Q055</span>
@@ -417,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 316</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q045" data-search="Which one of the following reactions will not yield propanoic acid? OH−/H3O+ CHEM-2021-0101-S2-Q045" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2021-0101-S2-Q045</span>
@@ -434,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1575">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q055" data-search="10.0 mL of 0.05 M KMnO4 solution was consumed in a titration with 10.0 mL of given oxalic acid dihydrate solution. The strength of given oxalic acid solution is........ ×10−2 g/L. (Round off to the nearest integer) CHEM-2021-0101-S2-Q055" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1575">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2021-0101-S2-Q055</span>
@@ -451,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1575</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q059" data-search="The difference in oxidation state of chromium in chromate and dichromate salts is___ CHEM-2022-0101-S1-Q059" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2022-0101-S1-Q059</span>
@@ -468,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q053" data-search="Manganese (VI) has ability to disproportionate in acidic solution. The difference in oxidation states of two ions it forms in acidic solution is CHEM-2022-0101-S2-Q053" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2022-0101-S2-Q053</span>
@@ -485,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q042" data-search="The most common oxidation state of Lanthanoid elements is +3. Which of the following is likely to deviate easily from +3 oxidation state? CHEM-2022-0101-S2-Q042" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2022-0101-S2-Q042</span>
@@ -502,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q042" data-search="Which one of the lanthanoids given below is the most stable in divalent form? CHEM-2022-0101-S1-Q042" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2022-0101-S1-Q042</span>
@@ -519,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="30">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q054" data-search="0.01 MKMnO4 solution was added to 20.0 mL of 0.05M Mohr &#x27;s salt solution through a burette. The initial reading of 50 mL burette is zero. The volume of KMnO4 solution left in the burette after the end point is....... mL. (nearest integer) CHEM-2022-0101-S2-Q054" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="30">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2022-0101-S2-Q054</span>
@@ -536,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 30</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q059" data-search="An acidified manganate solution undergoes disproportionation reaction. The spin-only magnetic moment value of the product having manganese in higher oxidation state is____B.M. (Nearest integer) − − Q60. C6H12O6 Zymase → A NaOI → B + CHI3 Δ The number of carbon atoms present in the product B is CHEM-2022-0101-S1-Q059" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2022-0101-S1-Q059</span>
@@ -553,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q045" data-search="Two isomers CHEM-2022-0101-S2-Q045" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2022-0101-S2-Q045</span>
@@ -570,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q038" data-search="During the reaction of permanganate with thiosulphate, the change in oxidation of manganese occurs by value of 3. Identify which of the below medium will favour the reaction. CHEM-2023-0101-S2-Q038" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2023-0101-S2-Q038</span>
@@ -587,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="11">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q051" data-search="In chromyl chloride, the number of d-electrons present on chromium is same as in (Given at no. of Ti: 22, V: 23, Cr: 24, Mn: 25, Fe: 26 ) (1) (2) V (IV) Mn (VII) (3) Fe (III) (4) Ti (III) CHEM-2023-0101-S1-Q051" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="11">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2023-0101-S1-Q051</span>
@@ -604,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 11</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q042" data-search="Given below are two statements: Statement I: Aqueous solution of K2Cr2O7 is preferred as a primary standard in volumetric analysis over Na2Cr2O7 aqueous solution. Statement II: K2Cr2O7 has a higher solubility in water than Na2Cr2O7. In the light of the above statements, choose the correct answer from the options given below: CHEM-2023-0101-S1-Q042" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2023-0101-S1-Q042</span>
@@ -621,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q044" data-search="Which of the following statements are correct? CHEM-2023-0101-S1-Q044" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2023-0101-S1-Q044</span>
@@ -638,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q050" data-search="The polymer X-consists of linear molecules and is closely packed. It is prepared in the presence of trimethylammoniumpropyl and titanium tetrachloride under low pressure. The polymer X is CHEM-2023-0101-S1-Q050" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">CHEM-2023-0101-S1-Q050</span>
@@ -655,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q040" data-search="KMnO4 is titrated with ferrous ammonium sulphate hexahydrate in presence of dilute H2 SO4. Number of _______ water molecules produced for 2 molecules of KMnO4 is CHEM-2023-0101-S1-Q040" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">CHEM-2023-0101-S1-Q040</span>
@@ -672,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q048" data-search="In the above conversion the correct sequence of reagents to be added is CHEM-2023-0101-S1-Q048" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">CHEM-2023-0101-S1-Q048</span>
@@ -689,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q053" data-search="The total change in the oxidation state of manganese involved in the reaction of KMnO4 and potassium iodide in the acidic medium is ________. CHEM-2023-0101-S1-Q053" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">CHEM-2023-0101-S1-Q053</span>
@@ -706,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q058" data-search="In Chromyl chloride, the oxidation state of chromium is (+) ___________. CHEM-2023-0101-S1-Q058" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">CHEM-2023-0101-S1-Q058</span>
@@ -723,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q043" data-search="The magnetic moment of a transition metal compound has been calculated to be 3.87 BM. The metal ion is CHEM-2023-0101-S1-Q043" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">CHEM-2023-0101-S1-Q043</span>
@@ -740,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q040" data-search="The correct sequence of reagents for the preparation of Q and R is: CHEM-2023-0101-S1-Q040" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">CHEM-2023-0101-S1-Q040</span>
@@ -757,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="270">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q051" data-search="The set of correct statements is: (i) Manganese exhibits +7 oxidation state in its oxide. (ii) Ruthenium and Osmium exhibit +8 oxidation in their oxides. (iii) Sc shows +4 oxidation state which is oxidizing in nature. (iv) Cr shows oxidising nature in +6 oxidation state. (1) (ii) and (iii) (2) (i), (ii) and (iv) (3) (i) and (iii) (4) (ii), (iii) and (iv) CHEM-2023-0101-S2-Q051" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="270">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">CHEM-2023-0101-S2-Q051</span>
@@ -774,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 270</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q041" data-search="During the qualitative analysis of SO3 2 - using dilute H2SO4, SO2 gas is evolved which turns K2Cr2O7 solution (acidified with dilute H2SO4): CHEM-2023-0101-S1-Q041" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">CHEM-2023-0101-S1-Q041</span>
@@ -791,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q059" data-search="The number of electrons involved in the reduction of permanganate to manganese dioxide in acidic medium is _____. CHEM-2023-0101-S1-Q059" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">CHEM-2023-0101-S1-Q059</span>
@@ -808,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q060" data-search="A trisubstituted compound &#x27;A&#x27;, C10H12O2 gives neutral FeCl3 test positive. Treatment of compound &#x27;A&#x27; with NaOH and CH3Br gives C11H14O2, with hydroiodic acid gives methyl iodide and with hot conc. NaOH gives a compound B, C10H12O2. Compound &#x27;A&#x27; also decolorises alkaline KMnO4. The number of π bond/s present in the compound &#x27;A&#x27; is _____. CHEM-2023-0101-S1-Q060" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">CHEM-2023-0101-S1-Q060</span>
@@ -825,7 +841,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q052" data-search="KMnO4 oxidises I− in acidic and neutral/faintly alkaline solution, respectively to IO− IO− (1) I2 and 3 (2) 3 and I2 (3) IO− and IO− (4) I2 and I2 3 3 CHEM-2023-0101-S2-Q052" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">CHEM-2023-0101-S2-Q052</span>
@@ -842,7 +858,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q036" data-search="Which of the following reactions are disproportionation reactions? Cu+ →Cu2 + 1 + Cu 2 3MnO4 2 - + 4H+ →2MnO4 - + MnO2 + 2H2O 3 2KMnO4 →K2MnO4 + MnO2 + O2 - 3Mn2 + 4H+ 4 2MnO4 + + 2H2O →5MnO2 + Choose the correct answer from the options given below: CHEM-2024-0101-S1-Q036" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">CHEM-2024-0101-S1-Q036</span>
@@ -859,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q037" data-search="In acidic medium, K2Cr2O7 shows oxidising action as represented in the half reaction Cr2O7 2 - + XH+ + Ye- →2 A + ZH2O X, Y, Z and A are respectively are: CHEM-2024-0101-S1-Q037" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">CHEM-2024-0101-S1-Q037</span>
@@ -876,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q045" data-search="Which of the following compounds show colour due to d - d transition? CHEM-2024-0101-S2-Q045" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">CHEM-2024-0101-S2-Q045</span>
@@ -893,7 +909,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q043" data-search="The element which shows only one oxidation state other than its elemental form is: CHEM-2024-0101-S1-Q043" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">CHEM-2024-0101-S1-Q043</span>
@@ -910,7 +926,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q041" data-search="In the above chemical reaction sequence &quot; A &quot; and &quot; B &quot; respectively are CHEM-2024-0101-S2-Q041" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">CHEM-2024-0101-S2-Q041</span>
@@ -927,7 +943,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q045" data-search="A first row transition metal in its +2 oxidation state has a spin-only magnetic moment value of 3.86BM. The atomic number of the metal is CHEM-2024-0101-S2-Q045" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">CHEM-2024-0101-S2-Q045</span>
@@ -944,7 +960,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q043" data-search="The number of element from the following that do not belong to lanthanoids is Eu, Cm, Er, Tb, Yb and Lu CHEM-2024-0101-S1-Q043" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">CHEM-2024-0101-S1-Q043</span>
@@ -961,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q058" data-search="The difference in the &#x27;spin-only&#x27; magnetic moment values of KMnO4 and the manganese product formed during titration of against oxalic acid in acidic medium is _______ BM. (nearest integer) KMnO4 CHEM-2024-0101-S1-Q058" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">CHEM-2024-0101-S1-Q058</span>
@@ -978,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q034" data-search="Identify the incorrect statements regarding primary standard of titrimetric analysis. CHEM-2024-0101-S1-Q034" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">CHEM-2024-0101-S1-Q034</span>
@@ -995,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q058" data-search="Number of colourless lanthanoid ions among the following is ________ Eu3+, Lu3+, Nd3+, La3+, Sm3+ CHEM-2024-0101-S1-Q058" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">CHEM-2024-0101-S1-Q058</span>
@@ -1012,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q042" data-search="Give below are two statements: Statement I: The higher oxidation states are more stable down the group among transition elements unlike p-block elements. Statement II: Copper can not liberate hydrogen from weak acids. In the light of the above statements, choose the correct answer from the options given below: CHEM-2024-0101-S2-Q042" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">CHEM-2024-0101-S2-Q042</span>
@@ -1029,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q042" data-search="Given below are two statements: Statement (I): In the Lanthanoids, the formation of Ce+4 is favoured by its noble gas configuration. Statement (II): Ce+4 is a strong oxidant reverting to the common state. +3 In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2024-0101-S2-Q042" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">CHEM-2024-0101-S2-Q042</span>
@@ -1046,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q035" data-search="KMnO4 decomposes on heating at 513 K to form O2 along with CHEM-2024-0101-S1-Q035" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">CHEM-2024-0101-S1-Q035</span>
@@ -1063,7 +1079,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q045" data-search="In chromyl chloride test for confirmation of Cl– ion, a yellow solution is obtained. Acidification of the solution and addition of amyl alcohol and 10% H2O2 turns organic layer blue indicating formation of chromium pentoxide. The oxidation state of chromium in that is CHEM-2024-0101-S1-Q045" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">CHEM-2024-0101-S1-Q045</span>
@@ -1080,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q041" data-search="Diamagnetic Lanthanoid ions are: CHEM-2024-0101-S1-Q041" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">CHEM-2024-0101-S1-Q041</span>
@@ -1097,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q042" data-search="The orange colour of K2Cr2O7 and purple colour of KMnO4 is due to CHEM-2024-0101-S2-Q042" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">CHEM-2024-0101-S2-Q042</span>
@@ -1114,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q045" data-search="Identify correct statements from below: A. The chromate ion is square planar. B. Dichromates are generally prepared from chromates. C. The green manganate ion is diamagnetic. D. Dark green coloured K2MnO4 disproportionates in a neutral or acidic medium to give permanganate. E. With increasing oxidation number of transition metal, ionic character of the oxides decreases. Choose the correct answer from the options given below: CHEM-2024-0101-S1-Q045" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">CHEM-2024-0101-S1-Q045</span>
@@ -1131,7 +1147,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q056" data-search="One Faraday of electricity liberates x × 10 – 1 gram atom of copper from copper sulphate, x is______. CHEM-2024-0101-S1-Q056" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">CHEM-2024-0101-S1-Q056</span>
@@ -1148,7 +1164,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q058" data-search="In the reaction of potassium dichromate, potassium chloride and sulfuric acid (conc.), the oxidation state of the chromium in the product is + _______. mol−1 CHEM-2024-0101-S2-Q058" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">CHEM-2024-0101-S2-Q058</span>
@@ -1165,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q055" data-search="Lanthanoid ions with 4f 7 configuration are: (A) Eu2+ (B) Gd3+ (C) Eu3+ (D) Tb3+ (E) Sm2+ Choose the correct answer from the options given below: (1) (A) and (D) only (2) (B) and (C) only (3) (A) and (B) only (4) (B) and (E) only CHEM-2025-0101-S1-Q055" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">CHEM-2025-0101-S1-Q055</span>
@@ -1182,7 +1198,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q052" data-search="Consider KOH H2SO4 − − the following reactions K2Cr2O7 → [A] → [ B] + K2SO4 The products [A] and [B], −H2O −H2O respectively are: (1) and CrO (2) and K2CrO4 K2CrO4 Cr2O3 (3) K2CrO4 and K2Cr2O7 (4) K2Cr(OH)6 and Cr2O3 CHEM-2025-0101-S2-Q052" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">CHEM-2025-0101-S2-Q052</span>
@@ -1199,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q057" data-search="Preparation of potassium permanganate from MnO2 involves two step process in which the 1st step is a reaction with KOH and KNO3 to produce (1) K3MnO4 (2) K4 [Mn(OH)6] (3) KMnO4 (4) K2MnO4 CHEM-2025-0101-S1-Q057" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">CHEM-2025-0101-S1-Q057</span>
@@ -1216,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q053" data-search="Which of the following oxidation reactions are carried out by both K2Cr2O7 and KMnO4 in acidic medium? A. Γ−→I2 B. S 2−→S C. Fe2+ →Fe3+ D. Γ−→IO3− E. S2O32−→SO42− Choose the correct answer from the options given below: (1) C, D and E Only (2) B, C and D Only (3) A, D and E Only (4) A, B and C Only CHEM-2025-0101-S1-Q053" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">CHEM-2025-0101-S1-Q053</span>
@@ -1233,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q054" data-search="The total number of compounds from below when treated with hot KMnO4 giving benzoic acid is: (1) 6 (2) 3 (3) 5 (4) 4 CHEM-2025-0101-S2-Q054" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">CHEM-2025-0101-S2-Q054</span>

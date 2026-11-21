@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -284,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -298,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(106 questions)</span>
     &nbsp;<a href="clusters/MATH-MATRDETE-STD_CONCEPT/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+  <div class="q-card" id="q-MATH-2021-0101-S2-Q069" data-search="Consider the system of linear equations -x+ y+ 2z= 0 3x- ay+ 5z= 1 2x- 2y- az= 7 Let S1 be the set of all a∈R for which the system is inconsistent and S2 be the set of all a∈R for which the system has infinitely many solutions. If nS1 and nS2 denote the number of elements in S1 and S2 respectively, then MATH-2021-0101-S2-Q069" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">MATH-2021-0101-S2-Q069</span>
@@ -315,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q074" data-search="Let Jn, m= ∫0 1dx, ∀n&gt; m and n, m∈N. Consider a matrix A= aij3 where xm- × 3 aij= J6 + i, 3 - Ji+ 3, 3, i≤j j. Then adj A−1 is: 0, i&gt; MATH-2021-0101-S2-Q074" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">MATH-2021-0101-S2-Q074</span>
@@ -332,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q070" data-search="Let A = [ i −i ], i = √−1. Then, the system of linear equations A8[ x ] = [ 8 ] has: −i i y 64 MATH-2021-0101-S1-Q070" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">MATH-2021-0101-S1-Q070</span>
@@ -349,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="36">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q085" data-search="⎡ ⎤ 2 7 Let P = 90 140 112 and A = −1 −ω 1 where ω = −1+i√3, and I3 be the identity matrix ⎣ ⎦ ⎣ ⎦ 2 120 60 14 0 −ω −ω + 1 of order 3. If the determinant of the matrix (P −1AP −I3)2 is αω2, then the value of α is equal to _________. MATH-2021-0101-S1-Q085" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="36">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">MATH-2021-0101-S1-Q085</span>
@@ -366,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 36</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="766">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q086" data-search="The total number of 3 × 3 matrices A having enteries from the set (0, 1, 2, 3) such that the sum of all the diagonal entries of AAT is 9, is equal to MATH-2021-0101-S1-Q086" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="766">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">MATH-2021-0101-S1-Q086</span>
@@ -383,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 766</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q086" data-search="Let [ a1 ] [ b1 ] A = and B = be two 2 × 1 matrices with real entries such that A = XB, where a2 b2 [ 1 −1 ], X = √3 1 1 k and k ∈R. If a2 1 + a2 2 = 3 2 (b2 1 + b2 2) and (k2 + 1)b2 2 ≠−2 b1b2, then the value of k is __________. MATH-2021-0101-S2-Q086" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">MATH-2021-0101-S2-Q086</span>
@@ -400,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q073" data-search="1 2 0 2 −1 5 Let A + 2B = ⎣ 6 −3 3 ⎦ and 2A −B = ⎣ 2 −1 6 ⎦. If Tr MATH-2021-0101-S1-Q073" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">MATH-2021-0101-S1-Q073</span>
@@ -417,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q071" data-search="Define a relation R over a class of n × n real matrices A and B as &quot; ARB iff there exists a non-singular matrix P such that PAP −1 = B &quot;. Then which of the following is true? MATH-2021-0101-S2-Q071" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">MATH-2021-0101-S2-Q071</span>
@@ -434,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q072" data-search="Let the system of linear equations 4x + λy + 2z = 0 2x −y + z = 0 μx + 2y + 3z = 0, λ, μ ∈R has a non-trivial solution. Then which of the following is true? MATH-2021-0101-S2-Q072" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">MATH-2021-0101-S2-Q072</span>
@@ -451,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q085" data-search="Let I be an identity matrix of order 2 × 2 and P =. Then the value of n ∈N for which 5 −3 n P = 5I −8P is equal to ___. MATH-2021-0101-S2-Q085" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">MATH-2021-0101-S2-Q085</span>
@@ -468,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q069" data-search="Let A = a ∈R be written as P + Q where P is a symmetric matrix and Q is skew symmetric matrix. a 0 If, then the modulus of the sum of all possible values of determinant of is equal to: det (Q) = 9 P MATH-2021-0101-S1-Q069" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">MATH-2021-0101-S1-Q069</span>
@@ -485,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q073" data-search="⎨ Let A = [aij] be a 3 × 3 matrix, where aij = ⎩ −x, if |i −j| = 1 2x + 1, otherwise Let a function f: R →R be defined as f(x) =det MATH-2021-0101-S1-Q073" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">MATH-2021-0101-S1-Q073</span>
@@ -502,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="910">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q085" data-search="⎡ 1 −1 0 ⎤ Let A = 0 1 −1 and B = 7A20 −20A7 + 2I, ⎣ 0 0 1 ⎦ where I is an identity matrix of order 3 × 3. If B = [bij], then b13 is equal to MATH-2021-0101-S1-Q085" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="910">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">MATH-2021-0101-S1-Q085</span>
@@ -519,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 910</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q069" data-search="The value of k ∈R, for which the following system of linear equations 3x −y + 4z = 3 x + 2y −3z = −2 6x + 5y + kz = −3 has infinitely many solutions, is: MATH-2021-0101-S2-Q069" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">MATH-2021-0101-S2-Q069</span>
@@ -536,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="108">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q087" data-search="⎧ (−1)j−i if i &lt; j Let A = {aij} be a 3 × 3 matrix, where aij = ⎨ 2 if i = j then det(3 Adj (2A−1)) is equal to ⎩ (−1)i+j if i &gt; j ________. MATH-2021-0101-S2-Q087" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="108">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">MATH-2021-0101-S2-Q087</span>
@@ -553,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 108</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q068" data-search="Let A = [aij] be a real matrix of order 3 × 3, such that ai1 + ai2 + ai3 = 1, for i = 1, 2, 3. Then, the sum of all the entries of the matrix A3 is equal to: MATH-2021-0101-S1-Q068" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">MATH-2021-0101-S1-Q068</span>
@@ -570,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3125">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q086" data-search="⎡ 0 1 0 ⎤ Let Then the number of matrices with entries from the set and A = ⎣ 1 0 0 ⎦. 3 × 3 B {1, 2, 3, 4, 5} 0 0 1 satisfying AB = BA is ________. MATH-2021-0101-S1-Q086" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3125">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">MATH-2021-0101-S1-Q086</span>
@@ -587,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3125</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q069" data-search="The system of linear equations 3x- 2y- kz= 10 2x- 4y- 2z= 6 x+ 2y- z= 5 m is inconsistent if: MATH-2021-0101-S1-Q069" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">MATH-2021-0101-S1-Q069</span>
@@ -604,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="17">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q084" data-search="3 -1 -2 Let P= 2 0 α, where α∈R. Suppose Q= qij is a matrix satisfying PQ= kI3 for 3 -5 0 k2 some non-zero k∈R. If q23 = - k and Q=, then α2 + k2 is equal to_________. 8 2 MATH-2021-0101-S1-Q084" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="17">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">MATH-2021-0101-S1-Q084</span>
@@ -621,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 17</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="540">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q085" data-search="Let M be any 3 × 3 matrix with entries from the set 0, 1, 2. The maximum number of such matrices, for which the sum of diagonal elements of MTM is seven, is______. MATH-2021-0101-S1-Q085" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="540">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">MATH-2021-0101-S1-Q085</span>
@@ -638,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 540</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q067" data-search="For the system of linear equations: x −2y = 1, x −y + kz = −2, ky + 4z = 6, k ∈R Consider the following statements: MATH-2021-0101-S2-Q067" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">MATH-2021-0101-S2-Q067</span>
@@ -655,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q068" data-search="Let A and B be 3 × 3 real matrices such that A is a symmetric matrix and B is a skew-symmetric matrix. Then (A2 B2 −B2 A2)X the system of linear equations = O, where X is a 3 × 1 column matrix of unknown variables and O is a 3 × 1 null matrix, has MATH-2021-0101-S2-Q068" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">MATH-2021-0101-S2-Q068</span>
@@ -672,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q068" data-search="If for the matrix, A = [ 1 −α ], AAT = I2, then the value of α4 + β4 is: α β MATH-2021-0101-S2-Q068" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">MATH-2021-0101-S2-Q068</span>
@@ -689,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q069" data-search="Let A be a 3 × 3 matrix with det MATH-2021-0101-S2-Q069" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">MATH-2021-0101-S2-Q069</span>
@@ -706,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q070" data-search="The following system of linear equations 2x + 3y + 2z = 9 3x + 2y + 2z = 9 x −y + 4z = 8 MATH-2021-0101-S2-Q070" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">MATH-2021-0101-S2-Q070</span>
@@ -723,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q072" data-search="1 2 [ 1 0 ], If A = ⎣ √5 √5 ⎦, B = i = √−1, and Q = ATBA, then the inverse of the matrix AQ2021AT is −2 1 i 1 √5 √5 equal to: MATH-2021-0101-S1-Q072" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">MATH-2021-0101-S1-Q072</span>
@@ -740,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q073" data-search="Let θ ∈(0, π ). If the system of linear equations 2 (1 + cos2 θ)x + sin2 θy + 4 sin 3θz = 0 sin2 cos2 θx + (1 + θ)y + 4 sin 3θz = 0 cos2 θx + sin2 θy + (1 + 4 sin 3θ)z = 0 has a non-trivial solution, then the value of θ is: 4π 5π MATH-2021-0101-S1-Q073" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">MATH-2021-0101-S1-Q073</span>
@@ -757,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q087" data-search="Let A be a 3 × 3 real matrix. If det (2 Adj (2 Adj (Adj (2A)))) = 241, then the value of det (A2) equals ______. MATH-2021-0101-S2-Q087" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">MATH-2021-0101-S2-Q087</span>
@@ -774,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q069" data-search="Let A be a symmetric matrix of order 2 with integer entries. If the sum of the diagonal elements of A2 is 1, then the possible number of such matrices is: MATH-2021-0101-S1-Q069" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">MATH-2021-0101-S1-Q069</span>
@@ -791,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q087" data-search="⎡ 1 0 0 ⎤ ⎡ 1 0 0 ⎤ If the matrix A = 0 2 0 satisfies the equation A20 + αA19 + βA = 0 4 0 for some real numbers ⎣ 3 0 −1 ⎦ ⎣ 0 0 1 ⎦ α and β, then β −α is equal to ______. MATH-2021-0101-S2-Q087" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">MATH-2021-0101-S2-Q087</span>
@@ -808,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q071" data-search="If the matrix A = [ 0 2 ] satisfies A(A3 + 3I) = 2I, then the value of K is K −1 MATH-2021-0101-S1-Q071" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">MATH-2021-0101-S1-Q071</span>
@@ -825,7 +841,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q086" data-search="If the system of linear equations 2x + y −z = 3 x −y −z = α 3x + 3y + βz = 3 has infinitely many solutions, then |α + −αβ| is equal to __________. β d2y dy MATH-2021-0101-S1-Q086" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">MATH-2021-0101-S1-Q086</span>
@@ -842,7 +858,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q069" data-search="Let [λ] be the greatest integer less than or equal to λ. The set of all values of λ for which the system of linear equations x + y + z = 4, 3x + 2y + 5z = 3, 9x + 4y + (28 + [λ])z = [λ] has a solution is: MATH-2021-0101-S2-Q069" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">MATH-2021-0101-S2-Q069</span>
@@ -859,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q072" data-search="Let A = [ ]. If A−1 = αI + βA, α, β ∈R, I is a 2 × 2 identity matrix, then 4(α −β) is equal to: −1 4 8 MATH-2021-0101-S1-Q072" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">MATH-2021-0101-S1-Q072</span>
@@ -876,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q082" data-search="For real numbers α and β, consider the following system of linear equations: x + y −z = 2, x + 2y + αz = 1 and 2x −y + z = β. If the system has infinite solutions, then α + β is equal to ______. sin2 MATH-2021-0101-S1-Q082" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">MATH-2021-0101-S1-Q082</span>
@@ -893,7 +909,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q072" data-search="Let A and B be two 3 × 3 real matrices such that (A2 −B2) is invertible matrix. If A5 = B5 and A3 B2 = A2 B3, then the value of the determinant of the matrix A3 + B3 is equal to: MATH-2021-0101-S2-Q072" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">MATH-2021-0101-S2-Q072</span>
@@ -910,7 +926,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2020">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q086" data-search="⎡ 1 1 1 ⎤ If = 0 1 1 and = + A2 + A3 +... + A20, then the sum of all the elements of the matrix is A ⎣ ⎦ M A M 0 0 1 equal to _______. MATH-2021-0101-S2-Q086" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2020">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">MATH-2021-0101-S2-Q086</span>
@@ -927,7 +943,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2020</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q071" data-search="a1 a2 a3 If ar = cos 2rπ + i sin 2rπ, r = 1, 2, 3,..., i = √−1, then the determinant a4 a5 a6 is equal to: 9 9 a7 a8 a9 MATH-2021-0101-S1-Q071" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">MATH-2021-0101-S1-Q071</span>
@@ -944,7 +960,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q072" data-search="If the following system of linear equations 2x + y + z = 5 x −y + z = 3 x + y + a z = b has no solution, then: MATH-2021-0101-S1-Q072" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">MATH-2021-0101-S1-Q072</span>
@@ -961,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="8">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q086" data-search="The number of elements in the set {A= a d: b a, b, d∈{ - 1, 0, 1} and (I- A) 3 = I- A3}, where I 0 is 2 × 2 identity matrix, is. MATH-2021-0101-S2-Q086" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">MATH-2021-0101-S2-Q086</span>
@@ -978,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q068" data-search="Let the system of linear equations x + y + az = 2 3x + y + z = 4 x + 2z = 1 have a unique solution ( x∗, y∗, z∗). If ( x∗), (y∗, and ( x∗, −y∗) are collinear points, then the sum of (a, α) absolute values of all possible values of α is: MATH-2022-0101-S2-Q068" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">MATH-2022-0101-S2-Q068</span>
@@ -995,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q069" data-search="Let 0 -2 10 A2k 10 A2k- 1 MN2 A= 2 0. If M and N are two matrices given by M= ∑k= 1 and N= ∑k= 1 then is MATH-2022-0101-S1-Q069" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">MATH-2022-0101-S1-Q069</span>
@@ -1012,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q070" data-search="1 1 1 -1 0 1 Let A be a 3 × 3 real matrix such that A 1 = 1; A 0 = 0 and A 0 = 1. If X= x1 x2 x3T 0 0 1 1 1 2 4 and I is an identity matrix of order 3, then the system A- 2IX= 1 has 1 MATH-2022-0101-S1-Q070" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">MATH-2022-0101-S1-Q070</span>
@@ -1029,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="414">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q087" data-search="Let A be a 3 × 3 matrix having entries from the set−1, 0, 1. The number of all such matrices A having sum of all the entries equal to 5, is _____ MATH-2022-0101-S1-Q087" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="414">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">MATH-2022-0101-S1-Q087</span>
@@ -1046,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 414</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q069" data-search="Let be a invertible matrix. If, then |A|2 is equal to A 3 × 3 |adj(24A)| =adj (3 adj (2A))| MATH-2022-0101-S1-Q069" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">MATH-2022-0101-S1-Q069</span>
@@ -1063,7 +1079,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q070" data-search="The ordered pair (a, b), for which the system of linear equations 3x −2y + z = b 5x −8y + 9z = 3 2x + y + az = −1 has no solution, is MATH-2022-0101-S1-Q070" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">MATH-2022-0101-S1-Q070</span>
@@ -1080,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q068" data-search="Let the system of linear equations x + 2y + z = 2, αx + 3y −z = α, −αx + y + 2z = −α be inconsistent. Then α is equal to MATH-2022-0101-S1-Q068" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">MATH-2022-0101-S1-Q068</span>
@@ -1097,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="14">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q086" data-search="⎡ 14 28 −14 ⎤ The positive value of the determinant of the matrix A, whose Adj(Adj(A)) = −14 14 28, is ______. ⎣ ⎦ 28 −14 14 MATH-2022-0101-S1-Q086" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="14">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">MATH-2022-0101-S1-Q086</span>
@@ -1114,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 14</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q070" data-search="Let A and B be two 3 × 3 matrices such that AB = I and |A| = 1 then |adj(Badj(2A))| is equal to 8 MATH-2022-0101-S2-Q070" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">MATH-2022-0101-S2-Q070</span>
@@ -1131,7 +1147,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="180">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q085" data-search="Let A be a matrix of order 2 × 2, whose entries are from the set {0, 1, 2, 3, 4, 5}. If the sum of all the entries of A is a prime number p, 2 &lt; p &lt; 8, then the number of such matrices A is MATH-2022-0101-S2-Q085" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="180">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">MATH-2022-0101-S2-Q085</span>
@@ -1148,7 +1164,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 180</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q068" data-search="Let A be a matrix of order 3 × 3 and det MATH-2022-0101-S1-Q068" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">MATH-2022-0101-S1-Q068</span>
@@ -1165,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q069" data-search="If the system of linear equations 2x + 3y −z = −2 x + y + z = 4 ∈R x −y + |λ|z = 4λ −4 where λ, has no solution, then MATH-2022-0101-S1-Q069" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">MATH-2022-0101-S1-Q069</span>
@@ -1182,7 +1198,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="58">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q088" data-search="If the system of linear equations 2x −3y = γ + 5 αx + 5y = β + 1, where α, β, γ ∈R has infinitely many solutions, then the value of |9α + 3β + 5γ| is equal to MATH-2022-0101-S2-Q088" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="58">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">MATH-2022-0101-S2-Q088</span>
@@ -1199,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 58</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q070" data-search="The probability that a randomly chosen 2 × 2 matrix with all the entries from the set of first 10 primes, is singular, is equal to MATH-2022-0101-S1-Q070" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">MATH-2022-0101-S1-Q070</span>
@@ -1216,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q071" data-search="Let A = [aij] be a square matrix of order 3 such that aij = 2j−i, for all i, j = 1, 2, 3. Then, the matrix A2 + A3 +... + A10 is equal to MATH-2022-0101-S1-Q071" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">MATH-2022-0101-S1-Q071</span>
@@ -1233,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q072" data-search="If the system of linear equations 2x + y −z = 7 x −3y + 2z = 1 x + 4y + δz = k, where δ, k ∈R has infinitely many solutions, then δ + k is equal to MATH-2022-0101-S1-Q072" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">MATH-2022-0101-S1-Q072</span>
@@ -1250,7 +1266,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q072" data-search="( 2 −1 ) −5C1(adj 5C2(adj A)2... 5C5(adj A)5 Let A = 0 2. If B = I A) + − −, then the sum of all elements of the matrix B is: MATH-2022-0101-S2-Q072" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">MATH-2022-0101-S2-Q072</span>
@@ -1267,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q076" data-search="Let P be a square matrix such that P 2 = I −P. For α, β, γ, δ ∈N, if P α + P β = γl −29P and P α −P β = δl −13P, then α + β + γ −δ is equal to MATH-2023-0101-S2-Q076" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">MATH-2023-0101-S2-Q076</span>
@@ -1284,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q077" data-search="Let S be the set of all values of θ ∈[−π, π] for which the system of linear equations x + y + √3z = 0 −x + (tan θ)y + √7z = 0 x + y + (tan θ)z = 0 has non-trivial solution.Then 120 π ∑0∈S θ is equal to MATH-2023-0101-S2-Q077" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">MATH-2023-0101-S2-Q077</span>
@@ -1301,7 +1317,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q068" data-search="If A is a 3 × 3 matrix and A= 2, then 3 adj is equal to MATH-2023-0101-S1-Q068" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">MATH-2023-0101-S1-Q068</span>
@@ -1318,7 +1334,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q069" data-search="For the system of linear equations 2x- y+ 3z= 5 3x+ 2y- z= 7 4x+ 5y+ αz= β, which of the following is NOT correct? MATH-2023-0101-S1-Q069" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">MATH-2023-0101-S1-Q069</span>
@@ -1335,7 +1351,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q070" data-search="Let A be a 2 × 2 matrix with real entries such that A&#x27; = αA+ 1, where α∈R- -1, 1., If det A2 - A= 4, the sum of all possible values of α is equal to MATH-2023-0101-S1-Q070" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">MATH-2023-0101-S1-Q070</span>
@@ -1352,7 +1368,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q076" data-search="If the system of linear equations 7x + 11y + αz = 13 5x + 4y + 7z = β 175x + 194y + 57z = 361 has infinitely many solutions, then α + β + 2 is equal to MATH-2023-0101-S2-Q076" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">MATH-2023-0101-S2-Q076</span>
@@ -1369,7 +1385,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q075" data-search="Let A = [ 1 51 1 ]. If B = [ 1 2 ] A[ −1 −2 ], then the sum of all the elements of the matrix ∑50 Bn is 0 1 −1 −1 1 1 n=1 equal to MATH-2023-0101-S1-Q075" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">MATH-2023-0101-S1-Q075</span>
@@ -1386,7 +1402,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q072" data-search="The number of symmetric matrices of order 3, with all the entries from the set {0, 1, 2, 3, 4, 5, 6, 7, 8, 9} is MATH-2023-0101-S1-Q072" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">MATH-2023-0101-S1-Q072</span>
@@ -1403,7 +1419,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q073" data-search="⎡ 1 3 α ⎤ ⎡ α ⎤ Let B = 1 2 3, α &gt; 2 be the adjoint of a matrix A and |A| = 2. Then [ α −2α α ]B −2α is equal to ⎣ α α 4 ⎦ ⎣ α ⎦ MATH-2023-0101-S1-Q073" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">MATH-2023-0101-S1-Q073</span>
@@ -1420,7 +1436,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q074" data-search="For the system of linear equations 2x + 4y + 2az = b x + 2y + 3z = 4 2x + 5y + 2z = 8 which of the following is NOT correct? MATH-2023-0101-S1-Q074" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">MATH-2023-0101-S1-Q074</span>
@@ -1437,7 +1453,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q070" data-search="Let the determinant of a square matrix of order be, where m and satisfy and A m m −n n 4m + n = 22 17m + 4n = 93. If det(n adj(adj(mA))) = 3a5b6c, then a + b + c is equal to MATH-2023-0101-S1-Q070" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">MATH-2023-0101-S1-Q070</span>
@@ -1454,7 +1470,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q071" data-search="Let the system of linear equations –x + 2y −9z = 7 −x + 3y + 7z = 9 −2x + y + 5z = 8 −3x + + 13z = y λ has a unique solution x = α, y = β, z = γ. Then the distance of the point (α, β, γ) from the plane is 2x −2y + z = λ MATH-2023-0101-S1-Q071" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">MATH-2023-0101-S1-Q071</span>
@@ -1471,7 +1487,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q068" data-search="If A and B are two non-zero n× n matrices such that A2 + B= A2B, then MATH-2023-0101-S1-Q068" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">MATH-2023-0101-S1-Q068</span>
@@ -1488,7 +1504,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q070" data-search="Let α be a root of the equation a- cx2 + b- ax+ c- b= 0 where a, b, c are distinct real numbers such that α2 α1 a- c2 b- a2 c- b2 the matrix 1 1 1 is singular. Then the value of b+ b+ is a b c b- ac- a- cc- a- cb- a MATH-2023-0101-S1-Q070" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">MATH-2023-0101-S1-Q070</span>
@@ -1505,7 +1521,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q075" data-search="The number of square matrices of order 5 with entries from the set {0, 1}, such that the sum of all the elements in each row is and the sum of all the elements in each column is also, is 1 1 MATH-2023-0101-S2-Q075" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">MATH-2023-0101-S2-Q075</span>
@@ -1522,7 +1538,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q076" data-search="Let A be a 3 × 3 matrix such that |adj(adj(adj. A))| = 124. Then A−1adj A is equal to MATH-2023-0101-S2-Q076" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">MATH-2023-0101-S2-Q076</span>
@@ -1539,7 +1555,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q075" data-search="Let S1 and S2 be respectively the sets of all a ∈R −{0} for which the system of linear equations ax + 2ay −3az = 1 (2a + 1) x + (2a + 3) y + (a + 1)z = 2 (3a + 5) x + (a + 5) y + (a + 2) z = 3 has unique solution and infinitely many solutions. Then MATH-2023-0101-S1-Q075" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">MATH-2023-0101-S1-Q075</span>
@@ -1556,7 +1572,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q074" data-search="Let A, B, C be 3 × 3 matrices such that A is symmetric and B and C are skew-symmetric. Consider the statements (S1) A13 B26 −B26 A13 is symmetric (S2) A26C 13 −C 13 A26 is symmetric Then, MATH-2023-0101-S2-Q074" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">MATH-2023-0101-S2-Q074</span>
@@ -1573,7 +1589,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q075" data-search="⎡ 1 3 ⎤ Let A = √10 √10 and B = [ 1 −i ], where i = √−1. If M = AT BA, then the inverse of the matrix ⎣ −3 1 ⎦ 0 1 √10 √10 AM2023 AT is MATH-2023-0101-S2-Q075" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">MATH-2023-0101-S2-Q075</span>
@@ -1590,7 +1606,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q074" data-search="Let α and β be real numbers. Consider a 3 × 3 matrix A such that A2 = 3A + αI. If A4 = 21A + βI, then MATH-2023-0101-S1-Q074" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">MATH-2023-0101-S1-Q074</span>
@@ -1607,7 +1623,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q076" data-search="⎡ et e−t(sin t −2 cos t) e−t(−2 sin t −cos t) ⎤ The set of all values of t ∈R, for which the matrix et e−t(2 sin t + cos t) e−t(sin t −2 cos t) ⎣ et e−t cos t e−t sin t ⎦ is invertible, is MATH-2023-0101-S2-Q076" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q78</span>
     <span class="q-id">MATH-2023-0101-S2-Q076</span>
@@ -1624,7 +1640,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q077" data-search="Let A be a symmetric matrix such that |A| = 2 and [ ]A = [ ] If the sum of the diagonal elements of 3 3 α β βs 2 A is s, then α2 is equal to _________. MATH-2023-0101-S2-Q077" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q79</span>
     <span class="q-id">MATH-2023-0101-S2-Q077</span>
@@ -1641,7 +1657,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q072" data-search="Let the system of linear equations x+ y+ kz= 2 2x+ 3y- z= 1 3x+ 4y+ 2z= k have infinitely many solutions. Then the system k+ 1 x+ 2k- 1 y= 7 2k+ 1x+ k+ 5y= 10 has: MATH-2023-0101-S1-Q072" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q80</span>
     <span class="q-id">MATH-2023-0101-S1-Q072</span>
@@ -1658,7 +1674,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q074" data-search="If P is a 3 × 3 real matrix such that P T = aP + (a −1)I, where a &gt; 1, then MATH-2023-0101-S2-Q074" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q81</span>
     <span class="q-id">MATH-2023-0101-S2-Q074</span>
@@ -1675,7 +1691,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q075" data-search="For α, β ∈R, suppose the system of linear equations x −y + z = 5 2x + 2y + αz = 8 3x −y + 4z = β has infinitely many solutions. Then α and β are the roots of MATH-2023-0101-S2-Q075" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q82</span>
     <span class="q-id">MATH-2023-0101-S2-Q075</span>
@@ -1692,7 +1708,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q068" data-search="1 0 0 Let A= 0 4 -1. Then the sum of the diagonal elements of the matrix A+ I11 is equal to: 0 12 -3 MATH-2023-0101-S1-Q068" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q83</span>
     <span class="q-id">MATH-2023-0101-S1-Q068</span>
@@ -1709,7 +1725,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q069" data-search="For the system of linear equations x+ y+ z= 6 αx+ βy+ 7z= 3 x+ 2y+ 3z= 14 which of the following is NOT true? MATH-2023-0101-S1-Q069" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q84</span>
     <span class="q-id">MATH-2023-0101-S1-Q069</span>
@@ -1726,7 +1742,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q075" data-search="Let ⌊aˆiˆj⌋⋅aij A = ∈Z ∩[0, 4], 1 ≤i, j ≤2. The number of matrices A such that the sum of all entries is a prime number p ∈(2, 13) is _____. MATH-2023-0101-S2-Q075" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q85</span>
     <span class="q-id">MATH-2023-0101-S2-Q075</span>
@@ -1743,7 +1759,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q076" data-search="Let A be a n × n matrix such that |A| = 2. If the determinant of the matrix Adj (2. Adj (2 A−1)) is 284, then n is equal to _____. MATH-2023-0101-S2-Q076" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q86</span>
     <span class="q-id">MATH-2023-0101-S2-Q076</span>
@@ -1760,7 +1776,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q084" data-search="Let A= I2 −2MMT, where M is real matrix of order 2 × 1 such that the relation MTM= I1 holds. If λ is a real number such that the relation AX= λX holds for some non-zero real matrix X of order 2 × 1, then the sum of squares of all possible values of λ is equal to: MATH-2024-0101-S2-Q084" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q87</span>
     <span class="q-id">MATH-2024-0101-S2-Q084</span>
@@ -1777,7 +1793,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="27">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q086" data-search="Let A be a 3 × 3 matrix of non-negative real elements such that A 1 = 3 1. Then the maximum value of ⎣ 1 ⎦ ⎣ 1 ⎦ det(A) is ______ MATH-2024-0101-S1-Q086" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="27">
   <div class="q-header">
     <span class="q-num">Q88</span>
     <span class="q-id">MATH-2024-0101-S1-Q086</span>
@@ -1794,7 +1810,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 27</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q071" data-search="Let A = [ 1 2 ] and B = I + adj MATH-2024-0101-S2-Q071" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q89</span>
     <span class="q-id">MATH-2024-0101-S2-Q071</span>
@@ -1811,7 +1827,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q084" data-search="Let [ 1 ] [ 3 ] A be a 2 × 2 symmetric matrix such that A = and the determinant of A be 1. If A−1 = αA + βI, 1 7 where I is an identity matrix of order 2 × 2, then α + β equals _______ R →R 2x MATH-2024-0101-S2-Q084" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q90</span>
     <span class="q-id">MATH-2024-0101-S2-Q084</span>
@@ -1828,7 +1844,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q068" data-search="Let A and B be two square matrices of order 3 such that |A| = 3 and |B| = 2. Then ATA(adj(2 A))−1(adj(4 B))(adj(AB))−1AAT is equal to: MATH-2024-0101-S1-Q068" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q91</span>
     <span class="q-id">MATH-2024-0101-S1-Q068</span>
@@ -1845,7 +1861,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q069" data-search="⎡ β α 3 ⎤ ⎡ 3α −9 3α ⎤ Let αβ ≠0 and A = α α β. If B = −α 7 −2α is the matrix of cofactors of the elements ⎣ ⎦ ⎣ ⎦ −β α 2α −2α 5 −2β of, then is equal to: A det(AB) MATH-2024-0101-S2-Q069" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q92</span>
     <span class="q-id">MATH-2024-0101-S2-Q069</span>
@@ -1862,7 +1878,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q070" data-search="If A is a square matrix of order 3 such that det MATH-2024-0101-S2-Q070" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q93</span>
     <span class="q-id">MATH-2024-0101-S2-Q070</span>
@@ -1879,7 +1895,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q068" data-search="⎡ 2 a 0 ⎤ Let A = 1 3 1. If A3 = 4A2 −A −21I, where I is the identity matrix of order 3 × 3, then 2a + 3b is ⎣ ⎦ 0 5 b equal to MATH-2024-0101-S1-Q068" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q94</span>
     <span class="q-id">MATH-2024-0101-S1-Q068</span>
@@ -1896,7 +1912,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="14">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q086" data-search="Let A be a non-singular matrix of order 3. If det(3 adj(2 adj((det A)A))) = 3−13 ⋅2−10 and det(3 adj(2 A)) = 2m ⋅3n, then |3 m + 2n| is equal to MATH-2024-0101-S1-Q086" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="14">
   <div class="q-header">
     <span class="q-num">Q95</span>
     <span class="q-id">MATH-2024-0101-S1-Q086</span>
@@ -1913,7 +1929,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 14</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q070" data-search="Let [ 1 3 ] B = and A be a 2 × 2 matrix such that AB−1 = A−1. If BCB−1 = A and C 4 + αC 2 + βI = O, 1 5 then 2β −α is equal to MATH-2024-0101-S2-Q070" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q96</span>
     <span class="q-id">MATH-2024-0101-S2-Q070</span>
@@ -1930,7 +1946,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="450">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q085" data-search="Consider the matrices: A = [ 2 −5 ], B = [ 20 ] and X = [ x ]. Let the set of all m, for which the system of 3 m m y ∫b equations AX = B has a negative solution (i.e., x &lt; 0 and y &lt; 0 ), be the interval (a, b). Then 8 a |A|dm is equal to_________ MATH-2024-0101-S2-Q085" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="450">
   <div class="q-header">
     <span class="q-num">Q97</span>
     <span class="q-id">MATH-2024-0101-S2-Q085</span>
@@ -1947,7 +1963,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 450</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q072" data-search="⎡ cos x −sin x 0 ⎤ Consider the matrix. Given below are two statements: f(x) = ⎣ sin x cos x 0 ⎦ 0 0 1 Statement I: f(−x) is the inverse of the matrix f(x). Statement II: f(x) f(y) = f(x + y). In the light of the above statements, choose the correct answer from the options given below MATH-2024-0101-S1-Q072" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q98</span>
     <span class="q-id">MATH-2024-0101-S1-Q072</span>
@@ -1964,7 +1980,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="28">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q084" data-search="⎡ 2 0 1 ⎤ ⎡ 1 ⎤ Let A = 1 1 0, B = [ B1 B2 B3 ], where B1, B2, B3 are column matrices, and AB1 = 0, ⎣ ⎦ ⎣ ⎦ 1 0 1 0 ⎡ 2 ⎤ ⎡ 3 ⎤ AB2 = 3, AB3 = 2 ⎣ 0 ⎦ ⎣ 1 ⎦ If α = |B| and β is the sum of all the diagonal elements of B, then α3 + β3 is equal to MATH-2024-0101-S1-Q084" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="28">
   <div class="q-header">
     <span class="q-num">Q99</span>
     <span class="q-id">MATH-2024-0101-S1-Q084</span>
@@ -1981,7 +1997,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 28</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="10">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q086" data-search="Let A be a 2 × 2 real matrix and I be the identity matrix of order 2. If the roots of the equation |A - xI | = 0 be and then the sum of the diagonal elements of the matrix A2 is _____. -1 3, MATH-2024-0101-S2-Q086" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="10">
   <div class="q-header">
     <span class="q-num">Q100</span>
     <span class="q-id">MATH-2024-0101-S2-Q086</span>
@@ -1998,7 +2014,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 10</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q070" data-search="Let A be a square matrix such that AAT = I. Then 1 A[( A + AT)2 + (A −AT)2] is equal to 2 MATH-2024-0101-S1-Q070" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q101</span>
     <span class="q-id">MATH-2024-0101-S1-Q070</span>
@@ -2015,7 +2031,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q068" data-search="x 0 0 Let R= 0 y0 be a non-zero 3 × 3 matrix, where xsinθ= ysinθ+ 2π = zsinθ+ 4π ≠0, θ∈( 0, 2π). 3 3 0 0 z For a square matrix M, let TraceM denote the sum of all the diagonal entries of M. Then, among the statements: I Trace ( R) = 0 ( II ) If Trace ( adj ( adj ( R) ) = 0, then R has exactly one non-zero entry. MATH-2024-0101-S2-Q068" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q102</span>
     <span class="q-id">MATH-2024-0101-S2-Q068</span>
@@ -2032,7 +2048,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q069" data-search="Consider the system of linear equations x+ y+ z= 5, x+ 2y+ λ2z= 9 and x+ 3y+ λz= μ, where λ, μ∈R. Then, which of the following statement is NOT correct? MATH-2024-0101-S2-Q069" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q103</span>
     <span class="q-id">MATH-2024-0101-S2-Q069</span>
@@ -2049,7 +2065,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q070" data-search="If the system of linear equations x- 2y+ z= - 4 2x+ αy+ 3z= 5 3x- y+ βz= 3 has infinitely many solutions, then 12α+ 13β is equal to MATH-2024-0101-S1-Q070" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q104</span>
     <span class="q-id">MATH-2024-0101-S1-Q070</span>
@@ -2066,7 +2082,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q071" data-search="1 1 −1 −1 0 0 Let A be a real matrix such that. Then, the system 3 × 3 A 0 = 2 0, A 0 = 4 0, A 1 = 2 1 1 1 1 1 0 0 x 1 A−3I y = 2 has z 3 MATH-2024-0101-S2-Q071" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q105</span>
     <span class="q-id">MATH-2024-0101-S2-Q071</span>
@@ -2083,7 +2099,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="7">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q086" data-search="Let A be a 3 × 3 matrix and detA= 2. If n= detadjadj. ⏟... adjA, then the remainder when n is divided by 9 is equal to __________. 2024 −times MATH-2024-0101-S2-Q086" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q106</span>
     <span class="q-id">MATH-2024-0101-S2-Q086</span>

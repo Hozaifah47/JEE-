@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+<div class="q-card" id="q-CHEM-2021-0101-S2-Q050" data-search="The secondary structure of protein is stabilised by: CHEM-2021-0101-S2-Q050" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S2-Q050</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q052" data-search="Five moles of an ideal gas at 293 K is expanded isothermally from an initial pressure of 2.1 MPa to 1.3 MPa against at constant external pressure 4.3 MPa. The heat transferred in this process is ___ kJmol−1. (Rounded-off to the nearest integer) mol−1 K−1 [ Use R = 8.314 J ] CHEM-2021-0101-S2-Q052" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S2-Q052</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q041" data-search="Which one of the following species responds to an external magnetic field? CHEM-2021-0101-S1-Q041" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S1-Q041</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q042" data-search="Match List I with List II: (Both having metallurgical terms) List-I List-II Concentration of Ag CHEM-2021-0101-S2-Q042" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S2-Q042</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="50">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q054" data-search="A system does 200 J of work and at the same time absorbs 150 J of heat. The magnitude of the change in internal energy is ______ J. (Nearest integer) CHEM-2021-0101-S2-Q054" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="50">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S2-Q054</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 50</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="38">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q052" data-search="For water Δvap H = 41 kJ mol−1 at 373 K and 1 bar pressure. Assuming that water vapour is an ideal gas that occupies a much larger volume than liquid water, the internal energy change during evaporation of water is (kJmol−1): [ Use: R = 8.3 J mol−1 K−1] CHEM-2021-0101-S2-Q052" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="38">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S2-Q052</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 38</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q050" data-search="Out of following isomeric forms of uracil, which one is present in RNA? CHEM-2021-0101-S1-Q050" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S1-Q050</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q049" data-search="Which one of the following tests used for the identification of functional groups in organic compounds does not use copper reagent? CHEM-2021-0101-S2-Q049" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2021-0101-S2-Q049</span>
@@ -426,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q050" data-search="The compound ′A′ is a complementary base of.......... in DNA strands. CHEM-2021-0101-S1-Q050" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2021-0101-S1-Q050</span>
@@ -443,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="9">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q060" data-search="The number of oxygen present in a nucleotide formed from a base, that is present only in RNA is CHEM-2022-0101-S1-Q060" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="9">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2022-0101-S1-Q060</span>
@@ -460,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 9</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="38">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q054" data-search="A fish swimming in water body when taken out from the water body is covered with a film of water of weight 36 g. When it is subjected to cooking at 100 °C, then the internal energy for vaporization in kJmol−1 is integer] [Assume steam to be an ideal gas. Given ΔvapH⊖ for water at and bar is 373 K 1 41.1 kJ mol−1: R = 8.31 J K−1 mol−1 ] CHEM-2022-0101-S2-Q054" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="38">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2022-0101-S2-Q054</span>
@@ -477,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 38</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="600">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q053" data-search="For combustion of one mole of magnesium in an open container at 300 K and 1 bar pressure, ΔCH⊖= −601.70 kJ mol−1, the magnitude of change in internal energy for the reaction is kJ. (Nearest integer) K−1 mol−1 (Given: R = 8.3 J ) CHEM-2022-0101-S2-Q053" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="600">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2022-0101-S2-Q053</span>
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 600</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q031" data-search="Production of iron in blast furnace follows the following equation Fe3 O4(s) + 4 CO(g) →3 Fe(l) + 4 CO2(g) when 4.640 kg of Fe3 O4 and 2.520 kg of CO are allowed to react then the amount of iror (in g ) produced is: [Given: Molar Atomic mass (gmol−1): Fe = 56 Molar Atomic mass (gmolm−1): O = 16 Molar Atomic mass (gmolm−1): C = 12 ] CHEM-2022-0101-S1-Q031" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2022-0101-S1-Q031</span>
@@ -511,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q050" data-search="Sugar moiety in DNA and RNA molecules respectively are CHEM-2022-0101-S1-Q050" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2022-0101-S1-Q050</span>
@@ -528,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q050" data-search="The structure of protein that is unaffected by heating is: CHEM-2022-0101-S2-Q050" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2022-0101-S2-Q050</span>
@@ -545,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="72">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q052" data-search="2.2 g of nitrous oxide (N2O) gas is cooled at a constant pressure of 1 atm from 310 K to 270 K causing the compression of the gas from to. The change in internal energy of the process, △U is 217.1 mL 167.75 mL ′−x′J. The value of ′x′ is _____. [nearest integer] (Given: atomic mass of N = 14 g mol−1 and of O = 16 g mol−1. Molar heat capacity of N2O is 100 JK−1 mol−1 ) CHEM-2022-0101-S2-Q052" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="72">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2022-0101-S2-Q052</span>
@@ -562,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 72</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="11">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q060" data-search="Sulphur (S) containing amino acids from the following are: (a) isoleucine (b) cysteine (c) lysine (d) methionine (e) glutamic acid (1) b, c, e (2) a, b, c (3) b, d (4) a, d CHEM-2023-0101-S1-Q060" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="11">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2023-0101-S1-Q060</span>
@@ -579,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 11</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q050" data-search="The naturally occurring amino acid that contains only one basic functional group in its chemical structure is CHEM-2023-0101-S2-Q050" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2023-0101-S2-Q050</span>
@@ -596,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q034" data-search="Match Column I with Column II Column I Column II A Soda ash I CaSO4 B Chlorophyll II CaOH2 C Used in Whitewashing III Na2CO3 D Dentistry, ornamental work IV Mg2 + ions CHEM-2023-0101-S1-Q034" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2023-0101-S1-Q034</span>
@@ -613,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q054" data-search="Uracil is base present in RNA with the following structure. % of N in uracil is _______. CHEM-2023-0101-S1-Q054" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2023-0101-S1-Q054</span>
@@ -630,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q042" data-search="A cubic solid is made up of two elements X and Y. Atoms of X are present on every alternate corner and one at the center of cube. Y is at 1 rd of the total faces. The empirical formula of the compound is 3 CHEM-2023-0101-S1-Q042" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">CHEM-2023-0101-S1-Q042</span>
@@ -647,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q060" data-search="Number of cyclic tripeptides formed with 2 amino acids A and B is: (1) 2 (2) 3 (3) 5 (4) 4 CHEM-2023-0101-S1-Q060" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">CHEM-2023-0101-S1-Q060</span>
@@ -664,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q060" data-search="Following tetrapeptide can be represented as ( F, L, D, Y, I, Q, P are one letter codes for amino acids) (1) FIQY (2) FLDY (3) YQLF (4) PLDY CHEM-2023-0101-S2-Q060" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">CHEM-2023-0101-S2-Q060</span>
@@ -681,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q040" data-search="In the extraction of copper, its sulphide ore is heated in a reverberatory furnace after mixing with silica to: CHEM-2023-0101-S1-Q040" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">CHEM-2023-0101-S1-Q040</span>
@@ -698,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q052" data-search="When 2 litre of ideal gas expands isothermally into vacuum to a total volume of 6 litre, the change in internal energy is _____ J. (Nearest integer) CHEM-2023-0101-S1-Q052" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">CHEM-2023-0101-S1-Q052</span>
@@ -715,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q050" data-search="A protein ‘X’ with molecular weight of 70, 000 u, on hydrolysis gives amino acids. One of these amino acid is CHEM-2023-0101-S1-Q050" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">CHEM-2023-0101-S1-Q050</span>
@@ -732,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="227">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q051" data-search="Which one of the following statements is incorrect? (1) van Arkel method is used to purify tungsten. (2) The malleable iron is prepared from cast iron by oxidising impurities in a reverberatory furnace. (3) Cast iron is obtained by melting pig iron with (4) Boron and Indium can be purified by zone scrap iron and coke using hot air blast. refining method. CHEM-2023-0101-S2-Q051" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="227">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">CHEM-2023-0101-S2-Q051</span>
@@ -749,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 227</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q050" data-search="If one strand of a DNA has the sequence ATGCTTCA, sequence of the bases in complementary strand is: CHEM-2024-0101-S1-Q050" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">CHEM-2024-0101-S1-Q050</span>
@@ -766,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q060" data-search="The number of tripeptides formed by three different amino acids using each amino acid once is _______. CHEM-2024-0101-S2-Q060" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">CHEM-2024-0101-S2-Q060</span>
@@ -783,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q036" data-search="The following reaction occurs in the Blast furnance where iron ore is reduced to iron metal Fe2O3( s) + 3CO(g) ⇌Fe(l) + 3CO2( g) Using the Le-chatelier&#x27;s principle, predict which one of the following will not disturb the equilibrium. CHEM-2024-0101-S1-Q036" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">CHEM-2024-0101-S1-Q036</span>
@@ -800,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q050" data-search="Coagulation of egg, on heating is because of: CHEM-2024-0101-S2-Q050" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">CHEM-2024-0101-S2-Q050</span>
@@ -817,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q050" data-search="DNA molecule contains 4 bases whose structure are shown below. One of the structures is not correct, identify the incorrect base structure. CHEM-2024-0101-S1-Q050" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">CHEM-2024-0101-S1-Q050</span>
@@ -834,7 +850,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="38">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q053" data-search="Δvap H⊖ for water is +40.79 kJ mol−1 at 1 bar and 100∘C. Change in internal energy for this vapourisation under same condition is kJmol−1. (Integer answer) (Given R = 8.3JK−1 mol−1 ) CHEM-2024-0101-S2-Q053" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="38">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">CHEM-2024-0101-S2-Q053</span>
@@ -851,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 38</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="9">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q060" data-search="The total number of carbon atoms present in tyrosine, an amino acid, is _______ CHEM-2024-0101-S2-Q060" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="9">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">CHEM-2024-0101-S2-Q060</span>
@@ -868,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 9</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q060" data-search="Total number of essential amino acid among the given list of amino acids is _______ Arginine, Phenylalanine, Aspartic acid, Cysteine, Histidine, Valine, Proline CHEM-2024-0101-S1-Q060" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">CHEM-2024-0101-S1-Q060</span>
@@ -885,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q050" data-search="Which structure of protein remains intact after coagulation of egg white on boiling? CHEM-2024-0101-S2-Q050" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">CHEM-2024-0101-S2-Q050</span>
@@ -902,7 +918,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q044" data-search="Identify the incorrect pair from the following: CHEM-2024-0101-S1-Q044" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">CHEM-2024-0101-S1-Q044</span>
@@ -919,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q049" data-search="Type of amino acids obtained by hydrolysis of proteins is: CHEM-2024-0101-S1-Q049" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">CHEM-2024-0101-S1-Q049</span>
@@ -936,7 +952,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q060" data-search="The total number of correct statements, regarding the nucleic acids is _________. A. RNA is regarded as the reserve of genetic information. B. DNA molecule self-duplicates during cell division C. DNA synthesizes proteins in the cell. D. The message for the synthesis of particular proteins is present in DNA E. Identical DNA strands are transferred to daughter cells. CHEM-2024-0101-S2-Q060" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">CHEM-2024-0101-S2-Q060</span>
@@ -953,7 +969,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q034" data-search="Sliding contact of a potentiometer is in the middle of the potentiometer wire having resistance Rp = 1Ω as shown in the figure. An external resistance of Re = 2Ω is connected via the sliding contact. The electric current in the circuit is: CHEM-2025-0101-S1-Q034" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">CHEM-2025-0101-S1-Q034</span>
@@ -970,7 +986,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q032" data-search="Given are statements for certain thermodynamic variables, CHEM-2025-0101-S2-Q032" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">CHEM-2025-0101-S2-Q032</span>
@@ -987,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q039" data-search="A series LCR circuit is connected to an alternating source of emf E. The current amplitude at resonant frequency is I0. If the value of resistance R becomes twice of its initial value then amplitude of current at resonance will be CHEM-2025-0101-S2-Q039" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">CHEM-2025-0101-S2-Q039</span>
@@ -1004,7 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q036" data-search="LIST-I LIST-II A. Pressure varies inversely with volume of an ideal gas. I. Adiabatic process B. Heat absorbed goes partly to increase internal energy and partly to do work. II. Isochoric process C. Heat is neither absorbed nor released by a system. III. Isothermal process D. No work is done on or by a gas. IV. Isobaric process CHEM-2025-0101-S1-Q036" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">CHEM-2025-0101-S1-Q036</span>
@@ -1021,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q042" data-search="A circular disk of radius R meter and mass M kg is rotating around the axis perpendicular to the disk. An external torque is applied to the disk such that θ(t) = 5t2 −8t, where θ(t) is the angular position of the rotating disc as a function of time t. How much power is delivered by the applied torque, when t = 2 s? CHEM-2025-0101-S2-Q042" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">CHEM-2025-0101-S2-Q042</span>
@@ -1038,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q059" data-search="The α -Helix and β - Pleated sheet structures of protein are associated with its: (1) tertiary structure (2) quaternary structure (3) secondary structure (4) primary structure CHEM-2025-0101-S2-Q059" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">CHEM-2025-0101-S2-Q059</span>
@@ -1055,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q031" data-search="An ideal gas goes from an initial state to final state. During the process, the pressure of gas increases linearly with temperature. A. The work done by gas during the process is zero. B. The heat added to gas is different from change in its internal energy. C. The volume of the gas is increased. D. The internal energy of the gas is increased. E. The process is isochoric (constant volume process) Choose the correct answer from the options given below: CHEM-2025-0101-S1-Q031" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">CHEM-2025-0101-S1-Q031</span>
@@ -1072,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option 15">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q048" data-search="The temperature of 1 mole of an ideal monoatomic gas is increased by 50∘C at constant pressure. The total heat added and change in internal energy are E1 and E2, respectively. If E1 = x then the value of x is _____ E2 9 CHEM-2025-0101-S1-Q048" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option 15">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">CHEM-2025-0101-S1-Q048</span>
@@ -1089,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option 15</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q052" data-search="J of energy is transferred as heat to 0.5 mol of Argon gas at 298 K and 1.00 atm. The final temperature and the K−1 mol−1 change in internal energy respectively are: Given: R = 8.3 J (1) 378 K and 500 J (2) 368 K and 500 J (3) 348 K and 300 J (4) 378 K and 300 J CHEM-2025-0101-S1-Q052" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">CHEM-2025-0101-S1-Q052</span>
@@ -1106,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q060" data-search="Identify the essential amino acids from below: (A) Valine (B) Proline (C) Lysine (D) Threonine (E) Tyrosine Choose the correct answer from the options given below: (1) (A), (C) and (E) only (2) (A), (C) and (D) only (3) (C), (D) and (E) only (4) (B), (C) and (E) only CHEM-2025-0101-S2-Q060" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">CHEM-2025-0101-S2-Q060</span>

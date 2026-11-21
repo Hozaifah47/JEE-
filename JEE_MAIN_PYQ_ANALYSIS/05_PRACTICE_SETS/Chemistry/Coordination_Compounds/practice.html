@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -284,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -298,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(42 questions)</span>
     &nbsp;<a href="clusters/CHEM-COORCOMP-WERNER_IUPAC_NOMENCLATURE/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+  <div class="q-card" id="q-CHEM-2021-0101-S1-Q060" data-search="The equivalents of ethylene diamine required to replace the neutral ligands from the coordination sphere of the trans-complex of CoCl3.4 NH3 is _______. (Round off to the Nearest Integer). CHEM-2021-0101-S1-Q060" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S1-Q060</span>
@@ -315,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q044" data-search="Spin only magnetic moment of an octahedral complex of Fe2+ in the presence of a strong field ligand in BM is: CHEM-2021-0101-S2-Q044" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S2-Q044</span>
@@ -332,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q058" data-search="The coordination number of an atom in a body-centered cubic structure is______ [Assume that the lattice is made up of atoms.] CHEM-2021-0101-S1-Q058" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S1-Q058</span>
@@ -349,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q045" data-search="In which of the following order the given complex ions are arranged correctly with respect to their decreasing spin only magnetic moment? (i) [FeF6]3− (ii) [Co (NH3)6]3+ (iii) [NiCl4]2− (iv) [Cu (NH3)4]2+ CHEM-2021-0101-S2-Q045" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S2-Q045</span>
@@ -366,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q046" data-search="Given below are two statements: Statement I: The identification of Ni2+ is carried out by dimethyl glyoxime in the presence of. NH4 OH Statement II:The dimethyl glyoxime is a bidentate neutral ligand. In the light of the above statements, choose the correct answer from the options given below: CHEM-2021-0101-S2-Q046" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S2-Q046</span>
@@ -383,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q045" data-search="Indicate the complex/complex ion which did not show any geometrical isomerism: Cl2]+ CHEM-2021-0101-S2-Q045" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S2-Q045</span>
@@ -400,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q059" data-search="The overall stability constant of the complex ion [Cu is 2.1 × The overall dissociation constant is y × 10−14. Then y is (Nearest integer) CHEM-2021-0101-S2-Q059" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S2-Q059</span>
@@ -417,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q060" data-search="Number of bridging CO ligands in [Mn2 (CO)10] is CHEM-2021-0101-S1-Q060" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2021-0101-S1-Q060</span>
@@ -434,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q060" data-search="1 mol of an octahedral metal complex with formula MCl3 ⋅2 L on reaction with excess of AgNO3 gives 1 mol of AgCl. The denticity of Ligand L is___________ (Integer answer) CHEM-2021-0101-S1-Q060" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2021-0101-S1-Q060</span>
@@ -451,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q043" data-search="The denticity of an organic ligand, biuret is: CHEM-2021-0101-S1-Q043" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2021-0101-S1-Q043</span>
@@ -468,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q060" data-search="In the cobalt-carbonyl complex:, number of bonds is &quot; &quot; and terminal ligands is &quot; [Co2 (CO)8] Co −Co X CO Y &quot;. X + Y = ___ CHEM-2022-0101-S1-Q060" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2022-0101-S1-Q060</span>
@@ -485,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q043" data-search="Which of the following will have maximum stabilization due to crystal field? CHEM-2022-0101-S1-Q043" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2022-0101-S1-Q043</span>
@@ -502,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q043" data-search="Given below are two statements. Statement: In bonds are present. I CuSO4 ⋅5H2O, Cu −O Statement II: In CuSO4.5H2O, ligands coordinating with Cu (II) ion are O -and S -based ligands. In the light of the above statements, choose the correct answer from the options given below CHEM-2022-0101-S2-Q043" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2022-0101-S2-Q043</span>
@@ -519,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q060" data-search="Number of ambidentate ligands in a representative metal complex M ( en ) ( SCN ) is _________. [en = 4 ethylenediamine] CHEM-2023-0101-S1-Q060" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2023-0101-S1-Q060</span>
@@ -536,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q052" data-search="Given below are two statements: one is labelled as “Assertion A” and the other is labelled as “Reason R” Assertion A: In the complex Ni(CO)4 and Fe(CO)5, the metals have zero oxidation state. Reason R: Low oxidation states are found when a complex has ligands capable of -donor character in π addition to the σ -bonding. In the light of the above statements, choose the most appropriate answer from the options given below (1) A is correct but R is not correct (2) A is not correct but R is correct (3) Both A and R are correct but R is NOT the (4) Both A and R are correct and R is the correct correct explanation of A explanation of A CHEM-2023-0101-S2-Q052" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2023-0101-S2-Q052</span>
@@ -553,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q054" data-search="The correct order of spin only magnetic moments for the following complex ions is (1) [Fe(CN)6]3−&lt; [CoF6]3−&lt; [MnBr4]2−&lt; [Mn(CN)6]3− (2) [CoF6]3−&lt; [MnBr4]2−&lt; [Fe(CN)6]3−&lt; [Mn(CN)6]3− (3) [Fe(CN)6]3−&lt; [Mn(CN)6]3−&lt; [CoF6]3−&lt; [MnBr4]2− (4) [MnBr4]2−&lt; [CoF6]3−&lt; [Fe(CN)6]3−&lt; [Mn(CN)6]3− CHEM-2023-0101-S1-Q054" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2023-0101-S1-Q054</span>
@@ -570,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1411">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q053" data-search="Match List-I with List-II LIST-I LIST-II Coordination Number of unpaired electrons Complex [Cr(CN)6]3− A. I. 0 B. [Fe (H2O)6]2+ II. 3 C. [Co (NH3)6]3+ III. 2 D. [Ni (NH3)6]2+ IV. 4 Choose the correct answer from the options given below: (1) A-II, B-IV, C-I, D-III (2) A-III, B-IV, C-I, D-II (3) A-II, B-I, C-IV, D-III (4) A-IV, B-III, C-II, D-I CHEM-2023-0101-S2-Q053" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1411">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2023-0101-S2-Q053</span>
@@ -587,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1411</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q045" data-search="The set which does not have ambidentate ligand(s) is CHEM-2023-0101-S1-Q045" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2023-0101-S1-Q045</span>
@@ -604,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="800">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q053" data-search="The mismatched combinations are A. Chlorophyll – Co B. Water hardness – EDTA C. Photography −[Ag(CN)2]− D. Wilkinson catalyst −[(Ph3 P)3 RhCl] E. Chelating ligand –D− Penicillamine Choose the correct answer from the options given below. (1) A, C and E only (2) A and C only (3) A and E only (4) D and E only CHEM-2023-0101-S1-Q053" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="800">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2023-0101-S1-Q053</span>
@@ -621,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 800</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q059" data-search="The d-electronic configuration of 2 - in tetrahedral crystal field is emt2 n. The sum of and number of CoCl4 m unpaired electrons is CHEM-2023-0101-S1-Q059" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2023-0101-S1-Q059</span>
@@ -638,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q052" data-search="Match List I with List II List I List II Coordination entity Wavelength of light absorbed in nm A [CoCl (NH3)5]2+ I. 310 B [Co (NH3)6]3+ II. 475 C [Co(CN)6]3− III. 535 (H2O)4]2+ D [Cu IV. 600 Choose the correct answer from the options given below:- (1) A −IV, B −I, C −III, D −II (2) A −III, B −II, C −I, D −IV (3) A −III, B −I, C −II, D −IV (4) A − II, B −III, C −IV, D −I CHEM-2023-0101-S2-Q052" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">CHEM-2023-0101-S2-Q052</span>
@@ -655,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q052" data-search="Correct order of spin only magnetic moment of the following complex ions is: (Given At. No. Fe: 26, Co: 27 ) (1) [FeF6]3−&gt; [CoF6]3−&gt; (C2O4)3]3− (2) (C2O4)3]3−&gt; [CoF6]3−&gt; [FeF6]3− [Co [Co (3) [FeF6]3−&gt; [Co (C2O4)3]3−&gt; [CoF6]3− (4) [CoF6]3−&gt; [FeF6]3−&gt; [Co (C2O4)3]3− CHEM-2023-0101-S2-Q052" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">CHEM-2023-0101-S2-Q052</span>
@@ -672,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="15">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q053" data-search="The denticity of the ligand present in the Fehling&#x27;s reagent is _____. CHEM-2023-0101-S2-Q053" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="15">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">CHEM-2023-0101-S2-Q053</span>
@@ -689,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 15</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q042" data-search="Which of the following is correct order of ligand field strength? 2 - S2 - S2 - 2 - CHEM-2023-0101-S1-Q042" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">CHEM-2023-0101-S1-Q042</span>
@@ -706,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q043" data-search="To inhibit the growth of tumours, identify the compounds used from the following: CHEM-2023-0101-S1-Q043" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">CHEM-2023-0101-S1-Q043</span>
@@ -723,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q047" data-search="Given below are two statements: Statement (I): Dimethyl glyoxime forms a six membered covalent chelate when treated with NiCl2 solution in presence of NH4OH. Statement (II): Prussian blue precipitate contains iron both in +2 and +3 oxidation states. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2024-0101-S2-Q047" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">CHEM-2024-0101-S2-Q047</span>
@@ -740,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q045" data-search="The correct sequence of ligands in the order of decreasing field strength is: CHEM-2024-0101-S1-Q045" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">CHEM-2024-0101-S1-Q045</span>
@@ -757,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q046" data-search="The correct order of ligands arranged in increasing field strength. CHEM-2024-0101-S1-Q046" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">CHEM-2024-0101-S1-Q046</span>
@@ -774,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q046" data-search="The metal atom present in the complex MABXL (where A, B, X and L are unidentate ligands and M is metal) involves sp3 hybridization. The number of geometrical isomers exhibited by the complex is: CHEM-2024-0101-S2-Q046" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">CHEM-2024-0101-S2-Q046</span>
@@ -791,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q035" data-search="Given below are two statements: Statement I: N(CH3)3 and P(CH3)3 can act as ligands to form transition metal complexes. Statement II: As N and P are from same group, the nature of bonding of N(CH3)3 and P(CH3)3 is always same with transition metals. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2024-0101-S1-Q035" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">CHEM-2024-0101-S1-Q035</span>
@@ -808,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q045" data-search="List - I List - II (Complex ion) (Spin only magnetic moment in B.M.) CHEM-2024-0101-S2-Q045" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">CHEM-2024-0101-S2-Q045</span>
@@ -825,7 +841,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q058" data-search="Total number of unpaired electrons in the complex ions [Co(NH3)6]3+ and [NiCl4]2− is CHEM-2024-0101-S2-Q058" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">CHEM-2024-0101-S2-Q058</span>
@@ -842,7 +858,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q046" data-search="Given below are two statements: one is labelled as Assertion CHEM-2024-0101-S1-Q046" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">CHEM-2024-0101-S1-Q046</span>
@@ -859,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q059" data-search="Number of ambidentate ligands among the following is ______ NO−, SCN−, C2O2−, NH3, CN−, SO2−, H2O. 2 4 4 CHEM-2024-0101-S1-Q059" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">CHEM-2024-0101-S1-Q059</span>
@@ -876,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q044" data-search="The coordination environment of Ca2+ ion in its complex with EDTA4− is: CHEM-2024-0101-S2-Q044" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">CHEM-2024-0101-S2-Q044</span>
@@ -893,7 +909,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q046" data-search="Yellow compound of lead chromate gets dissolved on treatment with hot NaOH solution. The product of lead formed is a: CHEM-2024-0101-S1-Q046" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">CHEM-2024-0101-S1-Q046</span>
@@ -910,7 +926,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q047" data-search="Consider the following complex ions P = [FeF6]3–, Q = [V(H2O) 6]2+, R = [Fe(H2O)6]2+ The correct order of the complex ions, according to their spin only magnetic moment values (in B.M.) is: CHEM-2024-0101-S1-Q047" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">CHEM-2024-0101-S1-Q047</span>
@@ -927,7 +943,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q043" data-search="Choose the correct Statements from the following: CHEM-2024-0101-S1-Q043" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">CHEM-2024-0101-S1-Q043</span>
@@ -944,7 +960,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q046" data-search="The coordination geometry around the manganese in decacarbonyldimanganese0 CHEM-2024-0101-S2-Q046" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">CHEM-2024-0101-S2-Q046</span>
@@ -961,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q046" data-search="The correct statements from the following are: A. The strength of anionic ligands can be explained by crystal field theory. B. Valence bond theory does not give a quantitative interpretation of kinetic stability of coordination compounds. C. The hybridization involved in formation of [Ni ( CN ) 4] 2 – complex is dsp2. D. The number of possible isomer(s) of cis-[PtCl2 ( en ) 2] 2 + is one Choose the correct answer from the options given below: CHEM-2024-0101-S1-Q046" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">CHEM-2024-0101-S1-Q046</span>
@@ -978,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q045" data-search="Match List I with List II LIST – II LIST – I (Electronic (Complex ion) Configuration A. CrH2O6 3 + I. t2g 2 eg0 B. FeH2O6 3 + II. t2g 3 eg0 C. NiH2O6 2 + III. t2g 3 eg2 D. VH2O6 3 + IV. t2g 6 eg2 Choose the correct answer from the options given below: CHEM-2024-0101-S2-Q045" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">CHEM-2024-0101-S2-Q045</span>
@@ -995,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q053" data-search="The correct order of the following complexes in terms of their crystal field stabilization energies is: (1) [Co(NH3)4]2+ [Co(NH3)6]2+ [Co(en)3]3+ [Co(NH3)6]3+ &lt; &lt; &lt; (2) [Co(NH3)6]2+ &lt; [Co(NH3)6]3+ &lt; [Co(NH3)4]2+ &lt; [Co(en)3]3+ (3) [Co(en)3]3+ &lt; [Co(NH3)6]3+ &lt; [Co(NH3)6]2+ &lt; [Co(NH3)4]2+ (4) [Co(NH3)4]2+ [Co(NH3)6]2+ [Co(NH3)6]3+ [Co(en)3]3+ &lt; &lt; &lt; CHEM-2025-0101-S2-Q053" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">CHEM-2025-0101-S2-Q053</span>
@@ -1019,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(8 questions)</span>
     &nbsp;<a href="clusters/CHEM-COORCOMP-CFT_CFSE_ISOMERISM/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+  <div class="q-card" id="q-CHEM-2021-0101-S2-Q044" data-search="The Crystal Field Stabilization Energy (CFSE) and magnetic moment (spin-only) of an octahedral aqua complex of a metal ion MZ+ are−0.8Δ0 and 3.87 BM, respectively. Identify MZ+: CHEM-2021-0101-S2-Q044" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">CHEM-2021-0101-S2-Q044</span>
@@ -1036,7 +1052,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q044" data-search="Arrange the following Cobalt complexes in the order of increasing Crystal Field Stabilization Energy (CFSE) value. Complexes: [CoF6]3−, [Co (H2O)6]2+, [Co (NH3)6]3+ and [Co(en)3]3+ A B C D Choose the correct option: CHEM-2021-0101-S2-Q044" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">CHEM-2021-0101-S2-Q044</span>
@@ -1053,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q045" data-search="Transition metal complex with highest value of crystal field splitting (Δ0) will be CHEM-2022-0101-S2-Q045" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">CHEM-2022-0101-S2-Q045</span>
@@ -1070,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q044" data-search="Arrange the following coordination compounds in the increasing order of magnetic moments. (Atomic numbers: ) Mn = 25; Fe = 26 A. [FeF6]3− B. [Fe (CN)6]3− C. [MnCl6]3− (high spin) D. [Mn (CN)6]3− Choose the correct answer from the options given below CHEM-2022-0101-S2-Q044" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">CHEM-2022-0101-S2-Q044</span>
@@ -1087,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q053" data-search="Match List I with List II List I Complex List II CFSE (Δ0) A. [Cu(NH3)6]2+ I. −0.6 B. [Ti(H2O)6]3+ II. −2.0 [Fe(CN)6]3− C. III. −1.2 D. [NiF6]4− IV. −0.4 Choose the correct answer from the options given below: (1) A(III), B(IV), C(I), D(II) (2) A(I), B(IV), C(II), D(III) (3) A(I), B(II), C(IV), D(III) (4) A(II), B(III), C(I), D(IV) CHEM-2023-0101-S1-Q053" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">CHEM-2023-0101-S1-Q053</span>
@@ -1104,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q044" data-search="The complex with highest magnitude of crystal field splitting energy (Δ0) is CHEM-2023-0101-S1-Q044" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">CHEM-2023-0101-S1-Q044</span>
@@ -1121,7 +1137,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="8">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q052" data-search="Which of the following cannot be explained by crystal field theory? (1) The order of spectrochemical series (2) Magnetic properties of transition metal complexes (3) Colour of metal complexes (4) Stability of metal complexes CHEM-2023-0101-S2-Q052" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">CHEM-2023-0101-S2-Q052</span>
@@ -1138,7 +1154,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="173">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q053" data-search="If the CFSE of [Ti (H2O)6]3+ is −96.0 kJ / mol, this complex will absorb maximum at wavelength nm. (nearest integer) 10−34 108 Assume Planck&#x27; constant (h) = 6.4 × Js, Speed of light (c) = 3.0 × m/s and Avogadro&#x27;s constant (NA) = 6 × 1023/ mol. CHEM-2023-0101-S2-Q053" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="173">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">CHEM-2023-0101-S2-Q053</span>

@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -284,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -298,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(58 questions)</span>
     &nbsp;<a href="clusters/CHEM-EQUILIBR-HOMOGENEOUS_KP_KC/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+  <div class="q-card" id="q-CHEM-2021-0101-S2-Q039" data-search="Match List - I with List - II. List-I (Colloid List-II Preparation (Chemical Reaction) Method) ( a ) Hydrolysis ( i ) 2AuCl3 + 3HCHO + 3H2O →2Au ( sol ) + 3HCOOH + 6HCl ( b ) Reduction ( ii ) As2O3 + 3H2 S →As2 S3 ( sol ) + 3H2O ( c ) Oxidation ( iii ) SO2 + 2H2 S →3 S ( sol ) + 2H2O Double ( d ) Decomposition ( iv ) FeCl3 + 3H2O →Fe ( OH ) ( sol ) + 3HCl 3 Choose the most appropriate answer from the options given below: CHEM-2021-0101-S2-Q039" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S2-Q039</span>
@@ -315,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q044" data-search="Reaction of Grignard reagent, C2H5 MgBr with C8H8O followed by hydrolysis gives compound A, which reacts instantly with Lucas reagent to give compound B(C10H13 Cl). The Compound B is: CHEM-2021-0101-S1-Q044" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q044</span>
@@ -332,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q053" data-search="The gas phase reaction 2 A(g) ⇌A2(g) at has ΔGo mol−1.400 K = +25.2 kJ The equilibrium constant KC for this reaction is ___ ×10−2. (Round off to the Nearest integer) Use: R = 8.3 J mol−1 K−1, ln 10 = 2.3 log10 2 = 0.30, 1 atm = 1 bar antilog (−0.3) = 0.501 CHEM-2021-0101-S2-Q053" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S2-Q053</span>
@@ -349,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="172">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q054" data-search="2 SO2( g) + O2( g) ⇌2 SO3( g) In an equilibrium mixture, the partial pressures are PSO3 = 43 kPa; PO2 = 530 Pa and PSO2 = 45 kPa. The equilibrium constant KP = _____ × 10−2. (Nearest integer) CHEM-2021-0101-S1-Q054" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="172">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S1-Q054</span>
@@ -366,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 172</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q046" data-search="The correct order of their reactivity towards hydrolysis at room temperature is: CHEM-2021-0101-S2-Q046" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S2-Q046</span>
@@ -383,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q046" data-search="Which of the following compounds will provide a tertiary alcohol on reaction with excess of CH3 MgBr followed by hydrolysis? CHEM-2021-0101-S1-Q046" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S1-Q046</span>
@@ -400,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1380">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q053" data-search="For the reaction Ag→Bg, the value of the equilibrium constant at 300 K and 1 atm is equal to 100.0. The value of ΔGo for the reaction at 300 K and 1 atm in Jmol−1 is -xR, where x is (Rounded off to the nearest mol−1 K−1 integer) R = 8.31 J and ln10 = 2.3 CHEM-2021-0101-S1-Q053" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1380">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -417,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1380</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q054" data-search="The stepwise formation of CuNH34 2 + is given below: K1 Cu2 + 2 + + NH3 ⇌CuNH3 K2 CuNH3 2 + + NH3 ⇌CuNH32 2 + K3 CuNH32 2 + + NH3 ⇌CuNH33 2 + K4 CuNH33 2 + + NH3 ⇌CuNH34 2 + The value of stability constants K1, K2, K3 and K4 are 104, 1.58 × 103, 5 × 102 and 102 respectively. The overall equilibrium constants for dissociation of 2 + is 10−12 The value of CuNH34 x×. x is _____ (Rounded off to the nearest integer) CHEM-2021-0101-S1-Q054" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2021-0101-S1-Q054</span>
@@ -434,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="36">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q059" data-search="When 9.45 g of ClCH2COOH is added to 500 mL of water, its freezing point drops by 0.5°C. The dissociation constant of is 10−3 The value of is off to the nearest integer) ClCH2COOH x×. x KfH2O = 1.86 K kg mol−1 10−4 CHEM-2021-0101-S1-Q059" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="36">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2021-0101-S1-Q059</span>
@@ -451,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 36</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q060" data-search="Among the following, the number of halide(s) which is/ are inert to hydrolysis is (A) BF3 (B) SiCl4 (C) PCl5 (D) SF6 CHEM-2021-0101-S1-Q060" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2021-0101-S1-Q060</span>
@@ -468,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q039" data-search="Given below are two statements: Statement I: The pH of rain water is normally ~5.6. Statement II: If the pH of rain water drops below 5.6, it is called acid rain. In the light of the above statements, choose the correct answer from the options given below: CHEM-2021-0101-S2-Q039" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2021-0101-S2-Q039</span>
@@ -485,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q055" data-search="For the reaction A + B ⇌2C the value of equilibrium constant is 100 at 298 K. If the initial concentration of all the three species is 1 M each, then the equilibrium concentration of C is x × 10−1 M. The value of x is _______. (Nearest integer) CHEM-2021-0101-S1-Q055" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2021-0101-S1-Q055</span>
@@ -502,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q048" data-search="A reaction of benzonitrile with one equivalent CH3 MgBr followed by hydrolysis produces a yellow liquid &quot;P&quot;. The compound &quot;P&quot; will give positive ________ CHEM-2021-0101-S2-Q048" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2021-0101-S2-Q048</span>
@@ -519,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q043" data-search="The incorrect statement is: CHEM-2021-0101-S1-Q043" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2021-0101-S1-Q043</span>
@@ -536,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q042" data-search="The number of non-ionisable hydrogen atoms present in the final product obtained from the hydrolysis of PCl5 is: CHEM-2021-0101-S2-Q042" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2021-0101-S2-Q042</span>
@@ -553,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="182">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q053" data-search="The equilibrium constant Kc at 298 K for the reaction A + B ⇌C + D is 100. Starting with an equimolar solution with concentrations of A, B, C and D all equal to 1M, the equilibrium concentration of D is _____ ×10−2M. (Nearest integer) CHEM-2021-0101-S2-Q053" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="182">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2021-0101-S2-Q053</span>
@@ -570,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 182</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="50">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q055" data-search="The reaction rate for the reaction [PtCl4]2−+ H2O ⇌[Pt(H2O) Cl3]−+ Cl− was measured as a function of concentrations of different species. It was observed that −d[[PtCl4]2−] = 4.8 × 10−5[[PtCl4]2−] −2.4 × 10−3[[Pt(H2O) Cl3]−][Cl−] dt where square brackets are used to denote molar concentrations. The equilibrium constant Kc = X (Nearest integer) Value of X 1 is (question is modified.) CHEM-2021-0101-S2-Q055" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="50">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2021-0101-S2-Q055</span>
@@ -587,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 50</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q056" data-search="A chloro compound &quot;A&quot;. (i) forms aldehydes on ozonolysis followed by the hydrolysis. (ii) when vaporized completely of, gives of vapour at STP. The number of carbon atoms in a 1.53 g A 448 mL molecule of compound A is CHEM-2021-0101-S2-Q056" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2021-0101-S2-Q056</span>
@@ -604,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q047" data-search="Hydrolysis − A → B (C4H8 Cl2) 373 K (C4H8O) B reacts with Hydroxyl amine but does not give Tollen&#x27;s test. Identify A and B. CHEM-2021-0101-S1-Q047" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2021-0101-S1-Q047</span>
@@ -621,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="16">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q054" data-search="The equilibrium constant for the reaction A(s) ⇌M(s) + 1 2 O2( g) is Kp = 4. At equilibrium, the partial pressure of O2 is _____ atm. (Round off to the nearest integer) CHEM-2021-0101-S2-Q054" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="16">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2021-0101-S2-Q054</span>
@@ -638,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 16</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6021">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q053" data-search="The pH of a solution obtained by mixing 50 mL of 1 M HCl and 30 mL of 1 M NaOH is x × 10−4. The value of x is (Nearest integer) log 2.5 = 0.3979 CHEM-2021-0101-S2-Q053" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6021">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">CHEM-2021-0101-S2-Q053</span>
@@ -655,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6021</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q033" data-search="For a reaction at equilibrium A(g) ⇌B(g) + 1 C(g) 2 the relation between dissociation constant (K), degree of dissociation (α) and equilibrium pressure (p) is given by: CHEM-2022-0101-S1-Q033" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">CHEM-2022-0101-S1-Q033</span>
@@ -672,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q039" data-search="Which of the following reagents / reactions will convert &#x27; &#x27; to &#x27; &#x27;? A B CHEM-2022-0101-S2-Q039" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">CHEM-2022-0101-S2-Q039</span>
@@ -689,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1107">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q052" data-search="PCl5 dissociates as PCl5(g) ⇌PCl3(g) + Cl2(g) 5 moles of PCl5 are placed in a 200 litre vessel which contains 2 moles of N2 and is maintained at 600 K. The equilibrium pressure is 2.46 atm. The equilibrium constant Kp for the dissociation of PCl5 is___ ×10−3. (nearest integer) (Given: R = 0.082 L atm K−1 mol−1; Assume ideal gas behaviour) CHEM-2022-0101-S2-Q052" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1107">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">CHEM-2022-0101-S2-Q052</span>
@@ -706,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1107</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q047" data-search="During halogen test, sodium fusion extract is boiled with concentrated HNO3 to CHEM-2022-0101-S2-Q047" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">CHEM-2022-0101-S2-Q047</span>
@@ -723,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="125">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q052" data-search="2 NOCl(g) ⇌2 NO(g) + Cl2(g) In an experiment, 2.0 moles of NOCl was placed in a one-litre flask and the concentration of NO after equilibrium established, was found to be 0.4 mol /L. The equilibrium constant at 30 °C is_____ ×10−4. CHEM-2022-0101-S1-Q052" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="125">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">CHEM-2022-0101-S1-Q052</span>
@@ -740,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 125</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q042" data-search="On the surface of polar stratospheric clouds, hydrolysis of chlorine nitrate gives A and B while its reaction with produces and. and are, respectively HCl B C A. B C CHEM-2022-0101-S2-Q042" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">CHEM-2022-0101-S2-Q042</span>
@@ -757,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q046" data-search="Isobutyraldehyde on reaction with formaldehyde and K2 CO3 gives compound &#x27; A &#x27;. Compound &#x27; A &#x27; reacts with KCN and yields compound &#x27; B &#x27;, which on hydrolysis gives a stable compound &#x27; C &#x27;. The compound &#x27; C &#x27; is CHEM-2022-0101-S2-Q046" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">CHEM-2022-0101-S2-Q046</span>
@@ -774,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q031" data-search="For a concentrated solution of a weak electrolyte (Keq = equilibrium constant) A2B3 of concentration ‘C’, the degree of dissociation ‘α’ is CHEM-2023-0101-S1-Q031" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">CHEM-2023-0101-S1-Q031</span>
@@ -791,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q040" data-search="Given below are two statements: Statement I: In redox titration, the indicators used are sensitive to change in pH of the solution. Statement II: In acid-base titration, the indicators used are sensitive to change in oxidation potential. In the light of the above statements, choose the most appropriate answer from the options given below CHEM-2023-0101-S2-Q040" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">CHEM-2023-0101-S2-Q040</span>
@@ -808,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q043" data-search="Prolonged heating is avoided during the preparation of ferrous ammonium sulphate to CHEM-2023-0101-S1-Q043" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">CHEM-2023-0101-S1-Q043</span>
@@ -825,7 +841,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q060" data-search="The difference in the oxidation state of Xe between the oxidised product of Xe formed on complete hydrolysis of XeF4and XeF4 is CHEM-2023-0101-S2-Q060" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">CHEM-2023-0101-S2-Q060</span>
@@ -842,7 +858,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="44">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q053" data-search="A mixture of one mole of H2O and 1 mole of CO is taken in a 10 litre container and heated to 725 K. At equilibrium 40% of water by mass reacts with carbon monoxide according to the equation: 102 COg + H2Og ⇌ CO2g + H2g. The equilibrium constant KC × for the reaction is ________ (Nearest integer) CHEM-2023-0101-S1-Q053" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="44">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">CHEM-2023-0101-S1-Q053</span>
@@ -859,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 44</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q037" data-search="4.5 moles each of hydrogen and iodine is heated in a sealed ten litre vessel.At equilibrium, 3 moles of HI were found. The equilibrium constant for H2(g) + I2(g) ⇌2 HI(g) is........ CHEM-2023-0101-S2-Q037" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">CHEM-2023-0101-S2-Q037</span>
@@ -876,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q046" data-search="Match List I with List II List I List II A Nitrogen oxides in air I Eutrophication B Methane in air II pH of rain water becomes 5.6 C Carbon dioxide III Global warming D Phosphate fertilisers in water IV Acid rain Choose the correct answer from the options given below: CHEM-2023-0101-S1-Q046" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">CHEM-2023-0101-S1-Q046</span>
@@ -893,7 +909,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="458">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q053" data-search="20 mL of 0.1MNaOH is added to 50 mL of 0.1M acetic acid solution. The pH of the resulting solution is × 10−2. (Nearest integer) Given: pKaCH3COOH = 4.76 log 2 = 0.30 log 3 = 0.48 CHEM-2023-0101-S2-Q053" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="458">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">CHEM-2023-0101-S2-Q053</span>
@@ -910,7 +926,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 458</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q045" data-search="Assertion A: Hydrolysis of an alkyl chloride is a slow reaction but in the presence of NaI, the rate of hydrolysis increases. Reason R: I- is a good nucleophile as well as a good leaving group. In the light of the above statements, choose the correct answer from the options given below. CHEM-2023-0101-S1-Q045" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">CHEM-2023-0101-S1-Q045</span>
@@ -927,7 +943,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="10">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q053" data-search="The dissociation constant of acetic is x × 10 – 5. When 25 mL of 0.2 M CH3COONa solution is mixed with 25 mL of 0.02 M CH3COOH solution, the pH of the resultant solution is found to be equal to 5. The value of x is _______. CHEM-2023-0101-S1-Q053" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="10">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">CHEM-2023-0101-S1-Q053</span>
@@ -944,7 +960,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 10</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="917">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q057" data-search="At 298 K, a 1 litre solution containing 10 mmol of Cr2O7 and 100mmol of shows a pH of 3.0. Given: Cr2O7 2 - →Cr3 +; E0 = 1.330 V and 2.303RT = 0.059 V F The potential for the half cell reaction is x × 10−3 V. The value of x is _____. CHEM-2023-0101-S1-Q057" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="917">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">CHEM-2023-0101-S1-Q057</span>
@@ -961,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 917</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q047" data-search="Reaction of thionyl chloride with white phosphorus forms a compound [A], which on hydrolysis gives [B], a dibasic acid. [A] and [B] are respectively CHEM-2023-0101-S1-Q047" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">CHEM-2023-0101-S1-Q047</span>
@@ -978,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q035" data-search="When the hydrogen ion concentration [H+] changes by a factor of 1000, the value of pH of the solution CHEM-2023-0101-S2-Q035" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">CHEM-2023-0101-S2-Q035</span>
@@ -995,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q036" data-search="Water decomposes at 2300 K H2O(g) →H2(g) + 1 2 O2(g) The percent of water decomposing at 2300 K and 1 bar is _____ (Nearest integer). Equilibrium constant for the reaction is 2 × 10−3 at 2300 K CHEM-2023-0101-S1-Q036" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">CHEM-2023-0101-S1-Q036</span>
@@ -1012,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q035" data-search="At 298 K N2(g) + 3H2(g) ⇌2 NH3(g), K1 = 4 × 105 N2(g) + O2(g) ⇌2 NO(g), K2 = 1.6 × 1012 H2(g) + 1 O2(g) ⇌H2O(g), K3 = 1.0 × 10−13 2 Based on above equilibria, the equilibrium constant of the reaction, 5 2 NH3(g) + 2 O2( g) ⇌2 NO(g) + 3H2O(g) is _____ ×10−33 (Nearest integer) CHEM-2023-0101-S2-Q035" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">CHEM-2023-0101-S2-Q035</span>
@@ -1029,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="186">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q053" data-search="600mL of 0.01M HCl is mixed with 400mL of 0.01M H2SO4. The pH of the mixture is _____ × 10−2. (Nearest integer) [Given log2 = 0.30, log3 = 0.48, log5 = 0.69, log7 = 0.84, log11 = 1.04] CHEM-2023-0101-S1-Q053" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="186">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">CHEM-2023-0101-S1-Q053</span>
@@ -1046,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 186</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q049" data-search="The graph of log m vs log p for an adsorption process is a straight line inclined at an angle of 45° with intercept equal to 0.6020. The mass of gas adsorbed per unit mass of adsorbent at the pressure of 0.4 atm is _____ ×10−1 (Nearest integer) Given: log 2 = 0.3010 CHEM-2023-0101-S2-Q049" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">CHEM-2023-0101-S2-Q049</span>
@@ -1063,7 +1079,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q057" data-search="The logarithm of equilibrium constant for the reaction + ⇌PdCl4 is (Nearest integer) Given: 2.303RT = 0.06 V F Pd 2 + + 2e- ⇌Pd(s) Eo= 0.83 V ( aq ) PdCl4 2 - (aq) + 2e- ⇌Pd(s) + 4Cl- (aq) Eo = 0.65 V CHEM-2023-0101-S1-Q057" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">CHEM-2023-0101-S1-Q057</span>
@@ -1080,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q036" data-search="The equilibrium constant for the reaction SO3(g) ⇌SO2( g) + 1 2 O2( g) is Kc = 4.9 × 10−2. The value of Kc for the reaction given below is 2SO2( g) + O2( g) ⇌2SO3( g) is: CHEM-2024-0101-S2-Q036" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">CHEM-2024-0101-S2-Q036</span>
@@ -1097,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q044" data-search="While preparing crystals of Mohr&#x27;s salt, dil H2SO4 is added to a mixture of ferrous sulphate and ammonium sulphate, before dissolving this mixture in water, dil H2SO4 is added here to: CHEM-2024-0101-S2-Q044" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">CHEM-2024-0101-S2-Q044</span>
@@ -1114,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="19">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q055" data-search="Considering acetic acid dissociates in water, its dissociation constant is 6.25 × 10−5. If 5 mL of acetic acid is dissolved in 1 litre water, the solution will freeze at −x × 10−2∘C, provided pure water freezes at 0∘C. x = (Kf)water = 1.86 K kg mol−1. mol−1. density of acetic acid is 1.2 g ______. (Nearest integer) Given: molar mass of water = 18 g mol−1. Acetic acid dissociates as molar mass of acetic acid=60 gmol−1. density of water = 1 g cm−3 CH3COOH ⇌CH3COO⊖+ H⊕ CHEM-2024-0101-S2-Q055" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="19">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">CHEM-2024-0101-S2-Q055</span>
@@ -1131,7 +1147,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 19</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="9">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q060" data-search="Xg of ethanamine was subjected to reaction with NaNO2/HCl followed by hydrolysis to liberate N2 and HCl. The HCl generated was completely neutralised by 0.2 moles of NaOH. X is ______ g. CHEM-2024-0101-S2-Q060" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="9">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">CHEM-2024-0101-S2-Q060</span>
@@ -1148,7 +1164,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 9</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q036" data-search="For the given hypothetical reactions, the equilibrium constants are as follows: Y ⇌Z; K2 = 2.0 The Z ⇌W; K3 = 4.0 equilibrium constant for the reaction X ⇌W is CHEM-2024-0101-S1-Q036" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">CHEM-2024-0101-S1-Q036</span>
@@ -1165,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="37">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q056" data-search="For a certain thermochemical reaction M →N at T = 400 K, ΔHo = 77.2 kJ mol−1, ΔSo = 122JK-1, log equilibrium constant ( logK ) is - _____ × 10−1. CHEM-2024-0101-S2-Q056" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="37">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">CHEM-2024-0101-S2-Q056</span>
@@ -1182,7 +1198,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 37</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="417">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q055" data-search="The following concentrations were observed at 500 K for the formation of NH3 from N2 and H2. At equilibrium: [N2] = 2 × 10−2M, [H2] = 3 × 10−2M and [NH3] = 1.5 × 10−2M. Equilibrium constant for the reaction is ______. CHEM-2024-0101-S2-Q055" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="417">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">CHEM-2024-0101-S2-Q055</span>
@@ -1199,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 417</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q037" data-search="Given below are two statements: Statement I: Group trivalent halides get easily hydrolysed by water due to their covalent nature. 13 Statement II: AlCl3 upon hydrolysis in acidified aqueous solution forms octahedral AlH2O6 3 + ion. In the light of the above statements, choose the correct answer from the options given below: CHEM-2024-0101-S2-Q037" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">CHEM-2024-0101-S2-Q037</span>
@@ -1216,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q055" data-search="Consider the reaction X2Y( g) = X2( g) + 1 2 Y2( g) The equation representing correct relationship between the degree of dissociation (x) of X2Y(g) with its equilibrium constant Kp is ______. Assume x to be very very small. (1) x = 3√2Kp (2) x = 3√2Kp2 p p (3) x = 3√Kp (4) x = 3√Kp p 2p CHEM-2025-0101-S2-Q055" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">CHEM-2025-0101-S2-Q055</span>
@@ -1233,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q037" data-search="A photograph of a landscape is captured by a drone camera at a height of 18 km. The size of the camera film is and the area of the landscape photographed is km2. The focal length of the lens in the 2 cm × 2 cm 400 drone camera is: CHEM-2025-0101-S2-Q037" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">CHEM-2025-0101-S2-Q037</span>
@@ -1250,7 +1266,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q058" data-search="A weak acid HA has degree of dissociation x. Which option gives the correct expression of ( pH pKa )? (1) 0 (2) log(1 + 2x) (3) log ( 1−x ) (4) log ( x ) x 1−x CHEM-2025-0101-S1-Q058" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">CHEM-2025-0101-S1-Q058</span>
@@ -1267,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q051" data-search="Consider the equilibrium CO( g) + 3H2( g) ⇌CH4( g) + H2O( g) If the pressure applied over the system increases by two fold at constant temperature then (A) Concentration of reactants and products increases. (B) Equilibrium will shift in forward direction. (C) Equilibrium constant increases since concentration of products increases. (D) Equilibrium constant remains unchanged as concentration of reactants and products remain same. Choose the correct answer from the options given below: (1) (A), (B) and (C) only (2) (A) and (B) only (3) (A), (B) and (D) only (4) (B) and (C) only CHEM-2025-0101-S2-Q051" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">CHEM-2025-0101-S2-Q051</span>
@@ -1291,7 +1307,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(17 questions)</span>
     &nbsp;<a href="clusters/CHEM-EQUILIBR-PH_ACIDS_BASES/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+  <div class="q-card" id="q-CHEM-2021-0101-S2-Q054" data-search="Sulphurous acid (H2 SO3) has Ka1 = 1.7 × 10−2 and Ka2 = 6.4 × 10−8. The pH of 0.588 M H2 SO3 is____________ ( Round off to the Nearest Integer ). CHEM-2021-0101-S2-Q054" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">CHEM-2021-0101-S2-Q054</span>
@@ -1308,7 +1324,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="10">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q055" data-search="In order to prepare a buffer solution of, sodium acetate is added to acetic acid. If the concentration of pH 5.74 acetic acid in the buffer is 1.0 M, the concentration of sodium acetate in the buffer is ______ M. (Round off to the Nearest Integer). [Given: pKa(acetic acid) = 4.74] CHEM-2021-0101-S1-Q055" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="10">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">CHEM-2021-0101-S1-Q055</span>
@@ -1325,7 +1341,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 10</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q034" data-search="The solubility of AgCN in a buffer solution of pH = 3 is x. The value of x is: [Assume: No cyano complex is formed; Ksp(AgCN) = 2.2 × 10−16 and Ka(HCN) = 6.2 × 10−10 ] CHEM-2021-0101-S1-Q034" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">CHEM-2021-0101-S1-Q034</span>
@@ -1342,7 +1358,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="7">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q054" data-search="The of ammonium phosphate solution, if of phosphoric acid and of ammonium hydroxide are pH pka pkb 5.23 and 4.75 respectively, is CHEM-2021-0101-S2-Q054" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">CHEM-2021-0101-S2-Q054</span>
@@ -1359,7 +1375,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="476">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q053" data-search="50 mL of 0.1 M CH3 COOH is being titrated against 0.1 M NaOH. When 25 mL of NaOH has been added, the pH of the solution will be____ ×10−2. (Nearest integer) (Given: pKa(CH3 COOH) = 4.76 ) log 2 = 0.30 log 3 = 0.48 log 5 = 0.69 log 7 = 0.84 log 11 = 1.04 CHEM-2022-0101-S1-Q053" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="476">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">CHEM-2022-0101-S1-Q053</span>
@@ -1376,7 +1392,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 476</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q035" data-search="A student needs to prepare a buffer solution of propanoic acid and its sodium salt with pH 4. The ratio of [CH3 CH2 COO−] 10−5 [CH3 CH2 COOH] required to make buffer is Given: Ka(CH3 CH2 COOH) = 1.3 × CHEM-2022-0101-S2-Q035" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">CHEM-2022-0101-S2-Q035</span>
@@ -1393,7 +1409,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q050" data-search="The reaction used for preparation of soap from fat is: CHEM-2023-0101-S2-Q050" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">CHEM-2023-0101-S2-Q050</span>
@@ -1410,7 +1426,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q033" data-search="Which of the following statement(s) is/are correct? CHEM-2023-0101-S1-Q033" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">CHEM-2023-0101-S1-Q033</span>
@@ -1427,7 +1443,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q050" data-search="Which is not true for arginine? CHEM-2023-0101-S1-Q050" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">CHEM-2023-0101-S1-Q050</span>
@@ -1444,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q036" data-search="If the pKa of lactic acid is 5, then the pH of 0.005 M calcium lactate solution at 25° C is __________ × 10–1 (Nearest integer) CHEM-2023-0101-S2-Q036" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">CHEM-2023-0101-S2-Q036</span>
@@ -1461,7 +1477,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q033" data-search="A litre of buffer solution contains 0.1 mole of each of NH3 and NH4 Cl. On the addition of 0.02 mole of HCl by dissolving gaseous HCl, the pH of the solution is found to be _____ × 10−3 (Nearest integer) Given: pKb(NH3) = 4.745 log 2 = 0.301 log 3 = 0.477 T = 298 K] CHEM-2023-0101-S1-Q033" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">CHEM-2023-0101-S1-Q033</span>
@@ -1478,7 +1494,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q056" data-search="The increasing order of for the following phenols is pKa (A) 2,4-Dinitrophenol (B) 4-Nitrophenol (C) 2,4,5-Trimethylphenol (D) Phenol (E) 3-Chlorophenol Choose the correct answer from the option given below: (1) (A), (E), (B), (D), (C) (2) (A), (B), (E), (D), (C) (3) (C), (D), (E), (B), (A) (4) (C), (E), (D), (B), (A) CHEM-2023-0101-S1-Q056" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">CHEM-2023-0101-S1-Q056</span>
@@ -1495,7 +1511,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q041" data-search="The correct order of values for the following compounds is: pKa CHEM-2023-0101-S2-Q041" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">CHEM-2023-0101-S2-Q041</span>
@@ -1512,7 +1528,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q060" data-search="A short peptide on complete hydrolysis produces 3 moles of glycine (G), two moles of leucine (L) and two moles of valine (V) per mole of peptide. The number of peptide linkages in it are _____. CHEM-2023-0101-S2-Q060" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">CHEM-2023-0101-S2-Q060</span>
@@ -1529,7 +1545,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q054" data-search="Ka for CH3COOH is 1.8 × and Kb for NH4OH is 1.8 ×. The pH of ammonium acetate solution will be CHEM-2024-0101-S1-Q054" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">CHEM-2024-0101-S1-Q054</span>
@@ -1546,7 +1562,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q037" data-search="For the given compounds, the correct order of increasing pKa value: Choose the correct answer from the options given below: CHEM-2024-0101-S1-Q037" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">CHEM-2024-0101-S1-Q037</span>
@@ -1563,7 +1579,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="100">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q053" data-search="The pH of an aqueous solution containing 1M benzoic acid pKa = 4.20 and 1M sodium benzoate is 4.5. The volume of benzoic acid solution in 300 mL of this buffer solution is __________mL. CHEM-2024-0101-S2-Q053" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="100">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">CHEM-2024-0101-S2-Q053</span>
@@ -1587,7 +1603,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(17 questions)</span>
     &nbsp;<a href="clusters/CHEM-EQUILIBR-SOLUBILITY_PRODUCT_KSP/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+  <div class="q-card" id="q-CHEM-2021-0101-S2-Q056" data-search="The molar solubility of Zn ( OH ) in 0.1MNaOH solution is x× 10-18M. The value of x is _____. (Nearest 2 integer) 10−20 Given: The solubility product of Zn(OH ) is 2 × 2 CHEM-2021-0101-S2-Q056" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">CHEM-2021-0101-S2-Q056</span>
@@ -1604,7 +1620,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="50">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q055" data-search="Two salts A2X and MX have the same value of solubility product of 4.0 × 10−12. The ratio of their molar solubilizes i.e. S(A2X) = ________. S(MX) (Round off to the Nearest Integer). CHEM-2021-0101-S1-Q055" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="50">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">CHEM-2021-0101-S1-Q055</span>
@@ -1621,7 +1637,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 50</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q033" data-search="Given below are two statements: One is labelled as Assertion A and the other labelled as reason R Assertion During the boiling of water having temporary hardness, is converted to A: Mg (HCO3)2 MgCO3 Reason R: The solubility product of Mg(OH)2 is greater than that of MgCO3. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2021-0101-S1-Q033" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q78</span>
     <span class="q-id">CHEM-2021-0101-S1-Q033</span>
@@ -1638,7 +1654,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q034" data-search="A solution is 0.1M in Cl− and 0.001M in CrO2−. 4 Solid AgNO3 is gradually added to it Assuming that the addition does not change in volume and Ksp(AgCl) = 1.7 × 10−10M2 and Ksp(Ag2 CrO4) = 1.9 × 10−12M3. Select correct statement from the following: CHEM-2021-0101-S2-Q034" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q79</span>
     <span class="q-id">CHEM-2021-0101-S2-Q034</span>
@@ -1655,7 +1671,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="141">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q055" data-search="The solubility product of PbI2 is 8.0 × 10−9. The solubility of lead iodide in 0.1 molar solution of lead nitrate is x × 10−6 mol /L. The value of x is _________ (Rounded off to the nearest integer) [Given √2 = 1.41 ] CHEM-2021-0101-S2-Q055" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="141">
   <div class="q-header">
     <span class="q-num">Q80</span>
     <span class="q-id">CHEM-2021-0101-S2-Q055</span>
@@ -1672,7 +1688,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 141</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q032" data-search="The solubility of Ca (OH)2 in water is: [Given: The solubility product of Ca (OH)2 in water = 5.5 × 10−6 ] CHEM-2021-0101-S2-Q032" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q81</span>
     <span class="q-id">CHEM-2021-0101-S2-Q032</span>
@@ -1689,7 +1705,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="108">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q053" data-search="A3B2 is a sparingly soluble salt of molar mass M(g mol−1) and solubility x g L−1. The solubility product 5. satisfies Ksp = a( M x ) The value of a is __________. (Integer answer) CHEM-2021-0101-S1-Q053" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="108">
   <div class="q-header">
     <span class="q-num">Q82</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -1706,7 +1722,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 108</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q034" data-search="The Ksp for bismuth sulphide Bi2S3 is 1.08 × 10−73. The solubility of Bi2S3 in molL−1 at 298 K is CHEM-2022-0101-S2-Q034" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q83</span>
     <span class="q-id">CHEM-2022-0101-S2-Q034</span>
@@ -1723,7 +1739,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q039" data-search="The solubility product of is 10−10 at. The solubility of in BaSO4 1 × 298 K BaSO4 0.1M K2 SO4(aq) solution is ------ ×10−9 g L−1 (nearest integer). Given: Molar mass of BaSO4 is 233 g mol−1 CHEM-2023-0101-S2-Q039" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q84</span>
     <span class="q-id">CHEM-2023-0101-S2-Q039</span>
@@ -1740,7 +1756,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q039" data-search="25.0 mL of 0.050 M Ba (NO3)2 is mixed with 25.0 mL of 0.020 M NaF. Ksp of BaF2 is 0.5 × 10–6 at 298K. The ratio of [Ba2+][F−]2 and Ksp is ______. CHEM-2023-0101-S1-Q039" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q85</span>
     <span class="q-id">CHEM-2023-0101-S1-Q039</span>
@@ -1757,7 +1773,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q038" data-search="At 298 K, the solubility of silver chloride in water is 1.434 × 10−3 g L−1. The value of −logKsp for silver chloride is mol−1 mol−1 (Given mass of Ag is 107.9 g, and mass of Cl is 35.5 g ) CHEM-2023-0101-S2-Q038" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q86</span>
     <span class="q-id">CHEM-2023-0101-S2-Q038</span>
@@ -1774,7 +1790,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q035" data-search="Solubility of calcium phosphate (molecular mass, M) in water is Wg per 100 mL at 25°C. Its solubility product at 25°C will be approximately. CHEM-2024-0101-S2-Q035" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q87</span>
     <span class="q-id">CHEM-2024-0101-S2-Q035</span>
@@ -1791,7 +1807,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q035" data-search="Given below are two statements: Statement I: On passing HCl(g) through a saturated solution of BaCl2, at room temperature white turbidity appears. Statement II: When HCl gas is passed through a saturated solution of NaCl, sodium chloride is precipitated due to common ion effect. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2024-0101-S2-Q035" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q88</span>
     <span class="q-id">CHEM-2024-0101-S2-Q035</span>
@@ -1808,7 +1824,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q037" data-search="For a sparingly soluble salt AB2, the equilibrium concentrations of ions and ions are 1.2 × and 0.24 × 10−3M, respectively. The solubility product of AB2 is: CHEM-2024-0101-S2-Q037" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q89</span>
     <span class="q-id">CHEM-2024-0101-S2-Q037</span>
@@ -1825,7 +1841,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="09">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q055" data-search="The at which Mg(OH)2[ 10−11] begins to precipitate from a solution containing Mg2+ pH Ksp = 1 × 0.10M ions is ______. CHEM-2024-0101-S1-Q055" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="09">
   <div class="q-header">
     <span class="q-num">Q90</span>
     <span class="q-id">CHEM-2024-0101-S1-Q055</span>
@@ -1842,7 +1858,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 09</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q058" data-search="The molar solubility(s) of zirconium phosphate with molecular formula (Zr4+)3(PO3− )4 is given by relation: 4 (1) ( Ksp ) 1 3 (2) ( Ksp ) 1 7 9612 6912 (3) 1 (4) 1 ( Ksp ) 7 ( Ksp ) 6 8435 5348 CHEM-2025-0101-S2-Q058" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q91</span>
     <span class="q-id">CHEM-2025-0101-S2-Q058</span>
@@ -1859,7 +1875,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q059" data-search="Arrange the following in increasing order of solubility product: Ca(OH)2, AgBr, PbS, HgS (1) HgS &lt; AgBr &lt; PbS &lt; Ca(OH)2 (2) Ca(OH)2 &lt; AgBr &lt; HgS &lt; PbS (3) PbS &lt; HgS &lt; Ca(OH)2 &lt; AgBr (4) HgS &lt; PbS &lt; AgBr &lt; Ca(OH)2 CHEM-2025-0101-S2-Q059" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q92</span>
     <span class="q-id">CHEM-2025-0101-S2-Q059</span>
@@ -1883,7 +1899,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(1 question)</span>
     
   </div>
-  <div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+  <div class="q-card" id="q-CHEM-2024-0101-S2-Q035" data-search="Given below are two statements: Statement (I): A Buffer solution is the mixture of a salt and an acid or a base mixed in any particular quantities. Statement (II): Blood is naturally occurring buffer solution whose pH is maintained by H2CO3/HCO− 3 Θ concentrations. In the light of the above statements, choose the correct answer from the options given below: CHEM-2024-0101-S2-Q035" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q93</span>
     <span class="q-id">CHEM-2024-0101-S2-Q035</span>

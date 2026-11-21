@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+<div class="q-card" id="q-MATH-2021-0101-S1-Q078" data-search="Let the position vectors of two points P and Q be 3ˆi −ˆj + 2ˆk and ˆi + 2ˆj −4ˆk, respectively. Let R and S be two points such that the direction ratios of lines PR and QS are (4, −1, 2) and (−2, 1, −2), respectively. Let − − − → → → lines PR and QS intersect at T. If the vector TA is perpendicular to both PR and QS and the length of vector − → is √5 units, then the modulus of a position vector of is: TA A MATH-2021-0101-S1-Q078" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">MATH-2021-0101-S1-Q078</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q079" data-search="If the foot of the perpendicular from point (4, 3, 8) on the line: x−a = y−2 = z−b, ≠0 is (3, 5, 7), then L1 l 3 4 l the shortest distance between the line L1 and line L2: x−2 = y−4 = z−5 is equal to 3 4 5 MATH-2021-0101-S2-Q079" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">MATH-2021-0101-S2-Q079</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q090" data-search="If → αˆi 2ˆj 2ˆk λ(ˆi −2ˆj 2ˆk), the shortest distance between the lines r1 = + + + + λ ∈R, α &gt; 0 and → μ(3ˆi −2ˆk), r2 = −4ˆi −ˆk + −2ˆj μ ∈R is 9, then α is equal to_____. MATH-2021-0101-S1-Q090" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">MATH-2021-0101-S1-Q090</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q078" data-search="Let be the line of intersection of planes →r ⋅(ˆi −ˆj 2ˆk) and →r ⋅(2ˆi ˆj −ˆk) If is the L + = 2 + = 2. P(α, β, γ) foot of perpendicular on L from the point (1, 2, 0), then the value of 35(α + β + γ) is equal to: MATH-2021-0101-S1-Q078" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">MATH-2021-0101-S1-Q078</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q090" data-search="Let λ be an integer. If the shortest distance between the lines x −λ = 2y −1 = −2z and x = y + 2λ = z −λ is √7, then the value of |λ| is _______. 2√2 MATH-2021-0101-S2-Q090" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">MATH-2021-0101-S2-Q090</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q077" data-search="Let α be the angle between the lines whose direction cosines satisfy the equations l + m −n = 0 and l2 m2 −n2 sin4 cos4 + = 0. Then the value of α + α is: MATH-2021-0101-S1-Q077" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">MATH-2021-0101-S1-Q077</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q074" data-search="The shortest distance between the line x −y = 1 and the curve x2 = 2y is: 1 1 MATH-2021-0101-S2-Q074" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">MATH-2021-0101-S2-Q074</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q079" data-search="Let the foot of perpendicular from a point to the straight line x y z be N. Let a line be P( 1, 2, - 1 ) L: 1 = 0 = -1 drawn from P parallel to the plane x+ y+ 2z= 0 which meets L at point Q. If α is the acute angle between the lines PN and PQ, then cosα is equal to. 1 √3 MATH-2021-0101-S1-Q079" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">MATH-2021-0101-S1-Q079</span>
@@ -426,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q078" data-search="Let L be a line obtained from the intersection of two planes x + 2y + z = 6 and y + 2z = 4. If point P(α, β, γ) is the foot of perpendicular from (3, 2, 1) on, then the value of 21(α + + γ) equals: L β MATH-2021-0101-S2-Q078" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">MATH-2021-0101-S2-Q078</span>
@@ -443,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q078" data-search="The distance of the point (1, −2, 3) from the plane x −y + z = 5 measured parallel to a line, whose direction ratios are 2, 3, −6, is MATH-2021-0101-S1-Q078" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">MATH-2021-0101-S1-Q078</span>
@@ -460,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q079" data-search="The angle between the straight lines, whose direction cosines l, m, n are given by the equations 2l + 2 m −n = 0 and mn + nl+ lm= 0, is: π π MATH-2021-0101-S2-Q079" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">MATH-2021-0101-S2-Q079</span>
@@ -477,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="84">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q089" data-search="Let a line having direction ratios 1, −4, 2 intersect the lines x−7 = y−1 = z+2 and x = y−7 = z at the (AB)2 3 −1 1 2 3 1 points A and B. Then is equal to MATH-2022-0101-S1-Q089" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="84">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">MATH-2022-0101-S1-Q089</span>
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 84</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q078" data-search="If the shortest distance between the lines x−1 = y−2 = z−3 and x−2 = y−4 = z−5 is 1, then the sum of all 2 3 λ 1 4 5 √3 possible values of λ is: MATH-2022-0101-S2-Q078" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">MATH-2022-0101-S2-Q078</span>
@@ -511,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="51">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q090" data-search="Let l1 be the line in xy-plane with x and y intercepts 1 and 1 respectively, and l2 be the line in zx-plane 8 4√2 with x and z intercepts−1 and−1 respectively. If d is the shortest distance between the line l1 and l2, then d−2 8 6√3 is equal to _____. MATH-2022-0101-S2-Q090" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="51">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">MATH-2022-0101-S2-Q090</span>
@@ -528,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 51</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q078" data-search="If two straight lines whose direction cosines are given by the relations l + m −n = 0, 3l2 + m2 + cnl = 0 are parallel, then the positive value of c is MATH-2022-0101-S1-Q078" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">MATH-2022-0101-S1-Q078</span>
@@ -545,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q079" data-search="The shortest distance between the lines x−3 = y−2 = z−1 and x+3 = y−6 = z−5 is 2 3 −1 2 1 3 MATH-2022-0101-S2-Q079" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">MATH-2022-0101-S2-Q079</span>
@@ -562,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="26">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q089" data-search="Let d be the distance between the foot of perpendiculars of the points P(1, 2 −1) and Q(2, −1, 3) on the plane −x + y + z = 1. Then d2 is equal to ______.:→r MATH-2022-0101-S1-Q089" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="26">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">MATH-2022-0101-S1-Q089</span>
@@ -579,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 26</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="28">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q090" data-search="Let P1 ⋅(2ˆi + ˆj −3ˆk) = 4 be a plane. Let P2 be another plane which passes through the points (2, − 3, 2)(2, −2, −3) and (1, −4, 2). If the direction ratios of the line of intersection of P1 and P2 be 16, α, β, then the value of α + β is equal to ______. MATH-2022-0101-S1-Q090" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="28">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">MATH-2022-0101-S1-Q090</span>
@@ -596,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 28</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q079" data-search="The shortest distance between the lines x−5 = y−2 = z−4 and x+ 3 = y+ 5 = z−1 is 1 2 -3 1 4 -5 MATH-2023-0101-S1-Q079" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">MATH-2023-0101-S1-Q079</span>
@@ -613,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q078" data-search="One vertex of a rectangular parallelopiped is at the origin O and the lengths of its edges along x, y and z axes are 3, 4 and 5 units respectively. Let P be the vertex ( 3, 4, 5 ). Then the shortest distance between the diagonal OP and an edge parallel to z axis, not passing through O or P is MATH-2023-0101-S1-Q078" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">MATH-2023-0101-S1-Q078</span>
@@ -630,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="121">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q083" data-search="A circle passing through the point Pα, β in the first quadrant touches the two coordinate axes at the points A and B. The point P is above the line AB. The point Q on the line segment AB is the foot of perpendicular from P on AB. If PQ is equal to 11 units, then the value of αβ is _______ MATH-2023-0101-S1-Q083" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="121">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">MATH-2023-0101-S1-Q083</span>
@@ -647,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 121</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="14">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q087" data-search="The shortest distance between the lines 4 = 5 = 3 and 3 = 4 = 2 is (1) 6√3 (2) 2√6 (3) 6√2 (4) 3√6 MATH-2023-0101-S1-Q087" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="14">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">MATH-2023-0101-S1-Q087</span>
@@ -664,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 14</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q078" data-search="The shortest distance between the lines x+ 2 = y = z−5 and x−4 = y−1 = z+ 3 is 1 -2 2 1 2 0 MATH-2023-0101-S1-Q078" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">MATH-2023-0101-S1-Q078</span>
@@ -681,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="7">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q090" data-search="Let the foot of perpendicular from the point A4, 3, 1 on the plane P: x- y+ 2z+ 3 = 0 be N. If B( 5, α, β), α, β∈Z is a point on plane P such that the area of the triangle ABN is 3√2, then α2 + β2 + αβ is equal to _____________ MATH-2023-0101-S2-Q090" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">MATH-2023-0101-S2-Q090</span>
@@ -698,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q078" data-search="Let ( α, β, γ) be the image of point P( 2, 3, 5 ) in the plane 2x+ y- 3z= 6. Then α+ β+ γ is equal to MATH-2023-0101-S1-Q078" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">MATH-2023-0101-S1-Q078</span>
@@ -715,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q090" data-search="Let a line L pass through the origin and be perpendicular to the lines →r= ^i- ^j- ^k+ ^i+ ^j+ ^k, L1: 11 7 λ 2 3 λ∈R and L2: →r= - ^i+ ^k+ μ2 ^i+ 2 ^j+ ^k, μ∈R. If P is the point of intersection of L and L1, and,Qα, β, γ is the foot of perpendicular from P on L2, then 9α+ β+ γ is equal to ________. MATH-2023-0101-S1-Q090" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">MATH-2023-0101-S1-Q090</span>
@@ -732,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q079" data-search="Let N be the foot of perpendicular from the point P( 1, - 2, 3 ) on the line passing through the points ( 4, 5, 8 ) and ( 1, - 7, 5 ). Then the distance of N from the plane 2x- 2y+ z+ 5 = 0 is MATH-2023-0101-S2-Q079" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">MATH-2023-0101-S2-Q079</span>
@@ -749,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q078" data-search="Let the foot of perpendicular of the point P(3, –2, –9) on the plane passing through the points (–1, –2, –3), (9, 3, 4), (9, –2, 1) be Q(α, β, γ). Then the distance Q from the origin is MATH-2023-0101-S1-Q078" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">MATH-2023-0101-S1-Q078</span>
@@ -766,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q079" data-search="Let be the set of all values of, for which the shortest distance between the lines x−λ = y−3 = z+6 and S λ 0 4 1 x+λ = y = z−6 is 13. Then 8 ∑λ∈S λ is equal to 3 −4 0 MATH-2023-0101-S1-Q079" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">MATH-2023-0101-S1-Q079</span>
@@ -783,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="14">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q090" data-search="The shortest distance between the lines 3 = 2 = 2 and 3 = 2 = 0 is equal to ______ MATH-2023-0101-S1-Q090" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="14">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">MATH-2023-0101-S1-Q090</span>
@@ -800,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 14</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="384">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q089" data-search="If the shortest distance between the lines x+√6 = y−√6 = z−√6 and x−λ = y−2√6 = z+2√6 is 6, then sum 2 3 4 3 4 5 of squares of all possible values(s) of λ is MATH-2023-0101-S2-Q089" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="384">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">MATH-2023-0101-S2-Q089</span>
@@ -817,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 384</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q087" data-search="The distance of the point P(4, 6, −2) from the line passing through the point (−3, 2, 3) and parallel to a line with direction ratios 3, 3, −1 is equal to: (1) 3 (2) √6 (3) 2√3 (4) √14 MATH-2023-0101-S1-Q087" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">MATH-2023-0101-S1-Q087</span>
@@ -834,7 +850,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2039">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q088" data-search="Consider the lines L1 and L2 given by L1: x−1 = y−3 = z−2 2 1 2 L2: x−2 1 = y−2 2 = z−3 3 A line L3 having direction ratios 1, −1, −2, intersects L1 and L2 at the points P and Q respectively. Then the length of line segment PQ is (1) 2√6 (2) 3√2 (3) 4√3 (4) 4 MATH-2023-0101-S1-Q088" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2039">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">MATH-2023-0101-S1-Q088</span>
@@ -851,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2039</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="31">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q086" data-search="The shortest distance between the lines x + 1 = 2 y = −12z and x = y + 2 = 6z −6 is (1) 2 (2) 3 (3) 5 (4) 3 2 2 MATH-2023-0101-S2-Q086" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="31">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">MATH-2023-0101-S2-Q086</span>
@@ -868,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 31</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q087" data-search="The foot of perpendicular of the point (2, 0, 5) on the line x+1 = y−1 = z+1 is (α, β, γ). Then. Which of the 2 5 −1 following is NOT correct? (1) αβ = 4 (2) α = −8 γ 15 β (3) β = −5 (4) γ = 5 γ α 8 MATH-2023-0101-S2-Q087" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">MATH-2023-0101-S2-Q087</span>
@@ -885,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="20">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q088" data-search="If the shortest distance between the line joining the points (1, 2, 3) and (2, 3, 4), and the line x−1 y+1 z−2 2 = −1 = 0 is α, then 28α2 is equal to _____. MATH-2023-0101-S2-Q088" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="20">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">MATH-2023-0101-S2-Q088</span>
@@ -902,7 +918,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 20</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="10">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q087" data-search="Shortest distance between the lines x−1 2 = y+8 −7 = z−4 5 and x−1 2 = y−2 1 = z−6 −3 is (1) 2√3 (2) 4√3 (3) 3√3 (4) 5√3 MATH-2023-0101-S2-Q087" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="10">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">MATH-2023-0101-S2-Q087</span>
@@ -919,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 10</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q078" data-search="The line l1 passes through the point 2, 6, 2 and is perpendicular to the plane 2x+ y- 2z= 10. Then the shortest distance between the line l1 and the line x+ 1 = y+ 4 = z is: 2 -3 2 MATH-2023-0101-S1-Q078" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">MATH-2023-0101-S1-Q078</span>
@@ -936,7 +952,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q079" data-search="Let x−5 y- λ z+ λ the shortest distance between the lines L: -2 = 0 = 1, λ≥0 and L1: x+ 1 = y−1 = 4 - z be 2√6. If ( α, β, γ) lies on L, then which of the following is NOT possible? MATH-2023-0101-S1-Q079" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">MATH-2023-0101-S1-Q079</span>
@@ -953,7 +969,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="180">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q089" data-search="Let the line x−1 y+ 1 z−3 intersect the plane at the point P. Let the point be the L: 2 = -1 = 1 2x+ y+ 3z= 16 Q foot of perpendicular from the point R1, - 1, - 3 on the line L. If α is the area of triangle PQR. then α2 is equal to _____. MATH-2023-0101-S1-Q089" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="180">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">MATH-2023-0101-S1-Q089</span>
@@ -970,7 +986,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 180</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q089" data-search="The foot of perpendicular from the origin O to a plane P which meets the co-ordinate axes at the point A, B, C is (2, a, 4), a ∈N. If the volume of the tetrahedron OABC is 144 unit3, then which of the following points is NOT on P? (1) (0, 4, 4) (2) (3, 0, 4) (3) (0, 6, 3) (4) (2, 2, 4) MATH-2023-0101-S2-Q089" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">MATH-2023-0101-S2-Q089</span>
@@ -987,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q079" data-search="If the shortest distance between the lines x−λ = y−2 = z−1 and x−√3 = y−1 = z−2 is 1, then the sum of all −2 1 1 1 −2 1 possible values of λ is MATH-2024-0101-S1-Q079" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">MATH-2024-0101-S1-Q079</span>
@@ -1004,7 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="21">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q090" data-search="Let the line of the shortest distance between the lines L1: →r= ^i+ 2 ^j+ 3 ^k+ λ ^i− ^j+ ^k and L2: →r= 4 ^i+ 5 ^j+ 6 ^k+ μ ^i+ ^j− ^k intersect L1 and L2 at P and Q respectively. If α, β, γ is the midpoint of the line segment PQ, then 2α+ β+ γ is equal to___________ MATH-2024-0101-S1-Q090" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="21">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">MATH-2024-0101-S1-Q090</span>
@@ -1021,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 21</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="25">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q090" data-search="Let the point (−1, α, β) lie on the line of the shortest distance between the lines x+2 −3 = 4 = z−5 2 and x+2 = y+6 = z−1. Then (α −β)2 is equal to___________ −1 2 0 MATH-2024-0101-S2-Q090" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">MATH-2024-0101-S2-Q090</span>
@@ -1038,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q079" data-search="The shortest distance between the lines x−3 y+15 z−9 and x+1 y−1 z−9 is 2 = −7 = 5 2 = 1 = −3 MATH-2024-0101-S1-Q079" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">MATH-2024-0101-S1-Q079</span>
@@ -1055,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="43">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q089" data-search="If the shortest distance between the lines x−λ y−2 z−1 and x+2 y+5 z−4 is 44, then the largest 3 = −1 = 1 −3 = 2 = 4 √30 possible value of is equal to _________ |λ| MATH-2024-0101-S2-Q089" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="43">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">MATH-2024-0101-S2-Q089</span>
@@ -1072,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 43</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q078" data-search="If the shortest distance between the lines L1: = (2 + + (1 + (3 + λ ∈R is m μ)^i μ)^j μ)^k, ∈R √n L2: = 2(1 + + 3(1 + + (5 + μ, where gcd(m, n) = 1, then the value of m + n equals MATH-2024-0101-S1-Q078" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">MATH-2024-0101-S1-Q078</span>
@@ -1089,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q079" data-search="If the shortest distance between the lines x−λ 2 = y−4 3 = z−3 4 and x−2 4 = y−4 6 = z−7 8 is 13, then a value of λ √29 is: MATH-2024-0101-S2-Q079" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">MATH-2024-0101-S2-Q079</span>
@@ -1106,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q080" data-search="The shortest distance between the lines x−3 = y+7 = z−1 and x−5 = y−9 = z+2 is: 4 −11 5 3 −6 1 MATH-2024-0101-S1-Q080" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">MATH-2024-0101-S1-Q080</span>
@@ -1123,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q080" data-search="If the shortest distance between the lines x−4 = y+1 = z and x−λ = y+1 = z−2 is 6, then the sum of all 1 2 −3 2 4 −5 √5 possible values of λ is: MATH-2024-0101-S1-Q080" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">MATH-2024-0101-S1-Q080</span>
@@ -1140,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="9">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q090" data-search="Let O be the origin, and M and N be the points on the lines x−5 = y−4 = z−5 and x+8 = y+2 = z+11 4 1 3 12 5 9 − − respectively such that is the shortest distance between the given lines. Then → → is equal to MN OM ⋅ON _________. MATH-2024-0101-S2-Q090" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="9">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">MATH-2024-0101-S2-Q090</span>
@@ -1157,7 +1173,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 9</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q079" data-search="Let (α, β, γ) be the foot of perpendicular from the point (1, 2, 3) on the line x+3 = y−1 = z+4. then 5 2 3 19(α + β + γ) is equal to: MATH-2024-0101-S1-Q079" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">MATH-2024-0101-S1-Q079</span>
@@ -1174,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="16">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q090" data-search="If d1 is the shortest distance between the lines x + 1 = 2 y = −12 z, x = y + 2 = 6 z −6 and d2 is the x−1 y+8 z−4 x−1 y−2 z−6 32√3 d1 shortest distance between the lines 2 = −7 = 5, 2 = 1 = −3, then the value of d2 is: MATH-2024-0101-S1-Q090" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="16">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">MATH-2024-0101-S1-Q090</span>
@@ -1191,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 16</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q079" data-search="The shortest distance between lines L1 and L2, where L1: x−1 = y+ 1 = z+ 4 and L2 is the line passing through 2 x−3 −3 y 2 z−1 the points A−4, 4, 3, B−1, 6, 3 and perpendicular to the line −2 = 3 = 1, is MATH-2024-0101-S2-Q079" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">MATH-2024-0101-S2-Q079</span>

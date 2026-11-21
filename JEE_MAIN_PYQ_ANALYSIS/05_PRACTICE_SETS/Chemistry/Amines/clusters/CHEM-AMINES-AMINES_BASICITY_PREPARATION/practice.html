@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+<div class="q-card" id="q-CHEM-2021-0101-S2-Q040" data-search="Calamine and Malachite, respectively, are the ores of: CHEM-2021-0101-S2-Q040" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S2-Q040</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q048" data-search="Which of the following reaction DOES NOT involve Hoffmann Bromamide degradation? CHEM-2021-0101-S1-Q048" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q048</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q049" data-search="The functions of antihistamine are: CHEM-2021-0101-S1-Q049" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S1-Q049</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q050" data-search="Which among the following pairs of Vitamins is stored in our body relatively for longer duration? CHEM-2021-0101-S1-Q050" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S1-Q050</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q045" data-search="Ammonolysis of Alkyl halides followed by the treatment with NaOH solution can be used to prepare primary, secondary and tertiary amines. The purpose of NaOH in the reaction is. CHEM-2021-0101-S2-Q045" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S2-Q045</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q047" data-search="Hoffmann bromamide degradation of benzamide gives product A, which upon heating with CHCl3 and NaOH gives product B. The structures of A and B are: CHEM-2021-0101-S1-Q047" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S1-Q047</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q035" data-search="Reagent, 1− naphthylamine and sulphanilic acid in acetic acid is used for the detection of CHEM-2021-0101-S1-Q035" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S1-Q035</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q039" data-search="The chemical that is added to reduce the melting point of the reaction mixture during the extraction of aluminium is: CHEM-2021-0101-S1-Q039" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2021-0101-S1-Q039</span>
@@ -426,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q060" data-search="A reaction of 0.1 mole of Benzylamine with bromomethane gave 23 g of Benzyl trimethyl ammonium bromide. The number of moles of bromomethane consumed in this reaction are n × 10−1, when n = _____ (Round off to the Nearest Integer). (Given: Atomic masses: C: 12.0 u, H: 1.0 u, N: 14.0 u, Br: 80.0 u) CHEM-2021-0101-S1-Q060" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2021-0101-S1-Q060</span>
@@ -443,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q047" data-search="In the reaction of hypobromite with amide, the carbonyl carbon is lost as: CHEM-2021-0101-S2-Q047" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2021-0101-S2-Q047</span>
@@ -460,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q047" data-search="Compound A is converted to B on reaction with CHCl3 and KOH. The compound B is toxic and can be decomposed by C. A, B and C respectively are: CHEM-2021-0101-S1-Q047" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2021-0101-S1-Q047</span>
@@ -477,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q048" data-search="Orlon fibres are made up of: CHEM-2021-0101-S1-Q048" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2021-0101-S1-Q048</span>
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q050" data-search="Thiamine and pyridoxine are also known respectively as: CHEM-2021-0101-S1-Q050" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2021-0101-S1-Q050</span>
@@ -511,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q040" data-search="Which of the following ore is concentrated using group 1 cyanide salt? CHEM-2021-0101-S1-Q040" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2021-0101-S1-Q040</span>
@@ -528,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q041" data-search="Match List - I with List - II. List-I (Metal) List-II (Ores) CHEM-2021-0101-S2-Q041" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2021-0101-S2-Q041</span>
@@ -545,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="243">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q052" data-search="1.86 g of aniline completely reacts to form acetanilide. 10% of the product is lost during purification. Amount of acetanilide obtained after purification (in g ) is ___________ ×10−2. CHEM-2021-0101-S2-Q052" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="243">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2021-0101-S2-Q052</span>
@@ -562,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 243</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q060" data-search="The total number of amines among the following which can be synthesized by Gabriel synthesis is ________. CHEM-2021-0101-S2-Q060" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2021-0101-S2-Q060</span>
@@ -579,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="741">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q052" data-search="The reaction of cyanamide, NH2 CN(s) with oxygen was run in a bomb calorimeter and ΔU was found to be −742.24 kJ mol−1. The magnitude of ΔH298 for the reaction NH2 CN(s) + 3 O2(g) →N2(g) + O2(g) + H2O(l) is kJ. (Rounded off to the nearest integer) [Assume ideal 2 gases and R = 8.314 J mol−1 K−1 ] CHEM-2021-0101-S1-Q052" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="741">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2021-0101-S1-Q052</span>
@@ -596,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 741</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q049" data-search="Carbylamine test is used to detect the presence of primary amino group in an organic compound. Which of the following compound is formed when this test is performed with aniline? CHEM-2021-0101-S2-Q049" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2021-0101-S2-Q049</span>
@@ -613,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q045" data-search="Given below are two statements, one is labelled as Assertion CHEM-2021-0101-S1-Q045" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2021-0101-S1-Q045</span>
@@ -630,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q046" data-search="Which one of the products of the following reactions does not react with Hinsberg reagent to form sulphonamide? CHEM-2021-0101-S1-Q046" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">CHEM-2021-0101-S1-Q046</span>
@@ -647,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q049" data-search="A biodegradable polyamide can be made from: CHEM-2021-0101-S2-Q049" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">CHEM-2021-0101-S2-Q049</span>
@@ -664,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q038" data-search="Given below are two statements: Statement I: A mixture of chloroform and aniline can be separated by simple distillation. Statement II: When separating aniline from a mixture of aniline and water by steam distillation aniline boils below its boiling point. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2021-0101-S1-Q038" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">CHEM-2021-0101-S1-Q038</span>
@@ -681,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q048" data-search="An amine on reaction with benzenesulphonyl chloride produces a compound insoluble in alkaline solution. This amine can be prepared by ammonolysis of ethyl chloride. The correct structure of amine is: CHEM-2021-0101-S1-Q048" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">CHEM-2021-0101-S1-Q048</span>
@@ -698,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q040" data-search="Match List- I with List- II. List- List- I II CHEM-2021-0101-S2-Q040" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">CHEM-2021-0101-S2-Q040</span>
@@ -715,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q048" data-search="A. Phenyl methanamine B. N, N -Dimethylaniline C. N -Methyl aniline D. Benzenamine Choose the correct order of basic nature of the above amines. CHEM-2021-0101-S2-Q048" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">CHEM-2021-0101-S2-Q048</span>
@@ -732,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q048" data-search="Which of the following is not a correct statement for primary aliphatic amines? CHEM-2021-0101-S1-Q048" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">CHEM-2021-0101-S1-Q048</span>
@@ -749,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q038" data-search="Match List-I with List-II: List-I List-I (Name of ore/mineral) (Chemical formula) a Calamine i ZnS b Malachite ii FeCO3 c Siderite iii ZnCO3 d Sphalerite iv CuCO3 ⋅Cu(OH)2 Choose the most appropriate answer from the options given below: CHEM-2021-0101-S2-Q038" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">CHEM-2021-0101-S2-Q038</span>
@@ -766,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q035" data-search="Given below are two statements: Statement I: Aniline is less basic than acetamide. In aniline, the lone pair of electrons on nitrogen atom is delocalised over benzene ring due to Statement II: resonance and hence less available to a proton. Choose the most appropriate option; CHEM-2021-0101-S1-Q035" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">CHEM-2021-0101-S1-Q035</span>
@@ -783,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q033" data-search="Monomer of Novolac is: CHEM-2021-0101-S1-Q033" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">CHEM-2021-0101-S1-Q033</span>
@@ -800,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q060" data-search="The total number of reagents from those given below, that can convert nitrobenzene into aniline is __________. (Integer answer) I. Sn −HCl II. Sn −NH4 OH III. Fe −HCl IV. Zn −HCl V. H2 −Pd VI. H2− Raney Nickel CHEM-2021-0101-S1-Q060" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">CHEM-2021-0101-S1-Q060</span>
@@ -817,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q040" data-search="Match List - I with List - II: List-I List-II CHEM-2022-0101-S1-Q040" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">CHEM-2022-0101-S1-Q040</span>
@@ -834,7 +850,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q047" data-search="The conversion of propan−1 -ol to n-butylamine involves the sequential addition of reagents. The correct sequential order of reagents is CHEM-2022-0101-S2-Q047" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">CHEM-2022-0101-S2-Q047</span>
@@ -851,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q047" data-search="Among the following structures, which will show the most stable enamine formation? (Where Me is −CH3 ) CHEM-2022-0101-S1-Q047" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">CHEM-2022-0101-S1-Q047</span>
@@ -868,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q049" data-search="A chemical which stimulates the secretion of pepsin is CHEM-2022-0101-S1-Q049" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">CHEM-2022-0101-S1-Q049</span>
@@ -885,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q046" data-search="Which statement is NOT correct for p-toluenesulphonyl chloride? CHEM-2022-0101-S2-Q046" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">CHEM-2022-0101-S2-Q046</span>
@@ -902,7 +918,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q041" data-search="Match List - I with List - II. List-I List-II A Concentration of gold ore I Aniline B Leaching of alumina II NaOH C Froth stabiliser III SO2 D Blister copper IV NaCN Choose the correct answer from the options given below. CHEM-2022-0101-S1-Q041" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">CHEM-2022-0101-S1-Q041</span>
@@ -919,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q047" data-search="Given below are two statements: Statement - I: In Hofmann degradation reaction, the migration of only an alkyl group takes place from carbonyl carbon of the amide to the nitrogen atom. Statement - II: The group is migrated in Hofmann degradation reaction to electron deficient atom. In the light of the above statements, choose the most appropriate answer from the options given below CHEM-2022-0101-S1-Q047" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">CHEM-2022-0101-S1-Q047</span>
@@ -936,7 +952,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q048" data-search="A primary aliphatic amine on reaction with nitrous acid in cold (273 K) and there after raising temperature of reaction mixture to room temperature, gives a/an (298 K) CHEM-2022-0101-S1-Q048" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">CHEM-2022-0101-S1-Q048</span>
@@ -953,7 +969,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q047" data-search="With respect to the following reaction, consider the given statements: CHEM-2022-0101-S2-Q047" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">CHEM-2022-0101-S2-Q047</span>
@@ -970,7 +986,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q049" data-search="Which of the following compound does not contain sulphur atom? CHEM-2022-0101-S1-Q049" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">CHEM-2022-0101-S1-Q049</span>
@@ -987,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q042" data-search="Match List I with List II. List I With Ore List II Composition A.Siderite I. FeCO3 B.Malachite II. CuCO3 ⋅Cu(OH)2 C.Sphalerite III. ZnS D.Calamine IV. ZnCO3 Choose the correct answer from the options given below: CHEM-2022-0101-S2-Q042" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">CHEM-2022-0101-S2-Q042</span>
@@ -1004,7 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q046" data-search="In Friedel-Crafts alkylation of aniline, one gets: CHEM-2022-0101-S2-Q046" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">CHEM-2022-0101-S2-Q046</span>
@@ -1021,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q050" data-search="Match List I and List II List I List II Functional group / Test Class of Compound CHEM-2023-0101-S1-Q050" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">CHEM-2023-0101-S1-Q050</span>
@@ -1038,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q049" data-search="Polymer used in orlon is: CHEM-2023-0101-S1-Q049" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">CHEM-2023-0101-S1-Q049</span>
@@ -1055,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q050" data-search="Match List I and List II List I List II Vitamin Deficiency disease A Vitamin A I Beri-Beri B Thiamine II Cheilosis C Ascorbic acid III Xerophthalmia D Riboflavin IV Scurvy Choose the correct answer from the options given below CHEM-2023-0101-S1-Q050" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">CHEM-2023-0101-S1-Q050</span>
@@ -1072,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q057" data-search="Number of isomeric aromatic amines with molecular formula C8H11N, which can be synthesized by Gabriel Phthalimide synthesis is _____. CHEM-2023-0101-S2-Q057" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">CHEM-2023-0101-S2-Q057</span>
@@ -1089,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="10">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q060" data-search="Match List I with List II List II List I One Letter Natural amino acid Code (A) Glutamic acid (I) Q (B) Glutamine (II) W (C) Tyrosine (III) E (D) Tryptophan (IV) Y Choose the correct answer from the options given below: (1) (A)-III, B-IV, (C)-I, (D)-II (2) (A)-IV, B-III, (C)-I, (D)-II (3) (A)-III, B-I, (C)-IV, (D)-II (4) (A)-II, B-I, (C)-IV, (D)-III CHEM-2023-0101-S2-Q060" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="10">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">CHEM-2023-0101-S2-Q060</span>
@@ -1106,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 10</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q048" data-search="Isomeric amines with molecular formula C8H11N give the following tests IsomerP ⇒ Can be prepared by Gabriel phthalimide synthesis IsomerQ ⇒ Reacts with Hinsberg’s reagent to give solid insoluble in NaOH IsomerR Reacts with followed by β-naphthol in to give red dye. ⇒ HONO NaOH IsomersP, Q and R respectively are CHEM-2023-0101-S1-Q048" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">CHEM-2023-0101-S1-Q048</span>
@@ -1123,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q048" data-search="Compound A from the following reaction sequence is: CHEM-2023-0101-S2-Q048" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">CHEM-2023-0101-S2-Q048</span>
@@ -1140,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="314">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q056" data-search="Given below are two statements: Statement I: Pure Aniline and other arylamines are usually colourless. Statement II: Arylamines get coloured on storage due to atmospheric reduction. In the light of the above statements, choose the most appropriate answer from the options given below: (1) Both Statement I and Statement II are incorrect (2) Both Statement I and Statement II are correct (3) Statement I is correct but Statement II is (4) Statement I is incorrect but Statement II is incorrect correct CHEM-2023-0101-S2-Q056" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="314">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">CHEM-2023-0101-S2-Q056</span>
@@ -1157,7 +1173,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 314</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="41500">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q055" data-search="The correct order in aqueous medium of basic strength in case of methyl substituted amines is: (1) Me2 NH &gt; MeNH2 &gt; Me3 N &gt; NH3 (2) Me2 NH &gt; Me3 N &gt; MeNH2 &gt; NH3 (3) NH3 &gt; Me3 N &gt; MeNH2 &gt; Me2 NH (4) Me3 N &gt; Me2 NH &gt; MeNH2 &gt; NH3 CHEM-2023-0101-S1-Q055" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="41500">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">CHEM-2023-0101-S1-Q055</span>
@@ -1174,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 41500</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q041" data-search="Match List I with List II. Choose the correct answer from the options given below:- List I List II Isomeric pairs Type of isomers Propanamine and N- A I Metamers Methylethanamine Hexan−2-one Positional B Hexan−3-one II isomers Ethanamide and C III Functional isomers Hydroxyethanimine D o-nitrophenol and pnitrophenol IV Tautomers CHEM-2023-0101-S2-Q041" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">CHEM-2023-0101-S2-Q041</span>
@@ -1191,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q058" data-search="Match List I with List II List I (Amines) List II (pKb) A. Aniline I. 3.25 B. Ethanamine II. 3.00 C. N-Ethylethanamine III. 9.38 D. N, N-Diethylethanamine IV. 3.29 Choose the correct answer from the options given below:- (1) A-I, B-IV, C-II, D-III (2) A-III, B-II, C-I, D-IV (3) A-III, B-II, C-IV, D-I (4) A-III, B-IV, C-II, D-I CHEM-2023-0101-S2-Q058" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">CHEM-2023-0101-S2-Q058</span>
@@ -1208,7 +1224,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q053" data-search="Chiral complex from the following is: Here en = ethylene diamine (1) cis −[PtCl2(en)2]2+ (2) trans −[PtCl2(en)2]2+ (3) cis −[PtCl2 (NH3)2] (4) trans −[Co (NH3)4 Cl2]+ CHEM-2023-0101-S1-Q053" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">CHEM-2023-0101-S1-Q053</span>
@@ -1225,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q048" data-search="The major component of which of the following ore is sulphide based mineral? CHEM-2023-0101-S2-Q048" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">CHEM-2023-0101-S2-Q048</span>
@@ -1242,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="17">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q057" data-search="Reaction of propanamide with Br2 / KOH (aq) produces: (1) Ethylnitrile (2) Propylamine (3) Propanenitrile (4) Ethylamine CHEM-2023-0101-S2-Q057" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="17">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">CHEM-2023-0101-S2-Q057</span>
@@ -1259,7 +1275,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 17</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q048" data-search="Amongst the following compounds, which one is an antacid? CHEM-2023-0101-S1-Q048" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">CHEM-2023-0101-S1-Q048</span>
@@ -1276,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q059" data-search="Given below are two statements: One is labelled as Assertion A and the other labelled as Reason R. Assertion A: Antihistamines do not affect the secretion of acid in stomach. Reason R: Antiallergic and antacid drugs work on different receptors. In the light of the above statements, choose the correct answer from the options given below: (1) A is false but R is true (2) Both A and R are true and R is the correct explanation of A (3) A is true but R is false (4) Both A and R are true but R is not the correct explanation of. A CHEM-2023-0101-S2-Q059" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">CHEM-2023-0101-S2-Q059</span>
@@ -1293,7 +1309,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q060" data-search="How many of the transformation given below would result in aromatic amines? CHEM-2023-0101-S1-Q060" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">CHEM-2023-0101-S1-Q060</span>
@@ -1310,7 +1326,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q055" data-search="Cyclohexylamine when treated with nitrous acid yields (P). On treating (P) with PCC results in (Q). When (Q) is heated with dil. NaOH we get (R) The final product (R) is: (1) (2) (3) (4) CHEM-2023-0101-S2-Q055" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">CHEM-2023-0101-S2-Q055</span>
@@ -1327,7 +1343,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q039" data-search="Given below are two statements: Statement (I): Aminobenzene and aniline are same organic compounds. Statement (II): Aminobenzene and aniline are different organic compounds. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2024-0101-S1-Q039" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">CHEM-2024-0101-S1-Q039</span>
@@ -1344,7 +1360,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q049" data-search="Given below are two statements: Statement (I): The NH2 group in Aniline is ortho and para directing and a powerful activating group. Statement (II): Aniline does not undergo FriedelCraft&#x27;s reaction (alkylation and acylation). In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2024-0101-S1-Q049" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">CHEM-2024-0101-S1-Q049</span>
@@ -1361,7 +1377,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="45">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q060" data-search="Xg of ethylamine is subjected to reaction with NaNO2/HCl followed by water; evolved dinitrogen gas which occupied 2.24 L volume at STP. X is ×10−1 g. CHEM-2024-0101-S1-Q060" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="45">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">CHEM-2024-0101-S1-Q060</span>
@@ -1378,7 +1394,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 45</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="95">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q059" data-search="From 6.55 g of aniline, the maximum amount of acetanilide that can be prepared will be ______ ×10−1 g. CHEM-2024-0101-S2-Q059" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="95">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">CHEM-2024-0101-S2-Q059</span>
@@ -1395,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 95</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="80">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q051" data-search="of pure aniline is treated with bromine water at room temperature to give a white precipitate of the 9.3 g product &#x27; P &#x27;. The mass of product &#x27; P &#x27; obtaind is 26.4 g. The percentage yield is _______ %. 10−18 10−31 CHEM-2024-0101-S1-Q051" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="80">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">CHEM-2024-0101-S1-Q051</span>
@@ -1412,7 +1428,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 80</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q039" data-search="Which of the following statements are correct? A. Glycerol is purified by vacuum distillation because it decomposes at its normal boiling point. B. Aniline can be purified by steam distillation as aniline is miscible in water. C. Ethanol can be separated from ethanol water mixture by azeotropic distillation because it forms azeotrope. D. An organic compound is pure, if mixed M.P. is remained same. Choose the most appropriate answer from the options given below: CHEM-2024-0101-S1-Q039" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">CHEM-2024-0101-S1-Q039</span>
@@ -1429,7 +1445,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="20">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q060" data-search="9.3 g of pure aniline upon diazotisation followed by coupling with phenol gives an orange dye. The mass of orange dye produced (assume 100\% yield/conversion) is _______ g. (nearest integer) CHEM-2024-0101-S1-Q060" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="20">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">CHEM-2024-0101-S1-Q060</span>
@@ -1446,7 +1462,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 20</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="287">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q053" data-search="An amine (X) is prepared by ammonolysis of benzyl chloride. On adding p-toluenesulphonyl chloride to it the solution remains clear. Molar mass of the amine (X) formed is ______ gmol−1. (Given molar mass in gmol−1C: 12, H: 1, O: 16, N: 14 ) CHEM-2024-0101-S2-Q053" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="287">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">CHEM-2024-0101-S2-Q053</span>
@@ -1463,7 +1479,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 287</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q041" data-search="Given below are two statements: Statements I: IUPAC name of Compound A is 4-chloro−1,3-dinitrobenzene. Statements II: IUPAC name of Compound B is 4-ethyl−2-methylaniline. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2024-0101-S1-Q041" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">CHEM-2024-0101-S1-Q041</span>
@@ -1480,7 +1496,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="591">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q059" data-search="If 279 g of aniline is reacted with one equivalent of benzenediazonium chloride, the maximum amount of aniline yellow formed will be _______ g. (nearest integer) (consider complete conversion). CHEM-2024-0101-S1-Q059" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="591">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">CHEM-2024-0101-S1-Q059</span>
@@ -1497,7 +1513,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 591</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q060" data-search="Number of amine compounds from the following giving solids which are soluble in NaOH upon reaction with Hinsberg&#x27;s reagent is _______ CHEM-2024-0101-S1-Q060" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">CHEM-2024-0101-S1-Q060</span>
@@ -1514,7 +1530,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q047" data-search="Phenolic group can be identified by a positive: CHEM-2024-0101-S2-Q047" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">CHEM-2024-0101-S2-Q047</span>
@@ -1531,7 +1547,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q042" data-search="The arenium ion which is not involved in the bromination of Aniline is CHEM-2024-0101-S1-Q042" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">CHEM-2024-0101-S1-Q042</span>
@@ -1548,7 +1564,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q046" data-search="Following is a confirmatory test for aromatic primary amines. Identify reagent CHEM-2024-0101-S1-Q046" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">CHEM-2024-0101-S1-Q046</span>
@@ -1565,7 +1581,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q038" data-search="Match List I with List II LIST I (Technique) LIST II (Application) A. Distillation I. Separation of glycerol from spent-lye B. Fractional distillation II. Aniline - Water mixture C. Steam distillation III. Separation of crude oil fractions D. Distillation under reduced pressure IV. Chloroform-Aniline Choose the correct answer from the options given below: CHEM-2024-0101-S1-Q038" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">CHEM-2024-0101-S1-Q038</span>
@@ -1582,7 +1598,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q050" data-search="Given below are two statements: Statement I: Aniline reacts with con. followed by heating at gives p-aminobenzene H2SO4 453 - 473 K sulphonic acid, which gives blood red colour in the &#x27;Lassaigne&#x27;s test&#x27;. Statement II: In Friedel - Craft&#x27;s alkylation and acylation reactions, aniline forms salt with the AlCl3 catalyst. Due to this, nitrogen of aniline acquires a positive charge and acts as deactivating group. In the light of the above statements, choose the correct answer from the options given below: CHEM-2024-0101-S2-Q050" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">CHEM-2024-0101-S2-Q050</span>
@@ -1599,7 +1615,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q054" data-search="When Ethane−1,2-diamine is added progressively to an aqueous solution of Nickel (II) chloride, the sequence of colour change observed will be: (1) Violet → Blue → Pale Blue → Green (2) Pale Blue → Blue → Green → Violet (3) Green Pale Blue Blue Violet (4) Pale Blue Blue Violet Green → → → → → → CHEM-2025-0101-S2-Q054" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q78</span>
     <span class="q-id">CHEM-2025-0101-S2-Q054</span>
@@ -1616,7 +1632,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q056" data-search="Identify correct statements: (A) Primary amines do not give diazonium salts when treated with NaNO2 in acidic condition. (B) Aliphatic and aromatic primary amines on heating with CHCl3 and ethanolic KOH form carbylamines. (C) Secondary and tertiary amines also give carbylamine test. (D) Benzenesulfonyl chloride is known as Hinsberg&#x27;s reagent. (E) Tertiary amines reacts with benzenesulfonyl chloride very easily. Choose the correct answer from the options given below: (1) (A) and (B) only (2) (D) and (E) only (3) (B) and (D) only (4) (B) and (C) only CHEM-2025-0101-S2-Q056" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q79</span>
     <span class="q-id">CHEM-2025-0101-S2-Q056</span>

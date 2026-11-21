@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+<div class="q-card" id="q-PHY-2021-0101-S2-Q006" data-search="Electric field of a plane electromagnetic wave propagating through a non-magnetic medium is given by 1010t- E= 20cos2 × 200x V m−1. The dielectric constant of the medium is equal to: (Take μr= 1 ) PHY-2021-0101-S2-Q006" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S2-Q006</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q011" data-search="A cube is placed inside an electric field, The side of the cube is 0.5 m and is placed in the field as shown in the given figure. The charge inside the cube is: PHY-2021-0101-S2-Q011" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">PHY-2021-0101-S2-Q011</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q016" data-search="A plane electromagnetic wave of frequency 500 MHz is traveling in a vacuum along the y− direction. At a → particular point in space and time, B = 8.0 × 10−8ˆz T. The value of the electric field at this point is:(speed of light = 3 × 108 ms−1 ) ˆx, ˆy,ˆz are unit vectors along x, y and z direction. PHY-2021-0101-S1-Q016" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2021-0101-S1-Q016</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q009" data-search="Find out the surface charge density at the intersection of point x = 3 m plane and x -axis, in the region of uniform line charge of 8 nC m−1 lying along the z -axis in free space. PHY-2021-0101-S2-Q009" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2021-0101-S2-Q009</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q016" data-search="An oil drop of the radius with a density cm−3 is held stationary under a constant electric field 2 mm 3 g 3.55 × 105 V m−1 in the Millikan&#x27;s oil drop experiment. What is the number of excess electrons that the oil drop will possess? (consider g = 9.81 m s−2). PHY-2021-0101-S1-Q016" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">PHY-2021-0101-S1-Q016</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q016" data-search="A ( → E) plane electromagnetic wave propagating along y-direction can have the following pair of electric field (→ B) and magnetic field components. PHY-2021-0101-S2-Q016" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2021-0101-S2-Q016</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="12">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q026" data-search="An infinite number of point charges, each carrying 1 μC charge, are placed along the y-axis at y = 1 m, 2 m, 4 m, 8 m.... 103 The total force on a 1 C point charge, placed at the origin, is x × N. The value of x, to the nearest integer, is ___. [Take 1 = 9 × 109 N m2 C−2 ] 4πε0 PHY-2021-0101-S2-Q026" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="12">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">PHY-2021-0101-S2-Q026</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 12</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q010" data-search="A certain charge Q is divided into two parts q and (Q −q). How should the charges Q and q be divided so that q and (Q −q) placed at a certain distance apart experience maximum electrostatic repulsion? PHY-2021-0101-S1-Q010" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">PHY-2021-0101-S1-Q010</span>
@@ -426,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q012" data-search="A current of 5 A is passing through a non-linear magnesium wire of cross-section 0.04 m2. At every point the direction of current density is at an angle of 60° with the unit vector of area of cross-section. The magnitude of electric field at every point of the conductor is: (resistivity of magnesium ρ = 44 × 10−8 Ωm ) PHY-2021-0101-S1-Q012" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">PHY-2021-0101-S1-Q012</span>
@@ -443,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q022" data-search="A body having specific charge 8 μC g−1 is resting on a frictionless plane at a distance 10 cm from the wall (as m−1 shown in the figure). It starts moving towards the wall when a uniform electric field of 100 V is applied horizontally towards the wall. If the collision of the body with the wall is perfectly elastic, then the time period of the motion will be ____s. PHY-2021-0101-S1-Q022" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">PHY-2021-0101-S1-Q022</span>
@@ -460,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q012" data-search="A cube of side a has point charges +Q located at each of its vertices except at the origin where the charge is The electric field at the centre of cube is: -Q. PHY-2021-0101-S1-Q012" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">PHY-2021-0101-S1-Q012</span>
@@ -477,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q010" data-search="Two electrons each are fixed at a distance 2d. A third charge proton placed at the midpoint is displaced slightly by a distance x(x ≪d) perpendicular to the line joining the two fixed charges. Proton will execute simple harmonic motion having angular frequency: ( mass of charged particle) m = PHY-2021-0101-S2-Q010" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">PHY-2021-0101-S2-Q010</span>
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="667">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q029" data-search="An electromagnetic wave of frequency 3 GHz enters a dielectric medium of relative electric permittivity 2.25 ×10−2 from vacuum. The wavelength of this wave in that medium will be _________ cm. PHY-2021-0101-S2-Q029" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="667">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">PHY-2021-0101-S2-Q029</span>
@@ -511,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 667</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q025" data-search="The electric field in a region is given by → = ( 3 E0ˆi + 4 E0ˆj) N C−1. The ratio of flux of reported field E 5 5 through the rectangular surface of area 0.2 m2 (parallel to y −z plane) to that of the surface of area 0.3 m2 (parallel to x −z plane) is a: b = a: 2, where a =? [Here ˆi, ˆj and ˆk are unit vectors along x, y and z -axes respectively] PHY-2021-0101-S1-Q025" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">PHY-2021-0101-S1-Q025</span>
@@ -528,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q009" data-search="A charge q is placed at one corner of a cube as shown in figure. The flux of electrostatic field E through the shaded area is: PHY-2021-0101-S2-Q009" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">PHY-2021-0101-S2-Q009</span>
@@ -545,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q026" data-search="The peak electric field produced by the radiation coming from the 8 W bulb at a distance of 10 m is x √μ0c V m−1. The efficiency of the bulb is 10% and it is a point source. The value of x is, 10 π PHY-2021-0101-S2-Q026" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">PHY-2021-0101-S2-Q026</span>
@@ -562,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="36">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q028" data-search="Two identical conducting spheres with negligible volume have 2.1 nC and −0.1 nC charges, respectively. They are brought into contact and then separated by a distance of. The electrostatic force acting 0.5 m between the spheres is ___ ×10−9 N. [Given: 4πε0 = 1 SI unit] 9×109 PHY-2021-0101-S2-Q028" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="36">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">PHY-2021-0101-S2-Q028</span>
@@ -579,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 36</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q008" data-search="A solid metal sphere of radius R having charge q is enclosed inside the concentric spherical shell of inner → radius a and outer radius b as shown in the figure. The approximate variation electric field E, as a function of distance r, from centre O, is given by: PHY-2021-0101-S1-Q008" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">PHY-2021-0101-S1-Q008</span>
@@ -596,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q012" data-search="Find the electric field at point P (as shown in figure) on the perpendicular bisector of a uniformly charged thin wire of length L carrying a charge Q. The distance of the point P from the centre of the rod is a = √3 L 2 PHY-2021-0101-S1-Q012" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">PHY-2021-0101-S1-Q012</span>
@@ -613,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="137">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q028" data-search="A radiation is emitted by 1000 W bulb and it generates an electric field and magnetic field at P, placed at a distance of 2 m. The efficiency of the bulb is 1.25%. The value of peak electric field at P is x × 10−1 V m−1. Value of x is (Rounded-off to the nearest integer) [Take ε0 = 8.85 × 10−12 C2 N−1 m−2, c = 3 × 106 m s−1 ] PHY-2021-0101-S1-Q028" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="137">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">PHY-2021-0101-S1-Q028</span>
@@ -630,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 137</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q002" data-search="If E and H represents the intensity of electric field and magnetizing field respectively, then the unit of E will H be: PHY-2021-0101-S1-Q002" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">PHY-2021-0101-S1-Q002</span>
@@ -647,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q015" data-search="The electric field in a plane electromagnetic wave is given by, E = 50 sin(500x −10 × 1010t) V m−1. The velocity of an electromagnetic wave in this medium is: (Given c = the speed of light in vacuum). PHY-2021-0101-S1-Q015" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">PHY-2021-0101-S1-Q015</span>
@@ -664,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q028" data-search="A plane electromagnetic wave with a frequency of 30 MHz travels in free space. At a particular point in space and time, the electric field is 6 V m−1. The magnetic field at this point will be x × 10−8 T. The value of x is, PHY-2021-0101-S2-Q028" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">PHY-2021-0101-S2-Q028</span>
@@ -681,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q011" data-search="Two identical tennis balls each having mass m and charge q are suspended from a fixed point by threads of length l. What is the equilibrium separation when each thread makes a small angle θ with the vertical? 1 1 PHY-2021-0101-S1-Q011" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">PHY-2021-0101-S1-Q011</span>
@@ -698,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q012" data-search="A simple pendulum of mass &#x27; m &#x27;, length &#x27; l &#x27; and charge ′+q′ suspended in the electric field produced by two conducting parallel plates as shown. The value of deflection of pendulum in equilibrium position will be PHY-2021-0101-S2-Q012" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">PHY-2021-0101-S2-Q012</span>
@@ -715,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q013" data-search="What will be the magnitude of the electric field at point O as shown in the figure? Each side of the figure is l and perpendicular to the other? PHY-2021-0101-S2-Q013" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">PHY-2021-0101-S2-Q013</span>
@@ -732,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q001" data-search="Which of the following equations is dimensionally incorrect? Where t = time, h = height, s = surface tension, θ = angle, ρ = density, a, r = radius, g = the acceleration due to gravity, V = volume, p = pressure, W = work done, τ = torque, ε = permittivity, E = electric field, J = current density, L = length. PHY-2021-0101-S1-Q001" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">PHY-2021-0101-S1-Q001</span>
@@ -749,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q010" data-search="Two particles A and B having charges 20 μC and −5 μC respectively are held fixed with a separation of 5 cm At what position a third charged particle should be placed so that it does not experience a net electric force? PHY-2021-0101-S1-Q010" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">PHY-2021-0101-S1-Q010</span>
@@ -766,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="500">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q029" data-search="The electric field in an electromagnetic wave is given by = (50 N C−1) sin ω(t −x ) E c The energy contained in a cylinder of volume V is 5.5 × 10−12 J. The value of V is _______ cm3. (given ε0 = 8.8 × 10−12C2 N−1 m−2 ) PHY-2021-0101-S1-Q029" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="500">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">PHY-2021-0101-S1-Q029</span>
@@ -783,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 500</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q011" data-search="A vertical electric field of magnitude 4.9 × 105 N C−1 just prevents a water droplet of a mass 0.1 g from falling. The value of charge on the droplet will be: (Given g = 9.8 m s−2 ) 10−9C 10−9C PHY-2022-0101-S1-Q011" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">PHY-2022-0101-S1-Q011</span>
@@ -800,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q011" data-search="Two identical charged particles each having a mass 10 g and charge 2.0 × 10−7C are placed on a horizontal table with a separation of L between them such that they stay in limited equilibrium. If the coefficient of friction between each particle and the table is 0.25, find the value of L. [Use g = 10 ms−2 ] PHY-2022-0101-S2-Q011" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">PHY-2022-0101-S2-Q011</span>
@@ -817,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q030" data-search="An antenna is placed in a dielectric medium of dielectric constant 6.25. If the maximum size of that antenna is 5.0 mm, it can radiate a signal of minimum frequency of _____ GHz. (Given μr = 1 for dielectric medium) PHY-2022-0101-S2-Q030" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">PHY-2022-0101-S2-Q030</span>
@@ -834,7 +850,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q008" data-search="In the figure, a very large plane sheet of positive charge is shown. P1 and P2 are two points at distance l and 2l from the charge distribution. If σ is the surface charge density, then the magnitude of electric fields E1 and E2 at P1 and P2 respectively are σ σ 2σ σ PHY-2022-0101-S1-Q008" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">PHY-2022-0101-S1-Q008</span>
@@ -851,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q013" data-search="The electric field in an electromagnetic wave is given by E= 56.5sinω Find the intensity of the wave if it is propagating along x-axis in the free space. (Given ε0 = 8.85 × 10-12C2 N−1 m−2) PHY-2022-0101-S1-Q013" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">PHY-2022-0101-S1-Q013</span>
@@ -868,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q014" data-search="A light wave travelling linearly in a medium of dielectric constant 4, incidents on the horizontal interface separating medium with air. The angle of incidence for which the total intensity of incident wave will be reflected back into the same medium will be: (Given: relative permeability of medium μr = 1) PHY-2022-0101-S1-Q014" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">PHY-2022-0101-S1-Q014</span>
@@ -885,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q013" data-search="If a charge q is placed at the centre of a closed hemispherical non-conducting surface, the total flux passing through the flat surface would be PHY-2022-0101-S2-Q013" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">PHY-2022-0101-S2-Q013</span>
@@ -902,7 +918,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q015" data-search="Two long parallel conductors S1 and S2 are separated by a distance 10 cm and carrying currents of 4 A and 2 A respectively. The conductors are placed along x -axis in X −Y plane. There is a point P located between the conductors (as shown in figure). A charge particle of 3π coulomb is passing through the point P with velocity →v = (2ˆi + 3ˆj) m s−1; where ˆi &amp; ˆj represents unit vector along x &amp; y axis respectively. The force acting on the charge particle is 4π × 10−5(−xˆi + 2ˆj) N. The value of x is PHY-2022-0101-S2-Q015" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">PHY-2022-0101-S2-Q015</span>
@@ -919,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q016" data-search="Given below are two statements: Statement I: A time varying electric field is a source of changing magnetic field and vice-versa. Thus a disturbance in electric or magnetic field creates EM waves. Statement II: In a material medium, the EM wave travels with speed 1. v = √μ0ε0 In the light of the above statements, choose the correct answer from the options given below. PHY-2022-0101-S2-Q016" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">PHY-2022-0101-S2-Q016</span>
@@ -936,7 +952,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q008" data-search="A radar sends an electromagnetic signal of electric field (E0) = 2.25 V and magnetic field (B0) = 1.5 × 10−8 T which strikes a target on line of sight at a distance of 3 km in a medium. After that, a part of signal (echo) reflects back towards the radar with same velocity and by same path. If the signal was transmitted at time from radar, then after how much time echo will reach to the radar? t = 0 PHY-2022-0101-S1-Q008" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">PHY-2022-0101-S1-Q008</span>
@@ -953,7 +969,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q011" data-search="The three charges q, q and q are placed at the corners A, D and C of a square of side a as shown in figure. 2 2 The magnitude of electric field (E) at the corner B of the square, is PHY-2022-0101-S1-Q011" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">PHY-2022-0101-S1-Q011</span>
@@ -970,7 +986,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q011" data-search="Two point charges A and B of magnitude +8 × 10−6C and −8 × 10−6C respectively are placed at a distance d apart. The electric field at the middle point O between the charges is 6.4 × 104 N C−1. The distance &#x27; d &#x27; between the point charges A and B is PHY-2022-0101-S2-Q011" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">PHY-2022-0101-S2-Q011</span>
@@ -987,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q015" data-search="An EM wave propagating in x -direction has a wavelength of 8 mm. The electric field vibrating y -direction has maximum magnitude of 60 Vm−1. Choose the correct equations for electric and magnetic fields if the EM wave is propagating in vacuum: PHY-2022-0101-S2-Q015" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">PHY-2022-0101-S2-Q015</span>
@@ -1004,7 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q012" data-search="A positive charge particle of 100 mg is thrown in opposite direction to a uniform electric field of strength 1 × 105 N C−1. If the charge on the particle is 40 μC and the initial velocity is 200 m s−1, how much distance it will travel before coming to the rest momentarily PHY-2022-0101-S1-Q012" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">PHY-2022-0101-S1-Q012</span>
@@ -1021,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q011" data-search="Two point charges Q each are placed at a distance d apart. A third point charge q is placed at a distance x from mid-point on the perpendicular bisector. The value of at which charge will experience the maximum x q Coulomb&#x27;s force is: PHY-2022-0101-S2-Q011" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">PHY-2022-0101-S2-Q011</span>
@@ -1038,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q016" data-search="Given below are two statements: Statement I: The electric force changes the speed of the charged particle and hence changes its kinetic energy; whereas the magnetic force does not change the kinetic energy of the charged particle. Statement II: The electric force accelerates the positively charged particle perpendicular to the direction of electric field. The magnetic force accelerates the moving charged particle along the direction of magnetic field. In the light of the above statements, choose the most appropriate answer from the options given below: PHY-2022-0101-S2-Q016" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">PHY-2022-0101-S2-Q016</span>
@@ -1055,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q011" data-search="Let σ be the uniform surface charge density of two infinite thin plane sheets shown in figure. Then the electric fields in three different region EI, EII and EIII PHY-2023-0101-S1-Q011" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">PHY-2023-0101-S1-Q011</span>
@@ -1072,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q025" data-search="Two equal positive point charges are separated by a distance 2a. The distance of a point from the centre of the line joining two charges on the equatorial line (perpendicular bisector) at which force experienced by a test a charge q0 becomes maximum is √x. The value of x is ______. PHY-2023-0101-S1-Q025" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">PHY-2023-0101-S1-Q025</span>
@@ -1089,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q015" data-search="A dipole comprises of two charged particles of identical magnitude q and opposite in nature. The mass m of the positive charged particle is half of the mass of the negative charged particle. The two charges are separated → by a distance l. If the dipole is placed in a uniform electric field E; in such a way that dipole axis makes a → very small angle with the electric field, E. The angular frequency of the oscillations of the dipole when released is given by: PHY-2023-0101-S2-Q015" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">PHY-2023-0101-S2-Q015</span>
@@ -1106,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="99">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q024" data-search="The → → energy density associated with electric field E and magnetic field B of an electromagnetic wave in free space is given by ( ε0− permittivity of free space, μ0− permeability of free space) (1) UE = E2, UB = B2 (2) UE = ε0E2, UB = B2 2ε0 2μ0 2 2μ0 (3) UE = ε0E2, UB = μ0B2 (4) UE = E2, UB = μ0B2 2 2 2ε0 2 PHY-2023-0101-S2-Q024" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="99">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">PHY-2023-0101-S2-Q024</span>
@@ -1123,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 99</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q016" data-search="Graphical variation of electric field due to a uniformly charged insulating solid sphere of radius R, with distance r from the centre O is represented by: PHY-2023-0101-S1-Q016" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">PHY-2023-0101-S1-Q016</span>
@@ -1140,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q027" data-search="For a nucleus A ZX having mass number A and atomic number Z (bs) A. The surface energy per nucleon = –a1A 2 3. B. The Coulomb contribution to the binding energy bc = −a2 Z(Z−1) 4. A 3 C. The volume energy bv = a3A D. Decrease in the binding energy is proportional to surface area. E. While estimating the surface energy, it is assumed that each nucleon interacts with 12 nucleons. ( a1, a2 and are constants) a3 Choose the most appropriate answer from the options given below: (1) B, C, E only (2) C, D only (3) A, B, C, D only (4) B, C only PHY-2023-0101-S1-Q027" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">PHY-2023-0101-S1-Q027</span>
@@ -1157,7 +1173,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q011" data-search="In a metallic conductor, under the effect of applied electric field, the free electrons of the conductor PHY-2023-0101-S2-Q011" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">PHY-2023-0101-S2-Q011</span>
@@ -1174,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q014" data-search="The amplitude of magnetic field in an electromagnetic wave propagating along y-axis is – 7 T. 6.0 × 10 The maximum value of electric field in the electromagnetic wave is PHY-2023-0101-S2-Q014" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">PHY-2023-0101-S2-Q014</span>
@@ -1191,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="8">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q025" data-search="An electron revolves around an infinite cylindrical wire having uniform linear charge density 2 × 10−8 C m−1 in circular path under the influence of attractive electrostatic field as shown in the figure. The velocity of electron with which it is revolving is ______________ 106 s−1. Given mass of electron × m = 9 × 10−31 kg PHY-2023-0101-S2-Q025" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">PHY-2023-0101-S2-Q025</span>
@@ -1208,7 +1224,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q010" data-search="The electric field in an electromagnetic wave is given as →E= x →j 20sinωt- N C−1, where ω and c are angular frequency and velocity of electromagnetic wave respectively. The c energy contained in a volume of 10−4 m3 will be 5 × (Given ε0 = 8.85 × 10-12C2 N−1 m−2) PHY-2023-0101-S1-Q010" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">PHY-2023-0101-S1-Q010</span>
@@ -1225,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="300">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q026" data-search="As shown in the figure, a configuration of two equal point charges q0 = + 2μC is placed on an inclined plane. Mass of each point charge is 20 g. Assume that there is no friction between charge and plane. For the system of two point charges to be in equilibrium (at rest) the height 10−3 m. The value of is h= x× x Take 1 = 9 × 109 N m2 C−2, g= 10 m s−2 4πε0 PHY-2023-0101-S1-Q026" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="300">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">PHY-2023-0101-S1-Q026</span>
@@ -1242,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 300</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q016" data-search="A thin infinite sheet charge and an infinite line charge of respective charge densities +σ and +λ are placed parallel at 5 m distance from each other. Points P and Q are at π 3 m and π 4 m perpendicular distances from line charge towards sheet charge, respectively. Ep and Eq are the magnitudes of resultant electric field intensities at point P and Q respectively. If EP = 4 for 2|σ| = |λ|, then the value of a is _____. EQ a PHY-2023-0101-S1-Q016" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">PHY-2023-0101-S1-Q016</span>
@@ -1259,7 +1275,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q020" data-search="The source of time varying magnetic field may be PHY-2023-0101-S1-Q020" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">PHY-2023-0101-S1-Q020</span>
@@ -1276,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q016" data-search="In an electromagnetic wave, at an instant and at a particular position, the electric field is along the negative z- axis and magnetic field is along the positive x-axis. Then the direction of propagation of electromagnetic wave is: PHY-2023-0101-S2-Q016" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">PHY-2023-0101-S2-Q016</span>
@@ -1293,7 +1309,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5440">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q025" data-search="Three point charges q, - 2q and 2q are placed on x axis at a distance x= 0, x= 3 4R and x= R respectively from origin as shown. If q= 2 × 10−6 C and R= 2 cm, the magnitude of net force experienced by the charge -2q is _____ N. PHY-2023-0101-S2-Q025" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5440">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">PHY-2023-0101-S2-Q025</span>
@@ -1310,7 +1326,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5440</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q010" data-search="If two charges q1and are separated with distance and placed in a medium of dielectric constant k. What q2 d will be the equivalent distance between charges in air for the same electrostatic force? PHY-2023-0101-S1-Q010" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">PHY-2023-0101-S1-Q010</span>
@@ -1327,7 +1343,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q026" data-search="A stream of a positively charged particles having m= 2 × 1011 C kg−1 and velocity →v0 ^i ^j = 3 × 107 m s−1 is deflected by an electric field 1.8 kV m−1. The electric field exists in a region of 10 cm along x direction. Due to the electric field, the deflection of the charge particles in the y direction is _____ mm. PHY-2023-0101-S1-Q026" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">PHY-2023-0101-S1-Q026</span>
@@ -1344,7 +1360,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="7">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q023" data-search="The electric field and magnetic field components of an electromagnetic wave going through vacuum is described by Ex = E0 sin(kz −ωt) By = B0 sin(kz −ωt) Then the correct relation between E0 and B0 is given by (1) E0B0 = ωk (2) E0 = kB0 (3) kE0 = ωB0 (4) ωE0 = kB0 PHY-2023-0101-S2-Q023" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">PHY-2023-0101-S2-Q023</span>
@@ -1361,7 +1377,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q015" data-search="A uniform electric field of 10 N C−1 is created between two parallel charged plates (as shown in figure). An electron enters the field symmetrically between the plates with a kinetic energy 0.5 eV. The length of each plate is 10 cm. The angle (θ) of deviation of the path of electron as it comes out of the field is ______(in degree). PHY-2023-0101-S1-Q015" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">PHY-2023-0101-S1-Q015</span>
@@ -1378,7 +1394,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="17">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q023" data-search="All electromagnetic wave is transporting energy in the negative z direction. At a certain point and certain time the direction of electric field of the wave is along positive y direction. What will be the direction of the magnetic field of the wave at that point and instant? (1) Positive direction of x (2) Positive direction of z (3) Negative direction of x (4) Negative direction of y PHY-2023-0101-S1-Q023" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="17">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">PHY-2023-0101-S1-Q023</span>
@@ -1395,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 17</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q017" data-search="A point charge of 10 μC is placed at the origin. At what location on the X -axis should a point charge of 40 μC be placed so that the net electric field is zero at x = 2 cm on the X -axis? PHY-2023-0101-S2-Q017" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">PHY-2023-0101-S2-Q017</span>
@@ -1412,7 +1428,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="400">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q025" data-search="Match List I and List II → → A Gauss’s Law in Electrostatics I ∮ E ⋅ dl = −dφB → → dt B Faraday&#x27;s Law II ∮ B ⋅d A = 0 C Gauss’s Law in Magnetism III → → dφE ∮ B ⋅d l = μ0ic + μ0 ∈0 dt ∮→ ⋅d→s D Ampere-Maxwell Law IV E = ∈0 q Choose the correct answer from the options given below: (1) A-IV, B-I, C-II, D-III (2) A-I, B-II, C-III, D-IV (3) A-III, B-IV, C-I, D-II (4) A-II, B-III, C-IV, D-I PHY-2023-0101-S2-Q025" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="400">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">PHY-2023-0101-S2-Q025</span>
@@ -1429,7 +1445,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 400</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q001" data-search="Match List I with List II: List-I (Physical Quantity) List-II (Dimensional Formula) A Pressure gradient I [M0L2T−2] B Energy density II [M1L−1T−2] C Electric Field III [M1L−2T−2] [M1L1T−3A−1] D Latent heat IV Choose the correct answer from the options given below: PHY-2023-0101-S1-Q001" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">PHY-2023-0101-S1-Q001</span>
@@ -1446,7 +1462,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q015" data-search="In a cuboid of dimension 2L × 2L × L, a charge q is placed at the centre of the surface S having area of 4L2. The flux through the opposite surface to S is given by PHY-2023-0101-S1-Q015" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">PHY-2023-0101-S1-Q015</span>
@@ -1463,7 +1479,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q016" data-search="A point charge q1 = 4q0 is placed at origin. Another point charge q2 = −q0 is placed at x = 12 cm. Charge of proton is q0. The proton is placed on x -axis so that the electrostatic force on the proton in zero. In this situation, the position of the proton from the origin is ______ cm. PHY-2023-0101-S1-Q016" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">PHY-2023-0101-S1-Q016</span>
@@ -1480,7 +1496,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q015" data-search="A point charge 2 × C is moved from P to S in a uniform electric field of 30 N directed along positive x -axis. If coordinates of P and S are (1, 2, 0) m and (0, 0, 0) m respectively, the work done by electric field will be PHY-2023-0101-S2-Q015" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">PHY-2023-0101-S2-Q015</span>
@@ -1497,7 +1513,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q016" data-search="For a charged spherical ball, electrostatic potential inside the ball varies with as 2ar2. r V = + b Here, a and b are constant and r is the distance from the center. The volume charge density inside the ball is −λaε. The value of λ is ______. ε = permittivity of medium. PHY-2023-0101-S2-Q016" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">PHY-2023-0101-S2-Q016</span>
@@ -1514,7 +1530,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="800">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q023" data-search="Given below are two statements: Statement I: Electromagnetic waves are not deflected by electric and magnetic field. Statement II: The amplitude of electric field and the magnetic field in electromagnetic waves are related to each other as E0 = √μ0 B0. ε0 In the light of the above statements, choose the correct answer from the options given below: (1) Statement I is true but statement II is false (2) Both Statement I and Statement II are true (3) Statement I is false but statement II is true (4) Both Statement I and Statement II are false PHY-2023-0101-S2-Q023" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="800">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">PHY-2023-0101-S2-Q023</span>
@@ -1531,7 +1547,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 800</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="40">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q025" data-search="Unpolarised light is incident on the boundary between two dielectric media, whose dielectric constants are 2.8 (medium – 1 ) and 6.8 (medium – 2 ), respectively. To satisfy the condition, so that the reflected and refracted rays are perpendicular to each other, the angle of incidence should be tan−1 (1 + 10 ) 2 1, the value of θ is θ ______. (Given for dielectric media, μr = 1 ) PHY-2023-0101-S2-Q025" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="40">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">PHY-2023-0101-S2-Q025</span>
@@ -1548,7 +1564,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q001" data-search="Electric field in a certain region is given by →E= A ^i + B ^j. The SI unit of A and B are: x2 y3 PHY-2023-0101-S1-Q001" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">PHY-2023-0101-S1-Q001</span>
@@ -1565,7 +1581,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q011" data-search="Two isolated metallic solid spheres of radii R and 2R are charged such that both have same charge density σ. The spheres are then connected by a thin conducting wire. If the new charge density of the bigger sphere is σ&#x27;. σ&#x27; The ratio is: 9 σ 4 PHY-2023-0101-S1-Q011" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">PHY-2023-0101-S1-Q011</span>
@@ -1582,7 +1598,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q015" data-search="As shown in the figure, a point charge Q is placed at the centre of conducting spherical shell of inner radius a and outer radius b. The electric field due to charge Q in three different regions I, II and III is given by: (I: r &lt; a, II: a &lt; r &lt; b, III: r &gt; b) PHY-2023-0101-S2-Q015" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">PHY-2023-0101-S2-Q015</span>
@@ -1599,7 +1615,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q016" data-search="As shown in figure, a cuboid lies in a region with electric field E = 2x2ˆi −4yˆj + N C−1. The magnitude of charge within the cuboid is nε0 C. The value of n is ______ (if dimension of cuboid is 1 × 2 × 3 m3 ) PHY-2023-0101-S2-Q016" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q78</span>
     <span class="q-id">PHY-2023-0101-S2-Q016</span>
@@ -1616,7 +1632,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="88">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q025" data-search="A point source of 100 W emits light with 5% efficiency. At a distance of 5 m from the source, the intensity produced by the electric field component is: (1) 1 W (2) 1 W 2π m2 40π m2 (3) 10π 1 m2 W (4) 20 1 m2 W PHY-2023-0101-S2-Q025" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="88">
   <div class="q-header">
     <span class="q-num">Q79</span>
     <span class="q-id">PHY-2023-0101-S2-Q025</span>
@@ -1633,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 88</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q018" data-search="A free neutron decays into a proton but a free proton does not decay into neutron. This is because PHY-2023-0101-S1-Q018" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q80</span>
     <span class="q-id">PHY-2023-0101-S1-Q018</span>
@@ -1650,7 +1666,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q015" data-search="Considering a group of positive charges, which of the following statements is correct? PHY-2023-0101-S2-Q015" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q81</span>
     <span class="q-id">PHY-2023-0101-S2-Q015</span>
@@ -1667,7 +1683,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q025" data-search="Two identical charged spheres are suspended by strings of equal lengths. The strings make an angle θ with each other. When suspended in water the angle remains the same. If density of the material of the sphere is 1.5 g / cc, the dielectric constant of water will be ______. (Take density of water = 1 g / cc) PHY-2024-0101-S1-Q025" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q82</span>
     <span class="q-id">PHY-2024-0101-S1-Q025</span>
@@ -1684,7 +1700,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q025" data-search="Suppose a uniformly charged wall provides a uniform electric field of 2 × 104 N C−1 normally. A charged particle of mass 2 g being suspended through a silk thread of length 20 cm and remain stayed at a distance of 10 cm from the wall. Then the charge on the particle will be 1 μC where x= ________ [use √x g= 10 m s−2] PHY-2024-0101-S2-Q025" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q83</span>
     <span class="q-id">PHY-2024-0101-S2-Q025</span>
@@ -1701,7 +1717,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q012" data-search="An infinitely long positively charged straight thread has a linear charge density λCm−1. An electron revolves along a circular path having axis along the length of the wire. The graph that correctly represents the variation of the kinetic energy of electron as a function of radius of circular path from the wire is: PHY-2024-0101-S1-Q012" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q84</span>
     <span class="q-id">PHY-2024-0101-S1-Q012</span>
@@ -1718,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q016" data-search="The electric field in an electromagnetic wave is given by → E = ^i40 cos ω(t −z/c)NC−1. The magnetic field →B induction of this wave is (in SI unit): → PHY-2024-0101-S1-Q016" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q85</span>
     <span class="q-id">PHY-2024-0101-S1-Q016</span>
@@ -1735,7 +1751,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q011" data-search="A charge q is placed at the center of one of the surface of a cube. The flux linked with the cube is: PHY-2024-0101-S2-Q011" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q86</span>
     <span class="q-id">PHY-2024-0101-S2-Q011</span>
@@ -1752,7 +1768,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q012" data-search="The ratio of heat dissipated per second through the resistance 5Ω and 10Ω in the circuit given below is: PHY-2024-0101-S2-Q012" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q87</span>
     <span class="q-id">PHY-2024-0101-S2-Q012</span>
@@ -1769,7 +1785,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q011" data-search="Ques: σ is the uniform surface charge density of a thin spherical shell of radius R. The electric field at any point on the surface of the spherical shell is: PHY-2024-0101-S1-Q011" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q88</span>
     <span class="q-id">PHY-2024-0101-S1-Q011</span>
@@ -1786,7 +1802,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q025" data-search="Three infinitely long charged thin sheets are placed as shown in figure. The magnitude of electric field at the xσ point P is εo. The value of x is _______ (all quantities are measured in SI units). PHY-2024-0101-S1-Q025" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q89</span>
     <span class="q-id">PHY-2024-0101-S1-Q025</span>
@@ -1803,7 +1819,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q027" data-search="An electron with kinetic energy 5eV enters a region of uniform magnetic field of 3 μT perpendicular to its direction. An electric field E is applied perpendicular to the direction of velocity and magnetic field. The value of E, so that electron moves along the same path, is _______ NC−1. ( Given, mass of electron = 9 × 10−31 kg, electric charge = 1.6 × 10−19C) PHY-2024-0101-S1-Q027" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q90</span>
     <span class="q-id">PHY-2024-0101-S1-Q027</span>
@@ -1820,7 +1836,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q001" data-search="If ε0 is the permittivity of free space and E is the electric field, then ε0E2 has the dimensions: [M−1 L−3 T4 A2] [ML2 T−2] PHY-2024-0101-S2-Q001" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q91</span>
     <span class="q-id">PHY-2024-0101-S2-Q001</span>
@@ -1837,7 +1853,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q025" data-search="If the net electric field at point P along Y axis is zero, then the ratio of q2 is 8, where x = _____. q3 5√x PHY-2024-0101-S2-Q025" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q92</span>
     <span class="q-id">PHY-2024-0101-S2-Q025</span>
@@ -1854,7 +1870,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q015" data-search="A plane EM wave is propagating along direction. It has a wavelength of. If electric field is in x 4 mm y direction with the maximum magnitude of 60Vm−1, the equation for magnetic field is: PHY-2024-0101-S1-Q015" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q93</span>
     <span class="q-id">PHY-2024-0101-S1-Q015</span>
@@ -1871,7 +1887,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="36">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q025" data-search="At the centre of a half ring of radius R = 10 cm and linear charge density 4nCm−1, the potential is xπV. The value of x is _______ PHY-2024-0101-S1-Q025" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="36">
   <div class="q-header">
     <span class="q-num">Q94</span>
     <span class="q-id">PHY-2024-0101-S1-Q025</span>
@@ -1888,7 +1904,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 36</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q013" data-search="The magnetic field in a plane electromagnetic wave is By = (3.5 × 10−7) sin (1.5 × 103x + 0.5 × 1011t)T. The corresponding electric field will be: PHY-2024-0101-S2-Q013" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q95</span>
     <span class="q-id">PHY-2024-0101-S2-Q013</span>
@@ -1905,7 +1921,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q026" data-search="Two charges of−4 μC and +4 μC are placed at the points A( 1, 0, 4 ) m and B( 2, - 1, 5 ) m located in an electric field →E= 0.20 ^i V cm−1. The magnitude of the torque acting on the dipole is 8√α× 10−5 N m, where α= _________. PHY-2024-0101-S2-Q026" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q96</span>
     <span class="q-id">PHY-2024-0101-S2-Q026</span>
@@ -1922,7 +1938,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q025" data-search="An electron is moving under the influence of the electric field of a uniformly charged infinite plane sheet S having surface charge density +σ. The electron at t = 0 is at a distance of 1 m from S and has a speed of mε0 1 m s−1. The maximum value of σ, if the electron strikes S at t = 1 s is α[ e ] m2 C. The value of α is _____. PHY-2024-0101-S1-Q025" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q97</span>
     <span class="q-id">PHY-2024-0101-S1-Q025</span>
@@ -1939,7 +1955,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q016" data-search="The electric field of an electromagnetic wave in free space is represented as E = E0. The corresponding magnetic induction vector will be: PHY-2024-0101-S1-Q016" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q98</span>
     <span class="q-id">PHY-2024-0101-S1-Q016</span>
@@ -1956,7 +1972,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q010" data-search="A particle of charge -q and mass m moves in a circle of radius r around an infinitely long line charge of linear density +λ. Then time period will be given as: (Consider k as Coulomb&#x27;s constant) PHY-2024-0101-S2-Q010" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q99</span>
     <span class="q-id">PHY-2024-0101-S2-Q010</span>
@@ -1973,7 +1989,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q013" data-search="Match List I with List II List I List II →E· A. Gauss’s law of magnetostatics i. ∮ d→a= 1 ∫ρdV ε0 B. Faraday’s law of electro magnetic induction ii. ∮ →B· d→a= 0 C. Ampere’s law iii. ∮ → E· d → l= dt∫ -d → B· d →a D. Gauss’s law of electrostatics iv. ∮ →B· d →l= μ0I Choose the correct answer from the options given below: PHY-2024-0101-S2-Q013" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q100</span>
     <span class="q-id">PHY-2024-0101-S2-Q013</span>
@@ -1990,7 +2006,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q026" data-search="Two identical charged spheres are suspended by strings of equal lengths. The string make an angle of 37° with each other. When suspended in a liquid of density 0.7 g cm−3, the angle remains same. If density of material of the sphere is 1.4 g cm−3, the dielectric constant of the liquid is _____ tan37° = 3 4 PHY-2024-0101-S2-Q026" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q101</span>
     <span class="q-id">PHY-2024-0101-S2-Q026</span>
@@ -2007,7 +2023,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q013" data-search="Two charges q and 3q are separated by a distance ‘r’ in air. At a distance x from charge q, the resultant electric field is zero. The value of x is: PHY-2024-0101-S1-Q013" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q102</span>
     <span class="q-id">PHY-2024-0101-S1-Q013</span>
@@ -2024,7 +2040,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q016" data-search="In a plane EM wave, the electric field oscillates sinusoidally at a frequency of 5 × 1010 Hz and an amplitude of 50 V m – 1. The total average energy density of the electromagnetic field of the wave is: [Use – 12 C2 N−1 m−2] ε0 = 8.85 × 10 PHY-2024-0101-S1-Q016" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q103</span>
     <span class="q-id">PHY-2024-0101-S1-Q016</span>
@@ -2041,7 +2057,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q010" data-search="Force between two point charges q1 and q2 placed in vacuum at r cm apart is F. Force between them when r placed in a medium having dielectric K= 5 at cm apart will be: PHY-2024-0101-S2-Q010" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q104</span>
     <span class="q-id">PHY-2024-0101-S2-Q010</span>
@@ -2058,7 +2074,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="27">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q025" data-search="The distance between charges +q and -q is 2l and between +2q and -2q is 4l. The electrostatic potential at point P at a distance r from centre O is -αql × 109 V, where the value of α is ______. (Use 1 109 C−2) r2 = 9 × N m2 4πε0 PHY-2024-0101-S2-Q025" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="27">
   <div class="q-header">
     <span class="q-num">Q105</span>
     <span class="q-id">PHY-2024-0101-S2-Q025</span>
@@ -2075,7 +2091,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 27</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q026" data-search="An electron is made to enter symmetrically between two parallel and equally but oppositely charged metal plates, each of 10 cm length. The electron emerges out of the electric field region with a horizontal component of velocity 106 m/s. If the magnitude of the electric field between the plates is 9.1 V/cm, then the vertical component of velocity of electron is (mass of electron = 9.1 × 10−31 kg and charge of electron 10−19C ) = 1.6 × (1) 0 (2) 1 × 106 m/s (3) 16 × 106 m/s (4) 16 × 104 m/s PHY-2025-0101-S1-Q026" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q106</span>
     <span class="q-id">PHY-2025-0101-S1-Q026</span>
@@ -2092,7 +2108,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-PHY-2025-0101-S2-Q028" data-search="Two charges 7μc and −4μc are placed at (−7 cm, 0, 0) and (7 cm, 0, 0) respectively. Given, ε0 = 8.85 × 10−12C2 N−1 m−2, the electrostatic potential energy of the charge configuration is: (1) -1.8 J (2) -2.0 J (3) -1.5 J (4) -1.2 J PHY-2025-0101-S2-Q028" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q107</span>
     <span class="q-id">PHY-2025-0101-S2-Q028</span>
@@ -2109,7 +2125,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2025-0101-S2-Q029" data-search="Two point charges −4μc and 4μc, constituting an electric dipole, are placed at (−9, 0, 0)cm and (9, 0, 0)cm in a uniform electric field of strength 104NC−1. The work done on the dipole in rotating it from the equilibrium through 180∘ is: (1) 18.4 mJ (2) 14.4 mJ (3) 12.4 mJ (4) 16.4 mJ PHY-2025-0101-S2-Q029" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q108</span>
     <span class="q-id">PHY-2025-0101-S2-Q029</span>
@@ -2126,7 +2142,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q030" data-search="A particle of mass &#x27; m &#x27; and charge &#x27; q &#x27; is fastened to one end &#x27; A &#x27; of a massless string having equilibrium length l, whose other end is fixed at point &#x27; O &#x27;. The whole system is placed on a frictionless horizontal plane and is initially at rest. If uniform electric field is switched on along the direction as shown in figure, then the speed of the particle when it crosses the x -axis is (1) √qEl (2) √qEl 2 m m (3) √qEl (4) √2qEl 4 m m PHY-2025-0101-S1-Q030" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q109</span>
     <span class="q-id">PHY-2025-0101-S1-Q030</span>

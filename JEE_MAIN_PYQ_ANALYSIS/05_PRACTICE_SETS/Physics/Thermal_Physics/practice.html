@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -284,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -298,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(59 questions)</span>
     &nbsp;<a href="clusters/PHY-THERPHYS-THERMAL_EXPANSION_CALORIMETRY/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+  <div class="q-card" id="q-PHY-2021-0101-S2-Q009" data-search="Due to cold weather, a 1 m water pipe of cross-sectional area 1 cm2 is filled with ice at−10 °C. Resistive heating is used to melt the ice. Current of is passed through resistance. Assuming that all the heat 0.5 A 4 kΩ produced is used for melting, what is the minimum time required? (Given latent heat of fusion for water/ice = 3.33 × 105 J kg−1, specific heat of ice = 2 × 103 J kg−1 °C−1 and density of ice 103 m−3 = kg ) PHY-2021-0101-S2-Q009" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">PHY-2021-0101-S2-Q009</span>
@@ -315,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="8">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q027" data-search="A steel rod with y= 2.0 × 1011 N m−2 and α= 10−5 ∘C−1 of length 4 m and area of cross-section 10 cm2 is heated from 0°C to 400°C without being allowed to extend. The tension produced in the rod is x× 105 N where the value of x is _________. PHY-2021-0101-S2-Q027" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">PHY-2021-0101-S2-Q027</span>
@@ -332,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="-113">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q026" data-search="For an ideal heat engine, the temperature of the source is 127°C. In order to have 60% efficiency the temperature of the sink should be __________ ∘C. (Round off to the nearest integer) PHY-2021-0101-S2-Q026" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="-113">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2021-0101-S2-Q026</span>
@@ -349,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> -113</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q008" data-search="For an adiabatic expansion of an ideal gas, the fractional change in its pressure is equal to (where γ is the ratio of specific heats): PHY-2021-0101-S2-Q008" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">PHY-2021-0101-S2-Q008</span>
@@ -366,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q008" data-search="The entropy of any system is given by, S = α2β ln[ μ Jβ2 kR + 3] where α and β are the constants. μ, J, k and R are number of moles, mechanical equivalent of heat, Boltzmann&#x27;s constant and gas constant, respectively. [Take S = dQ ] T Choose the incorrect option from the following: PHY-2021-0101-S1-Q008" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">PHY-2021-0101-S1-Q008</span>
@@ -383,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q012" data-search="The correct relation between the degrees of freedom f and the ratio of specific heat γ is: PHY-2021-0101-S2-Q012" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">PHY-2021-0101-S2-Q012</span>
@@ -400,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q025" data-search="The area of cross-section of a railway track is 0.01 m2. The temperature variation is 10 °C. Coefficient of linear expansion of material of track is 10−5 ∘C−1. The energy stored per meter in the track is J m−1. (Young&#x27;s modulus of material of track is 1011 N m−2 ) PHY-2021-0101-S1-Q025" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">PHY-2021-0101-S1-Q025</span>
@@ -417,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="57">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q026" data-search="In 5 minutes, a body cools from 75 °C to 65 °C at room temperature of 25 °C. The temperature of body at the end of next 5 minutes is ∘C. PHY-2021-0101-S1-Q026" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="57">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">PHY-2021-0101-S1-Q026</span>
@@ -434,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 57</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q001" data-search="The work done by a gas molecule in an isolated system is given by, W= αβ2e- x2 T, where x is the αk displacement, k is the Boltzmann constant and T is the temperature. α and β are constants. Then the dimensions of β will be: PHY-2021-0101-S1-Q001" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">PHY-2021-0101-S1-Q001</span>
@@ -451,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q008" data-search="Each side of a box made of metal sheet in cubic shape is a at room temperature T, the coefficient of linear expansion of the metal sheet is α. The metal sheet is heated uniformly, by a small temperature ΔT, so that its new temperature is T+ ΔT. Calculate the increase in the volume of the metal box. PHY-2021-0101-S1-Q008" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">PHY-2021-0101-S1-Q008</span>
@@ -468,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q007" data-search="Two different metal bodies A and B of equal mass are heated at a uniform rate under similar conditions. The variation of temperature of the bodies is graphically represented as shown in the figure. The ratio of specific heat capacities is: 8 3 PHY-2021-0101-S1-Q007" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">PHY-2021-0101-S1-Q007</span>
@@ -485,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q008" data-search="The temperature of equal masses of three different liquids x, y and z are 10°C, 20°C and 30°C respectively. The temperature of mixture when is mixed with is and that when is mixed with is. The x y 16°C y z 26°C temperature of mixture when x and z are mixed will be: PHY-2021-0101-S2-Q008" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">PHY-2021-0101-S2-Q008</span>
@@ -502,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q010" data-search="A cylindrical container of volume 4.0 × 10−3 m3 contains one mole of hydrogen and two moles of carbon dioxide. Assume the temperature of the mixture is 400 K. The pressure of the mixture of gases is: mol−1 K−1] [Take gas constant as 8.3 J PHY-2021-0101-S2-Q010" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">PHY-2021-0101-S2-Q010</span>
@@ -519,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q001" data-search="In a typical combustion engine the workdone by a gas molecule is given by α2βe −βx2, where is the W = k T x displacement, k is the Boltzmann constant and T is the temperature. If α and β are constants, dimensions of α will be: PHY-2021-0101-S1-Q001" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">PHY-2021-0101-S1-Q001</span>
@@ -536,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q008" data-search="A balloon carries a total load of 185 kg at normal pressure and temperature of 27°C. What load will the balloon carry on rising to a height at which the barometric pressure is 45 cm of Hg and the temperature is −7°C. Assuming the volume constant? PHY-2021-0101-S1-Q008" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">PHY-2021-0101-S1-Q008</span>
@@ -553,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q006" data-search="The height of victoria&#x27;s falls is 63 m. What is the difference in the temperature of water at the top and at the bottom of the fall? [Given 1 cal = 4.2 J and specific heat of water = 1 cal g−1 ∘C−1] PHY-2021-0101-S2-Q006" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">PHY-2021-0101-S2-Q006</span>
@@ -570,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="500">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q023" data-search="A heat engine operates between a cold reservoir at temperature T2 = 400 K and a hot reservoir at temperature T1. It takes 300 J of heat from the hot reservoir and delivers 240 J of heat to the cold reservoir in a cycle. The minimum temperature of the hot reservoir has to be PHY-2021-0101-S2-Q023" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="500">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">PHY-2021-0101-S2-Q023</span>
@@ -587,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 500</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q007" data-search="A body takes 4 min to cool from 61°C to 59°C. If the temperature of the surroundings is 30°C, the time taken by the body to cool from 51°C to 49°C is: PHY-2021-0101-S1-Q007" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">PHY-2021-0101-S1-Q007</span>
@@ -604,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q008" data-search="A reversible engine has an efficiency of 4. If the temperature of the sink is reduced by 58°C, its efficiency becomes double. Calculate the temperature of the sink: PHY-2021-0101-S1-Q008" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">PHY-2021-0101-S1-Q008</span>
@@ -621,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q001" data-search="Identify the pair of physical quantities which have different dimensions: PHY-2022-0101-S1-Q001" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">PHY-2022-0101-S1-Q001</span>
@@ -638,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="12">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q024" data-search="0.056 kg of Nitrogen is enclosed in a vessel at a temperature of 127°C. The amount of heat required to double the speed of its molecules is_____ kcal. K−1 (Take R = 2 cal mole −1 ) PHY-2022-0101-S1-Q024" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="12">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">PHY-2022-0101-S1-Q024</span>
@@ -655,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 12</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q007" data-search="A 100 g of iron nail is hit by a 1.5 kg hammer striking at a velocity of 60 ms−1. What will be the rise in the temperature of the nail if one fourth of energy of the hammer goes into heating the nail? [Specific heat capacity of iron = 0.42 Jg−1 ∘C−1 ] PHY-2022-0101-S2-Q007" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">PHY-2022-0101-S2-Q007</span>
@@ -672,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="16">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q022" data-search="In an experiment to verify Newton&#x27;s law of cooling. a graph is plotted between. the temperature difference (ΔT) of the water and surroundings and time as shown in figure. The initial temperature of water is taken as. The value of as mentioned in the graph will be 80°C t2 Q PHY-2022-0101-S2-Q022" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="16">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">PHY-2022-0101-S2-Q022</span>
@@ -689,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 16</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q007" data-search="The relation between root mean square speed vrms and most probable speed vp for the molar mass M of oxygen gas molecule at the temperature of 300 K will be PHY-2022-0101-S1-Q007" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">PHY-2022-0101-S1-Q007</span>
@@ -706,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="31">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q025" data-search="A steam engine intakes 50 g of steam at 100°C per minute and cools it down to 20°C. If latent heat of vaporization of steam is 540 cal g−1, then the heat rejected by the steam engine per minute is _____ × 103 cal (Given: specific heat capacity of water: 1 cal g−1∘C−1) PHY-2022-0101-S1-Q025" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="31">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">PHY-2022-0101-S1-Q025</span>
@@ -723,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 31</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q006" data-search="A copper block of mass 5.0 kg is heated to a temperature of 500°C and is placed on a large ice block. What is the maximum amount of ice that can melt? [Specific heat of copper: 0.39Jg-1∘C−1 and latent heat of fusion of water: 335 Jg−1] PHY-2022-0101-S2-Q006" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">PHY-2022-0101-S2-Q006</span>
@@ -740,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q007" data-search="The ratio of specific heats CP in terms of degree of freedom f is given by: CV PHY-2022-0101-S2-Q007" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">PHY-2022-0101-S2-Q007</span>
@@ -757,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q001" data-search="An expression for a dimensionless quantity P is given by P = α loge( kT ); where α and β are constants, x is β βx distance; k is Boltzmann constant and T is the temperature. Then the dimensions of α will be PHY-2022-0101-S1-Q001" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">PHY-2022-0101-S1-Q001</span>
@@ -774,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q008" data-search="A thermally insulated vessel contains an ideal gas of molecular mass and ratio of specific heats 1.4. Vessel is M moving with speed v and is suddenly brought to rest. Assuming no heat is lost to the surrounding and vessel temperature of the gas increases by: ( R = universal gas constant) PHY-2022-0101-S1-Q008" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">PHY-2022-0101-S1-Q008</span>
@@ -791,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="42">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q024" data-search="A geyser heats water flowing at a rate of per minute from to. If geyser operates on a gas 2.0 kg 30°C 70°C burner, the rate of combustion of fuel will be _____ g min−1. [Heat of combustion 103 Jg−1, Specific heat of water Jg−1 ∘C−1 ] = 8 × = 4.2 PHY-2022-0101-S2-Q024" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="42">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">PHY-2022-0101-S2-Q024</span>
@@ -808,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 42</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="540">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q025" data-search="A heat engine operates with the cold reservoir at temperature 324 K. The minimum temperature of the hot reservoir, if the heat engine takes 300 J heat from the hot reservoir and delivers 180 J heat to the cold reservoir per cycle, is _____ K. PHY-2022-0101-S2-Q025" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="540">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">PHY-2022-0101-S2-Q025</span>
@@ -825,7 +841,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 540</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q008" data-search="A lead bullet penetrates into a solid object and melts. Assuming that 40% of its kinetic energy is used to heat it, the initial speed of bullet is (Given, initial temperature of the bullet = 127°C, Melting point of the bullet = 327°C, Latent heat of fusion of lead = 2.5 × 104 J kg−1, Specific heat capacity of lead = 125 J kg K−1 ) PHY-2022-0101-S2-Q008" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">PHY-2022-0101-S2-Q008</span>
@@ -842,7 +858,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q010" data-search="A cylinder of fixed capacity of 44.8 litres contains helium gas at standard temperature and pressure. The amount of heat needed to raise the temperature of gas in the cylinder by 20.0°C will be (Given gas constant R = 8.3 J K−1 mol−1 ) PHY-2022-0101-S1-Q010" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">PHY-2022-0101-S1-Q010</span>
@@ -859,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q007" data-search="At what temperature a gold ring of diameter 6.230 cm be heated so that it can be fitted on a wooden bangle of diameter 6.241 cm? Both the diameters have been measured at room temperature (27°C). (Given: coefficient of linear thermal expansion of gold αL = 1.4 × 10−5 K−1 ) PHY-2022-0101-S2-Q007" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">PHY-2022-0101-S2-Q007</span>
@@ -876,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q011" data-search="A body cools in 7 minutes from 60oC to 40oC. The temperature of the surrounding is 10oC. The temperature of the body after the next 7 minutes will be 30oC 32oC PHY-2023-0101-S2-Q011" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">PHY-2023-0101-S2-Q011</span>
@@ -893,7 +909,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q011" data-search="An air bubble of volume 1 cm3 rises from the bottom of a lake 40 m deep to the surface at a temperature of 12°C. The atmospheric pressure is 1 × 105 Pa, the density of water is 1000 kg m−3 and g = 10 m s−2. There is no difference of the temperature of water at the depth of 40 m and on the surface. The volume of air bubble when it reaches the surface will be PHY-2023-0101-S1-Q011" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">PHY-2023-0101-S1-Q011</span>
@@ -910,7 +926,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q010" data-search="A steel rod of length 1 m and cross-sectional area 10−4 m2 is heated from 0°C to 200°C without being allowed to extend or bend. The compressive tension produced in the rod is _____ ×104 N. (Given Young&#x27;s modulus of steel = 2 × 1011 N m−2, coefficient of linear expansion = 10−5 K−1 ) PHY-2023-0101-S2-Q010" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">PHY-2023-0101-S2-Q010</span>
@@ -927,7 +943,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q006" data-search="of water at is converted into steam at by boiling at atmospheric pressure. The volume of 1 kg 100°C 100°C water changes from 1.00 × 10−3 m3 as a liquid to 1.671 m3 as steam. The change in internal energy of the system during the process will be (Given latent heat of vaporisation = 2257 kJ / kg, Atmospheric pressure 105 = 1 × Pa PHY-2023-0101-S1-Q006" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">PHY-2023-0101-S1-Q006</span>
@@ -944,7 +960,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q012" data-search="The root mean square speed of molecules of nitrogen gas at 27°C is approximately: (Given mass of a nitrogen molecule 10−26 and take Boltzmann constant 10−23J K−1 ) = 4.6 × kg kB = 1.4 × PHY-2023-0101-S2-Q012" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">PHY-2023-0101-S2-Q012</span>
@@ -961,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q008" data-search="The initial pressure and volume of an ideal gas are P0 and V0. The final pressure of the gas when the gas is suddenly compressed to volume V0 will be: 4 (Given γ= ratio of specific heats at constant pressure and at constant volume.) PHY-2023-0101-S2-Q008" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">PHY-2023-0101-S2-Q008</span>
@@ -978,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="40">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q023" data-search="Two plates A and B have thermal conductivities 84 W m−1 K−1 and 126 W m−1 K−1 respectively. They have same surface area and same thickness. They are placed in contact along their surfaces. If the temperatures 100∘C 0∘C of the outer surfaces of A and B are kept at and respectively, then the temperature of the surface of contact in steady state is_____ ∘C. PHY-2023-0101-S2-Q023" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="40">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">PHY-2023-0101-S2-Q023</span>
@@ -995,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 40</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q009" data-search="A flask contains Hydrogen and Argon in the ratio 2: 1 by mass. The temperature of the mixture is 30°C. The ratio of average kinetic energy per molecule of the two gases ( Kargon ) is: (Given: Atomic Weight of Khydrogen Ar = 39.9 ) PHY-2023-0101-S1-Q009" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">PHY-2023-0101-S1-Q009</span>
@@ -1012,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q013" data-search="Let γ1 be the ratio of molar specific heat at constant pressure and molar specific heat at constant volume of a monoatomic gas and γ2 be the similar ratio of diatomic gas. Considering the diatomic gas molecule as a rigid rotator, the ratio γ1 is: γ2 PHY-2023-0101-S2-Q013" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">PHY-2023-0101-S2-Q013</span>
@@ -1029,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q011" data-search="According to law of equipartition of energy the molar specific heat of a diatomic gas at constant volume where the molecule has one additional vibrational mode is:- PHY-2023-0101-S2-Q011" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">PHY-2023-0101-S2-Q011</span>
@@ -1046,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q010" data-search="A body cools from 60°C to 40°C in 6 minutes. If, temperature of surroundings is 10°C. Then, after the next 6 minutes, its temperature will be ______ °C. PHY-2023-0101-S1-Q010" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">PHY-2023-0101-S1-Q010</span>
@@ -1063,7 +1079,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q012" data-search="Heat energy of 184 kJ is given to ice of mass 600 g at −12 °C, Specific heat of ice is 2222.3 J kg–1 °C–1 and latent heat of ice is 336 kJ kg–1. PHY-2023-0101-S2-Q012" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">PHY-2023-0101-S2-Q012</span>
@@ -1080,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q010" data-search="A water heater of power 2000 W is used to heat water. The specific heat capacity of water is 4200 J. The efficiency of heater is 70%. Time required to heat 2 kg of water from 10°C to 60°C is _____ s. (Assume that the specific heat capacity of water remains constant over the temperature range of the water). PHY-2023-0101-S2-Q010" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">PHY-2023-0101-S2-Q010</span>
@@ -1097,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q010" data-search="Two moles of a monoatomic gas is mixed with six moles of a diatomic gas. The molar specific heat of the mixture at constant volume is: PHY-2024-0101-S1-Q010" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">PHY-2024-0101-S1-Q010</span>
@@ -1114,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q010" data-search="On celcius scale the temperature of body increases by 40∘C. The increase in temperature on Fahrenheit scale is: PHY-2024-0101-S1-Q010" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">PHY-2024-0101-S1-Q010</span>
@@ -1131,7 +1147,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q010" data-search="The specific heat at constant pressure of a real gas obeying PV 2 = RT equation is: R PHY-2024-0101-S1-Q010" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">PHY-2024-0101-S1-Q010</span>
@@ -1148,7 +1164,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q001" data-search="Given below are two statements: Statement (I): Dimensions of specific heat is [L2 T−2 K−1]. Statement (II): [ML2 T−1 K−1] Dimensions of gas constant is. In the light of the above statements, choose the most appropriate answer from the options given below. PHY-2024-0101-S2-Q001" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">PHY-2024-0101-S2-Q001</span>
@@ -1165,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q008" data-search="A total of 48 J heat is given to one mole of helium kept in a cylinder. The temperature of helium increases by 2∘C. The work done by the gas is: Given, R = 8.3 J K−1 mol−1. PHY-2024-0101-S2-Q008" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">PHY-2024-0101-S2-Q008</span>
@@ -1182,7 +1198,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q010" data-search="A mixture of one mole of monoatomic gas and one mole of a diatomic gas (rigid) are kept at room temperature (27∘C). The ratio of specific heat of gases at constant volume respectively is: PHY-2024-0101-S1-Q010" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">PHY-2024-0101-S1-Q010</span>
@@ -1199,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q001" data-search="The dimensional formula of latent heat is: [ML2 T−2] [M0 L2 T−2] PHY-2024-0101-S1-Q001" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="Option Question">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">PHY-2024-0101-S1-Q001</span>
@@ -1216,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> Option Question</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q008" data-search="The temperature of a gas is and the average translational kinetic energy of its molecules is K. The temperature at which the average translational kinetic energy of the molecules of the same gas becomes 2 K is: PHY-2024-0101-S2-Q008" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">PHY-2024-0101-S2-Q008</span>
@@ -1233,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q008" data-search="0.08 kg air is heated at constant volume through 5°C. The specific heat of air at constant volume is 0.17 kcal kg−1 °C−1 and 1 J = 4.18 joule cal−1. The change in its internal energy is approximately. PHY-2024-0101-S1-Q008" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">PHY-2024-0101-S1-Q008</span>
@@ -1250,7 +1266,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q009" data-search="The temperature of a gas having 1025 molecules per cubic meter at (Given, 2.0 × 1.38 atm k = 1.38 × 10−23J K−1) is: PHY-2024-0101-S2-Q009" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">PHY-2024-0101-S2-Q009</span>
@@ -1267,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q029" data-search="An amount of ice of mass 10−3 kg and temperature −10∘C is transformed to vapour of temperature 110∘C by applying heat. The total amount of work required for this conversion is, (Take, specific heat of ice = 2100Jkg−1 K−1, specific heat of water = 4180Jkg−1 K−1, specific heat of steam = 1920Jkg−1 K−1, Latent heat of ice = 3.35 × 105Jkg−1 and Latent heat of steam = 2.25 × 106 Jkg−1 ) (1) 3043 J (2) 3024 J (3) 3003 J (4) 3022 J PHY-2025-0101-S1-Q029" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">PHY-2025-0101-S1-Q029</span>
@@ -1284,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-PHY-2025-0101-S2-Q029" data-search="Given below are two statements. One is labelled as Assertion (A) and the other is labelled as Reason (R). Assertion (A): With the increase in the pressure of an ideal gas, the volume falls off more rapidly in an isothermal process in comparison to the adiabatic process. Reason (R): In isothermal process, PV = constant, while in adiabatic process PVγ = constant. Here γ is the ratio of specific heats, P is the pressure and V is the volume of the ideal gas. In the light of the above statements, choose the correct answer from the options given below: (1) Both (A) and (R) are true and (R) is the correct (2) Both (A) and (R) are true but (R) is NOT the explanation of (A) correct explanation of (A) (3) (A) is true but (R) is false (4) (A) is false but (R) is true PHY-2025-0101-S2-Q029" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">PHY-2025-0101-S2-Q029</span>
@@ -1308,7 +1324,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(58 questions)</span>
     &nbsp;<a href="clusters/PHY-THERPHYS-KTG_GAS_LAWS/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+  <div class="q-card" id="q-PHY-2021-0101-S2-Q018" data-search="The temperature of an ideal gas in three dimensions is 300 K. The corresponding de-Broglie wavelength of the electron approximately at 300 K is: me= mass of electron = 9 × 10−31 kg, h= Planck constant = 6.6 × 10−34 J s, kB= Boltzmann constant = 1.38 × 10−23 J K−1 PHY-2021-0101-S2-Q018" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">PHY-2021-0101-S2-Q018</span>
@@ -1325,7 +1341,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="25">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q028" data-search="The temperature of 3.00 mol of an ideal diatomic gas is increased by 40.0°C without changing the pressure of the gas. The molecules in the gas rotate but do not oscillate. If the ratio of change in internal energy of the x gas to the amount of workdone by the gas is 10. Then the value of x (round off to the nearest integer) is _________. ( GivenR= 8.31 J mol−1 K−1 PHY-2021-0101-S2-Q028" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">PHY-2021-0101-S2-Q028</span>
@@ -1342,7 +1358,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q007" data-search="Calculate the value of the mean free path (λ) for oxygen molecules at temperature 27°C and pressure 1.01 × 105 Pa. Assume the molecular diameter 0.3 nm and the gas is ideal. (k = 1.38 × 10−23 J K−1) PHY-2021-0101-S2-Q007" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">PHY-2021-0101-S2-Q007</span>
@@ -1359,7 +1375,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q009" data-search="A polyatomic ideal gas has 24 vibrational modes. What is the value of γ? PHY-2021-0101-S1-Q009" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">PHY-2021-0101-S1-Q009</span>
@@ -1376,7 +1392,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q010" data-search="Two ideal polyatomic gases at temperatures T1 and T2 are mixed so that there is no loss of energy. If F1 and F2, m1 and m2, n1 and n2 be the degrees of freedom, masses, number of molecules of the first and second gas respectively, the temperature of mixture of these two gases is: PHY-2021-0101-S1-Q010" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">PHY-2021-0101-S1-Q010</span>
@@ -1393,7 +1409,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q006" data-search="The −V diagram of a diatomic ideal gas system going under cyclic process as shown in figure. The work P done during an adiabatic process CD is (use γ = 1.4): PHY-2021-0101-S1-Q006" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">PHY-2021-0101-S1-Q006</span>
@@ -1410,7 +1426,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q007" data-search="What will be the average value of energy along one degree of freedom for an ideal gas in thermal equilibrium at a temperature T? ( kB is Boltzmann constant) PHY-2021-0101-S1-Q007" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">PHY-2021-0101-S1-Q007</span>
@@ -1427,7 +1443,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q009" data-search="An ideal gas in a cylinder is separated by a piston in such a way that the entropy of one part is S1 and that of the other part is S2. Given that S1 &gt; S2. If the piston is removed then the total entropy of the system will be: PHY-2021-0101-S2-Q009" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">PHY-2021-0101-S2-Q009</span>
@@ -1444,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q010" data-search="Consider a sample of oxygen behaving like an ideal gas. At 300 K, the ratio of root-mean-square (RMS) velocity to the average velocity of the gas molecule would be: (Molecular weight of oxygen is mol−1; K−1 mol−1 ) 32 g R = 8.3 J PHY-2021-0101-S2-Q010" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">PHY-2021-0101-S2-Q010</span>
@@ -1461,7 +1477,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q007" data-search="The amount of heat needed to raise the temperature of 4 moles of a rigid diatomic gas from 0 °C to 50 °C when no work is done is (R is the universal gas constant) PHY-2021-0101-S1-Q007" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">PHY-2021-0101-S1-Q007</span>
@@ -1478,7 +1494,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q011" data-search="Which of the following graphs represent the behaviour of an ideal gas? Symbols have their usual meaning. PHY-2021-0101-S2-Q011" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">PHY-2021-0101-S2-Q011</span>
@@ -1495,7 +1511,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="17258">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q024" data-search="One mole of an ideal gas at 27 °C is taken from A to B as shown in the given PV indicator diagram. The work done by the system will be _______ ×10−1 J. [Given, R = 8.3 J mole−1 K, ln 2 = 0.6931 ] (Round off to the nearest integer) (Round off to the nearest integer) PHY-2021-0101-S2-Q024" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="17258">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">PHY-2021-0101-S2-Q024</span>
@@ -1512,7 +1528,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 17258</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q007" data-search="What will be the average value of energy for a monoatomic gas in thermal equilibrium at temperature T? PHY-2021-0101-S1-Q007" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">PHY-2021-0101-S1-Q007</span>
@@ -1529,7 +1545,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q006" data-search="On the basis of kinetic theory of gases, the gas exerts pressure because its molecules: PHY-2021-0101-S2-Q006" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">PHY-2021-0101-S2-Q006</span>
@@ -1546,7 +1562,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q008" data-search="A diatomic gas, having CP = 7 2 R and CV = 5 2 R, is heated at constant pressure. The ratio dU: dQ: dW PHY-2021-0101-S1-Q008" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">PHY-2021-0101-S1-Q008</span>
@@ -1563,7 +1579,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q022" data-search="The potential energy (U) of a diatomic molecule is a function dependent on r (interatomic distance) as U = α −β −3 where, α and β are positive constants. The equilibrium distance between two atoms will be r10 r5 ( 2α ) a b where ______. β, a = PHY-2021-0101-S1-Q022" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="1">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">PHY-2021-0101-S1-Q022</span>
@@ -1580,7 +1596,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3600">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q024" data-search="A monoatomic gas of mass 4.0 u is kept in an insulated container. The container is moving with velocity 30 m s−1. If the container is suddenly stopped then a change in temperature of the gas ( R = gas constant) is 3R x. Value of is, x PHY-2021-0101-S1-Q024" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3600">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">PHY-2021-0101-S1-Q024</span>
@@ -1597,7 +1613,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3600</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q004" data-search="Thermodynamic process is shown below on a P −V diagram for one mole of an ideal gas. If V2 = 2V1, then the ratio of temperature T2 is: T1 PHY-2021-0101-S2-Q004" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">PHY-2021-0101-S2-Q004</span>
@@ -1614,7 +1630,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q005" data-search="Given below are two statements: Statement I: In a diatomic molecule, the rotational energy at a given temperature obeys Maxwell&#x27;s distribution. Statement II: In a diatomic molecule, the rotational energy at a given temperature equals the translational kinetic energy for each molecule. In the light of the above statements, choose the correct answer from the options given below: PHY-2021-0101-S2-Q005" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q78</span>
     <span class="q-id">PHY-2021-0101-S2-Q005</span>
@@ -1631,7 +1647,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q008" data-search="A monoatomic ideal gas, initially at temperature T1 is enclosed in a cylinder fitted with a frictionless piston. The gas is allowed to expand adiabatically to a temperature T2 by releasing the piston suddenly. If l1 and l2 are the lengths of the gas column, before and after the expansion respectively, then the value of T1 will be: T2 PHY-2021-0101-S1-Q008" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q79</span>
     <span class="q-id">PHY-2021-0101-S1-Q008</span>
@@ -1648,7 +1664,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q009" data-search="The internal energy (U), pressure (P) and volume (V ) of an ideal gas are related as U = 3PV + 4. The gas is PHY-2021-0101-S2-Q009" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q80</span>
     <span class="q-id">PHY-2021-0101-S2-Q009</span>
@@ -1665,7 +1681,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="25">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q022" data-search="1 mole of rigid diatomic gas performs a work of 5 when heat Q is supplied to it. The molar heat capacity of the gas during this transformation is xR. The value of x is 8 [ R universal gas constant] PHY-2021-0101-S2-Q022" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="25">
   <div class="q-header">
     <span class="q-num">Q81</span>
     <span class="q-id">PHY-2021-0101-S2-Q022</span>
@@ -1682,7 +1698,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 25</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="60">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q023" data-search="The volume of a given mass of monoatomic gas changes with temperature according to the relation V T V = KT 2 3. The workdone when temperature changes by 90 K will be xR. The value of x is [ R universal gas constant ] PHY-2021-0101-S2-Q023" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="60">
   <div class="q-header">
     <span class="q-num">Q82</span>
     <span class="q-id">PHY-2021-0101-S2-Q023</span>
@@ -1699,7 +1715,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 60</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q007" data-search="An ideal gas is expanding such that PT 3 = constant. The coefficient of volume expansion of the gas is: PHY-2021-0101-S1-Q007" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q83</span>
     <span class="q-id">PHY-2021-0101-S1-Q007</span>
@@ -1716,7 +1732,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q008" data-search="In the reported figure, there is a cyclic process ABCDA on a sample of 1 mol of a diatomic gas. The temperature of the gas during the process A →B and C →D are T1 and T2( T &gt; T2) respectively. 1 Choose the correct option out of the following for work done if processes BC and DA are adiabatic. PHY-2021-0101-S1-Q008" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q84</span>
     <span class="q-id">PHY-2021-0101-S1-Q008</span>
@@ -1733,7 +1749,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q009" data-search="The number of molecules in one litre of an ideal gas at 300 K and 2 atmospheric pressure with mean kinetic 10−9 energy 2 × J per molecule is: PHY-2021-0101-S1-Q009" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q85</span>
     <span class="q-id">PHY-2021-0101-S1-Q009</span>
@@ -1750,7 +1766,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q009" data-search="One mole of an ideal gas is taken through an adiabatic process where the temperature rises from 27°C to 37°C. If the ideal gas is composed of polyatomic molecule that has 4 vibrational modes, which of the following is true? [R mol−1k−1] = 8.314 J PHY-2021-0101-S2-Q009" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q86</span>
     <span class="q-id">PHY-2021-0101-S2-Q009</span>
@@ -1767,7 +1783,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2021-0101-S1-Q009" data-search="For an ideal gas the instantaneous change in pressure P with volume V is given by the equation dP = −aP. If dV P = P0 at V = 0 is the given boundary condition, then the maximum temperature one mole of gas can attain is: (Here R is the gas constant) PHY-2021-0101-S1-Q009" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q87</span>
     <span class="q-id">PHY-2021-0101-S1-Q009</span>
@@ -1784,7 +1800,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2021-0101-S2-Q017" data-search="Consider two separate ideal gases of electrons and protons having same number of particles. The temperature of both the gases are same. The ratio of the uncertainty in determining the position of an electron to that of a proton is proportional to: PHY-2021-0101-S2-Q017" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q88</span>
     <span class="q-id">PHY-2021-0101-S2-Q017</span>
@@ -1801,7 +1817,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q023" data-search="A monoatomic gas performs a work of 4 where Q is the heat supplied to it. The molar heat capacity of the gas will be _____ R during this transformation. Where R is the gas constant. PHY-2022-0101-S2-Q023" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2">
   <div class="q-header">
     <span class="q-num">Q89</span>
     <span class="q-id">PHY-2022-0101-S2-Q023</span>
@@ -1818,7 +1834,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q010" data-search="According to kinetic theory of gases, A. The motion of the gas molecules freezes at 0°C. B. The mean free path of gas molecules decreases if the density of molecules is increased. C. The mean free path of gas molecules increases if temperature is increased keeping pressure constant. 3 D. Average kinetic energy per molecule per degree of freedom is 2 kBT (for monoatomic gases). Choose the most appropriate answer from the options given below PHY-2022-0101-S2-Q010" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q90</span>
     <span class="q-id">PHY-2022-0101-S2-Q010</span>
@@ -1835,7 +1851,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1400">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q023" data-search="A diatomic gas (γ = 1.4) does 400 J of work when it is expanded isobarically. The heat given to the gas in the process is _____ J. PHY-2022-0101-S2-Q023" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="1400">
   <div class="q-header">
     <span class="q-num">Q91</span>
     <span class="q-id">PHY-2022-0101-S2-Q023</span>
@@ -1852,7 +1868,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 1400</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q007" data-search="Statement - I: When μ amount of an ideal gas undergoes adiabatic change from state (P1, V1, T1) to state μR(T2−T1) CP (P2, V2, T2), then work done is W = 1−γ, where γ = CV and R = universal gas constant. Statement - II: In the above case, when work is done on the gas, the temperature of the gas would rise. PHY-2022-0101-S1-Q007" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q92</span>
     <span class="q-id">PHY-2022-0101-S1-Q007</span>
@@ -1869,7 +1885,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7479">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q025" data-search="The total internal energy of two mole monoatomic ideal gas at temperature will be _____. (Given T = 300 K J R = 8.31 J mol−1 ⋅K ) PHY-2022-0101-S1-Q025" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="7479">
   <div class="q-header">
     <span class="q-num">Q93</span>
     <span class="q-id">PHY-2022-0101-S1-Q025</span>
@@ -1886,7 +1902,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7479</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S2-Q009" data-search="A sample of an ideal gas is taken through the cyclic process ABCA as shown in figure. It absorbs, 40 J of heat during the part AB, no heat during BC and rejects 60 J of heat during CA. A work of 50 J is done on the gas during the part BC. The internal energy of the gas at A is 1560 J. The work done by the gas during the part CA is PHY-2022-0101-S2-Q009" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q94</span>
     <span class="q-id">PHY-2022-0101-S2-Q009</span>
@@ -1903,7 +1919,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q012" data-search="The temperature of an ideal gas is increased from 200 K to 800 K. If r.m.s. speed of gas at 200 K is v0. Then, r.m.s. speed of the gas at 800 K will be: PHY-2023-0101-S2-Q012" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q95</span>
     <span class="q-id">PHY-2023-0101-S2-Q012</span>
@@ -1920,7 +1936,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q009" data-search="Match List I with List II: List I List II PHY-2023-0101-S1-Q009" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q96</span>
     <span class="q-id">PHY-2023-0101-S1-Q009</span>
@@ -1937,7 +1953,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q008" data-search="Three vessels of equal volume contain gases at the same temperature and pressure. The first vessel contains neon (monoatomic), the second contains chlorine (diatomic) and third contains uranium hexafluoride (polyatomic). Arrange these on the basis of their root mean square speed vrms and choose the correct answer from the options given below: PHY-2023-0101-S1-Q008" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q97</span>
     <span class="q-id">PHY-2023-0101-S1-Q008</span>
@@ -1954,7 +1970,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q012" data-search="The 1 rms speed of oxygen molecule in a vessel at particular temperature is (1 + x 5 ) 2 v, when v is the average speed of the molecule. The value of x will be: (take π = 22 ) PHY-2023-0101-S1-Q012" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q98</span>
     <span class="q-id">PHY-2023-0101-S1-Q012</span>
@@ -1971,7 +1987,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q009" data-search="The mean free path of molecules of a certain gas at STP is 1500d, where d is the diameter of the gas molecules. While maintaining the standard pressure, the mean free path of the molecules at 373 K is approximately: PHY-2023-0101-S2-Q009" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q99</span>
     <span class="q-id">PHY-2023-0101-S2-Q009</span>
@@ -1988,7 +2004,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q008" data-search="Given below are two statements: Statement I: The temperature of a gas is °C. When the gas is heated to °C, the root mean square−73 527 speed of the molecules is doubled. Statement II: The product of pressure and volume of an ideal gas will be equal to translational kinetic energy of the molecules. In the light of the above statements, choose the correct answer from the options given below: PHY-2023-0101-S1-Q008" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q100</span>
     <span class="q-id">PHY-2023-0101-S1-Q008</span>
@@ -2005,7 +2021,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q013" data-search="At 300 K, the rms speed of oxygen molecules is √α+5 times to that of its average speed in the gas. Then, the α value of α will be (use π = 22 7 ) PHY-2023-0101-S2-Q013" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q101</span>
     <span class="q-id">PHY-2023-0101-S2-Q013</span>
@@ -2022,7 +2038,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q009" data-search="Heat is given to an ideal gas in an isothermal process. A. Internal energy of the gas will decrease. B. Internal energy of the gas will increase. C. Internal energy of the gas will not change. D. The gas will do positive work. E. The gas will do negative work. Choose the correct answer from the options given below: PHY-2023-0101-S1-Q009" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q102</span>
     <span class="q-id">PHY-2023-0101-S1-Q009</span>
@@ -2039,7 +2055,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q010" data-search="The pressure ( P) and temperature ( T) relationship of an ideal gas obeys the equation PT2 = constant. The volume expansion coefficient of the gas will be: 3T2 3 PHY-2023-0101-S1-Q010" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q103</span>
     <span class="q-id">PHY-2023-0101-S1-Q010</span>
@@ -2056,7 +2072,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q011" data-search="Heat energy of 735 J is given to a diatomic gas allowing the gas to expand at constant pressure. Each gas molecule rotates around an internal axis but do not oscillate. The increase in the internal energy of the gas will be: PHY-2023-0101-S2-Q011" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q104</span>
     <span class="q-id">PHY-2023-0101-S2-Q011</span>
@@ -2073,7 +2089,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q009" data-search="3 The pressure and volume of an ideal gas are related as PV 2 = K (Constant). The work done when the gas is taken from state AP1, V1, T1 to state BP2, V2, T2 is: PHY-2024-0101-S1-Q009" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q105</span>
     <span class="q-id">PHY-2024-0101-S1-Q009</span>
@@ -2090,7 +2106,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q008" data-search="A diatomic gas ( γ= 1.4 ) does 200 J of work when it is expanded isobarically. The heat given to the gas in the process is: PHY-2024-0101-S2-Q008" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q106</span>
     <span class="q-id">PHY-2024-0101-S2-Q008</span>
@@ -2107,7 +2123,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q011" data-search="P-T diagram of an ideal gas having three different densities ρ1, ρ2, ρ3 (in three different cases) is shown in the figure. Which of the following is correct: PHY-2024-0101-S1-Q011" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q107</span>
     <span class="q-id">PHY-2024-0101-S1-Q011</span>
@@ -2124,7 +2140,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q009" data-search="The translational degrees of freedom (ft) and rotational degrees of freedom (fr) of CH4 molecule are: PHY-2024-0101-S2-Q009" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q108</span>
     <span class="q-id">PHY-2024-0101-S2-Q009</span>
@@ -2141,7 +2157,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q009" data-search="If n is the number density and d is the diameter of the molecule, then the average distance covered by a molecule between two successive collisions (i.e. mean free path) is represented by: PHY-2024-0101-S2-Q009" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q109</span>
     <span class="q-id">PHY-2024-0101-S2-Q009</span>
@@ -2158,7 +2174,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q009" data-search="Energy of 10 non rigid diatomic molecules at temperature T is: PHY-2024-0101-S2-Q009" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q110</span>
     <span class="q-id">PHY-2024-0101-S2-Q009</span>
@@ -2175,7 +2191,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q008" data-search="A diatomic gas (γ = 1.4) does 100 J of work in an isobaric expansion. The heat given to the gas is: PHY-2024-0101-S2-Q008" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q111</span>
     <span class="q-id">PHY-2024-0101-S2-Q008</span>
@@ -2192,7 +2208,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q009" data-search="Given below are two statements: Statement (I): The mean free path of gas molecules is inversely proportional to square of molecular diameter. Statement (II): Average kinetic energy of gas molecules is directly proportional to absolute temperature of gas. In the light of the above statements, choose the correct answer from the options given below: PHY-2024-0101-S2-Q009" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q112</span>
     <span class="q-id">PHY-2024-0101-S2-Q009</span>
@@ -2209,7 +2225,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q009" data-search="The volume of an ideal gas (γ = 1.5) is changed adiabatically from 5 litres to 4 litres. The ratio of initial pressure to final pressure is: PHY-2024-0101-S1-Q009" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q113</span>
     <span class="q-id">PHY-2024-0101-S1-Q009</span>
@@ -2226,7 +2242,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q010" data-search="N moles of a polyatomic gas (f = 6) must be mixed with two moles of a monoatomic gas so that the mixture behaves as a diatomic gas. The value of N is: PHY-2024-0101-S2-Q010" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q114</span>
     <span class="q-id">PHY-2024-0101-S2-Q010</span>
@@ -2243,7 +2259,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q009" data-search="Two thermodynamical process are shown in the figure. The molar heat capacity for process A and B are CA and CB. The molar heat capacity at constant pressure and constant volume are represented by CP and CV, respectively. Choose the correct statement. PHY-2024-0101-S1-Q009" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q115</span>
     <span class="q-id">PHY-2024-0101-S1-Q009</span>
@@ -2260,7 +2276,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q009" data-search="If three moles of monoatomic gas 5 is mixed with two moles of a diatomic gas 7 5, the value of adiabatic γ= 3 γ= exponent γ for the mixture is: PHY-2024-0101-S2-Q009" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q116</span>
     <span class="q-id">PHY-2024-0101-S2-Q009</span>
@@ -2277,7 +2293,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2024-0101-S1-Q010" data-search="The given figure represents two isobaric processes for the same mass of an ideal gas, then PHY-2024-0101-S1-Q010" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q117</span>
     <span class="q-id">PHY-2024-0101-S1-Q010</span>
@@ -2301,7 +2317,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(5 questions)</span>
     &nbsp;<a href="clusters/PHY-THERPHYS-HEAT_ENGINE_CARNOT/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+  <div class="q-card" id="q-PHY-2022-0101-S1-Q009" data-search="A Carnot engine whose heat sinks at 27°C, has an efficiency of 25%. By how many degrees should the temperature of the source be changed to increase the efficiency by 100% of the original efficiency? PHY-2022-0101-S1-Q009" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q118</span>
     <span class="q-id">PHY-2022-0101-S1-Q009</span>
@@ -2318,7 +2334,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="16">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q023" data-search="In a carnot engine, the temperature of reservoir is 527°C and that of sink is 200 K. If the workdone by the engine when it transfers heat from reservoir to sink is 12000 kJ, the quantity of heat absorbed by the engine from reservoir is _____ ×106 J. PHY-2022-0101-S1-Q023" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="16">
   <div class="q-header">
     <span class="q-num">Q119</span>
     <span class="q-id">PHY-2022-0101-S1-Q023</span>
@@ -2335,7 +2351,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 16</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="102">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q022" data-search="of heat is given to a heat engine, and it rejects of heat. If source temperature is 300 calories 225 calories 227°C, then the temperature of sink will be _____ ∘C. PHY-2022-0101-S1-Q022" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="102">
   <div class="q-header">
     <span class="q-num">Q120</span>
     <span class="q-id">PHY-2022-0101-S1-Q022</span>
@@ -2352,7 +2368,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 102</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-PHY-2023-0101-S2-Q011" data-search="Work done by a Carnot engine operating between temperatures 127°C and 27°C is 2 kJ. The amount of heat transferred to the engine by the reservoir is: PHY-2023-0101-S2-Q011" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q121</span>
     <span class="q-id">PHY-2023-0101-S2-Q011</span>
@@ -2369,7 +2385,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q012" data-search="A Carnot engine with efficiency 50% takes heat from a source at 600 K. In order to increase the efficiency to 70%, keeping the temperature of sink same, the new temperature of the source will be: PHY-2023-0101-S1-Q012" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q122</span>
     <span class="q-id">PHY-2023-0101-S1-Q012</span>
@@ -2393,7 +2409,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(3 questions)</span>
     &nbsp;<a href="clusters/PHY-THERPHYS-HEAT_TRANSFER_CONDUCTION_RADIATION/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+  <div class="q-card" id="q-PHY-2021-0101-S1-Q007" data-search="Two identical metal wires of thermal conductivities K1 and K2 respectively are connected in series. The effective thermal conductivity of the combination is: 2 K1 K2 K1+K2 PHY-2021-0101-S1-Q007" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q123</span>
     <span class="q-id">PHY-2021-0101-S1-Q007</span>
@@ -2410,7 +2426,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q008" data-search="Two metallic blocks M1 and M2 of same area of cross-section are connected to each other (as shown in figure). If the thermal conductivity of M2 is K then the thermal conductivity of M1 will be: [Assume steady state heat conduction] PHY-2022-0101-S1-Q008" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q124</span>
     <span class="q-id">PHY-2022-0101-S1-Q008</span>
@@ -2427,7 +2443,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="21">
+</div><div class="q-card" id="q-PHY-2022-0101-S1-Q021" data-search="As per the given figure, two plates A and B of thermal conductivity K and 2K are joined together to form a compound plate. The thickness of plates are 4.0 cm and 2.5 cm respectively and the area of cross-section is 120 cm2 for each plate. The equivalent thermal conductivity of the compound plate is (1 + 5 )K, then the α value of α will be _____. PHY-2022-0101-S1-Q021" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="21">
   <div class="q-header">
     <span class="q-num">Q125</span>
     <span class="q-id">PHY-2022-0101-S1-Q021</span>
@@ -2451,7 +2467,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(1 question)</span>
     
   </div>
-  <div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+  <div class="q-card" id="q-PHY-2023-0101-S2-Q007" data-search="A gas is compressed adiabatically, which one of the following statement is NOT true? PHY-2023-0101-S2-Q007" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q126</span>
     <span class="q-id">PHY-2023-0101-S2-Q007</span>

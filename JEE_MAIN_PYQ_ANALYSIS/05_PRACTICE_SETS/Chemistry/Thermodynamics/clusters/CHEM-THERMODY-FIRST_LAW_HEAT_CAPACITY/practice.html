@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -282,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -290,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+<div class="q-card" id="q-CHEM-2021-0101-S1-Q031" data-search="The absolute value of the electron gain enthalpy of halogens satisfies: CHEM-2021-0101-S1-Q031" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">CHEM-2021-0101-S1-Q031</span>
@@ -307,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="230">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q055" data-search="The standard enthalpies of formation of Al2 O3 and CaO are −1675 kJ and −635 kJ respectively. For the reaction 3CaO + 2Al →3Ca + Al2 O3 the standard reaction enthalpy ΔrH0 = ________ kJ. (Round off to the Nearest Integer). CHEM-2021-0101-S1-Q055" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="230">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">CHEM-2021-0101-S1-Q055</span>
@@ -324,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 230</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="128">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q054" data-search="For the reaction C2H6 →C2H4 + H2 the reaction enthalpy ΔrH in kJmol−1 is (Round off to the Nearest Integer). [Given: Bond enthalpies in kJmol−1: C −C: 347, C = C: 611; C −H: 414, H −H: 436] CHEM-2021-0101-S1-Q054" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="128">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">CHEM-2021-0101-S1-Q054</span>
@@ -341,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 128</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="21">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q053" data-search="If the standard molar enthalpy change for combustion of graphite powder is −2.48 × 102 kJ mol−1, the amount of heat generated on combustion of 1 g of graphite powder in kJ (Nearest integer): CHEM-2021-0101-S1-Q053" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="21">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -358,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 21</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q031" data-search="Consider the elements Mg, Al, S, P and Si, the correct increasing order of their first ionisation enthalpy is: CHEM-2021-0101-S1-Q031" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">CHEM-2021-0101-S1-Q031</span>
@@ -375,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5576">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q053" data-search="The ionization enthalpy of Na+ formation from Na(g) is 495.8 kJ mol−1, while the electron gain enthalpy of Br is −325.0 kJ mol−1. Given the lattice enthalpy of NaBr is −728.4 kJ mol −1. The energy for the formation of NaBr ionic solid is (−)_____10−1 kJ mol−1 CHEM-2021-0101-S1-Q053" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="5576">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -392,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 5576</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q042" data-search="The correct order of bond dissociation enthalpy of halogens is: CHEM-2021-0101-S2-Q042" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">CHEM-2021-0101-S2-Q042</span>
@@ -409,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q032" data-search="At 298.2 K the relationship between enthalpy of bond dissociation (in kJ mol−1) for hydrogen EH and its isotope, deuterium ED, is best described by: CHEM-2021-0101-S1-Q032" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">CHEM-2021-0101-S1-Q032</span>
@@ -426,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="101">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q054" data-search="At K, the enthalpy of fusion of a solid is mol−1 and the enthalpy of vaporisation of the liquid 298 X 2.8 kJ X is 98.2 kJ mol−1. The enthalpy of sublimation of the substance X in kJ mol−1 is ______. (in nearest integer) CHEM-2021-0101-S1-Q054" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="101">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">CHEM-2021-0101-S1-Q054</span>
@@ -443,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 101</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="718">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q053" data-search="The Born-Haber cycle for is evaluated with the following data: KCl ΔfHΘ for KCl = −436.7 kJmol−1; ΔsubHΘ for K = 89.2 kJmol−1; Δionization HΘ for K = 419.0 kJ mol −1; Δelectron gain HΘ for Cl(g) = −348.6 kJmol−1 HΘ kJmol−1 Δbond for Cl2 = 243.0 The magnitude of lattice enthalpy of KCl in kJmol−1 is (Nearest integer) CHEM-2021-0101-S1-Q053" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="718">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">CHEM-2021-0101-S1-Q053</span>
@@ -460,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 718</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q057" data-search="These are physical properties of an element (A) Sublimation enthalpy (B) Ionisation enthalpy (C) Hydration enthalpy (D) Electron gain enthalpy The total number of above properties that affect the reduction potential is (Integer answer) CHEM-2021-0101-S1-Q057" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">CHEM-2021-0101-S1-Q057</span>
@@ -477,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q031" data-search="The correct order of electron gain enthalpy is: CHEM-2021-0101-S2-Q031" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">CHEM-2021-0101-S2-Q031</span>
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="964">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q055" data-search="Data given for the following reaction is as follows: FeO(s) + C(graphite) ⟶Fe(s) + CO(g) Substance ΔfH°(kJmol−1) ΔS°(Jmol−1 K−1) FeO(s) −266.3 57.49 C(graphite) 0 5.74 Fe(s) 0 27.28 CO(g) −110.5 197.6 The minimum temperature in K at which the reaction becomes spontaneous is_____.(Integer answer) CHEM-2021-0101-S2-Q055" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="964">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">CHEM-2021-0101-S2-Q055</span>
@@ -511,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 964</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q032" data-search="The CORRECT order of first ionisation enthalpy is: CHEM-2021-0101-S2-Q032" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">CHEM-2021-0101-S2-Q032</span>
@@ -528,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="45">
+</div><div class="q-card" id="q-CHEM-2021-0101-S1-Q052" data-search="According to the following figure, the magnitude of the enthalpy change of the reaction in mol−1 A + B →M + N kJ is equal to __________. (Integer answer) CHEM-2021-0101-S1-Q052" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="45">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">CHEM-2021-0101-S1-Q052</span>
@@ -545,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 45</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q031" data-search="The incorrect expression among the following is: ΔH° - TΔS° CHEM-2021-0101-S2-Q031" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">CHEM-2021-0101-S2-Q031</span>
@@ -562,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2021-0101-S2-Q033" data-search="Which one of the following statements is incorrect? CHEM-2021-0101-S2-Q033" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">CHEM-2021-0101-S2-Q033</span>
@@ -579,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="300">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q055" data-search="The standard entropy change for the reaction 4Fes + 3O2g →2Fe2O3s is−550 J K−1 at 298 K mol−1]. [Given: The standard enthalpy change for the reaction is−165 kJ The temperature in K at which the reaction attains equilibrium is (Nearest Integer) CHEM-2022-0101-S1-Q055" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="300">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">CHEM-2022-0101-S1-Q055</span>
@@ -596,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 300</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q032" data-search="What is the correct oder of electron gain enthalpy of Cl, F, Te, Po CHEM-2022-0101-S2-Q032" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">CHEM-2022-0101-S2-Q032</span>
@@ -613,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="117">
+</div><div class="q-card" id="q-CHEM-2022-0101-S1-Q052" data-search="17.0 g of NH3 completely vapourises at −33.42 °C and 1 bar pressure and the enthalpy change in the process is 23.4 kJ mol−1. The enthalpy change for the vapourisation of 85 g of NH3 under the same conditions is kJ. CHEM-2022-0101-S1-Q052" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="117">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">CHEM-2022-0101-S1-Q052</span>
@@ -630,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 117</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2022-0101-S2-Q033" data-search="Given below are two statements. One is labelled as Assertion A and the other is labelled as Reason R. Assertion A: The first ionization enthalpy for oxygen is lower than that of nitrogen. Reason R: The four electrons in 2p orbitals of oxygen experience more electron-electron repulsion. In the light of the above statements, choose the correct answer from the options given below. CHEM-2022-0101-S2-Q033" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">CHEM-2022-0101-S2-Q033</span>
@@ -647,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="499">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q053" data-search="At 25°C, the enthalpy of the following processes are given: →2OH(g)ΔHo mol−1 H2 ( g) + O2 ( g) = 78 kJ H2 ( g) + 1 / 2O2 ( g) →H2O(g)ΔH0 = - 242 kJ mol−1 H2 ( g) →2H(g)ΔHo = 436 kJ mol−1 1 / 2O2 ( g) →O(g)ΔH0 = 249 kJ mol−1 What would be the value of X for the following reaction? (Nearest integer) H2Og →Hg + OHg ∆Ho = X kJmol−1 CHEM-2023-0101-S1-Q053" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="499">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">CHEM-2023-0101-S1-Q053</span>
@@ -664,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 499</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q040" data-search="Ion having highest hydration enthalpy among the given alkaline earth metal ions is: CHEM-2023-0101-S2-Q040" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">CHEM-2023-0101-S2-Q040</span>
@@ -681,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q047" data-search="If the boiling points of two solvents X and Y (having same molecular weights) are in the ratio 2: 1 and their enthalpy of vaporizations are in the ratio 1: 2, then the boiling point elevation constant of X is m times the boiling point elevation constant of. The value of is (nearest integer). Y m CHEM-2023-0101-S2-Q047" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">CHEM-2023-0101-S2-Q047</span>
@@ -698,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q034" data-search="For elements B, C, N Li, Be, O and F, the correct order of first ionisation enthalpy is CHEM-2023-0101-S1-Q034" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">CHEM-2023-0101-S1-Q034</span>
@@ -715,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q037" data-search="One mole of an ideal gas at 350 K is in a 2.0 L vessel of thermally conducting walls, which are in contact with the surroundings. It undergoes isothermal reversible expansion from 2.0 L to 3.0 L against a constant pressure of 4 atm. The change in entropy of the surroundings (ΔS) is _____ J K–1 (Nearest integer) Given: R = 8.314 J K−1 mol−1. CHEM-2023-0101-S1-Q037" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">CHEM-2023-0101-S1-Q037</span>
@@ -732,7 +748,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q042" data-search="Given below are two statements: Statement I: Boron is extremely hard indicating its high lattice energy. Statement II: Boron has highest melting and boiling point compared to its other group members. In the light of the above statements, choose the most appropriate answer from the options given below CHEM-2023-0101-S1-Q042" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">CHEM-2023-0101-S1-Q042</span>
@@ -749,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q035" data-search="Given below are two statements, one is labelled as Assertion A and the other is labelled as Reason R. Assertion A: Isotopes of hydrogen have almost same chemical properties, but difference in their rates of reactions. Reason R: Isotopes of hydrogen have different enthalpy of bond dissociation. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2023-0101-S2-Q035" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">CHEM-2023-0101-S2-Q035</span>
@@ -766,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q049" data-search="Inert gases have positive electron gain enthalpy. Its correct order is CHEM-2023-0101-S1-Q049" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">CHEM-2023-0101-S1-Q049</span>
@@ -783,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="360">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q060" data-search="An athlete is given 100 g of glucose (C6H12O6) for energy. This is equivalent to 1800 kJ of energy. The 50% of this energy gained is utilized by the athlete for sports activities at the event. In order to avoid storage of energy, the weight of extra water he would need to perspire is (Nearest integer) Assume that there is no _____g other way of consuming stored energy. Given: The enthalpy of evaporation of water is 45 kJ mol−1 Molar mass of C, H&amp;O are 12.1 and 16 g mol−1. CHEM-2023-0101-S1-Q060" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="360">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">CHEM-2023-0101-S1-Q060</span>
@@ -800,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 360</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q032" data-search="Given below are two statements: Statement I: The decrease in first ionization enthalpy from B to Al is much larger than that from Al to Ga. Statement II: The d orbitals in Ga are completely filled. In the light of the above statements, choose the most appropriate answer from the options given below CHEM-2023-0101-S2-Q032" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">CHEM-2023-0101-S2-Q032</span>
@@ -817,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="610">
+</div><div class="q-card" id="q-CHEM-2023-0101-S1-Q053" data-search="The enthalpy change for the conversion of 1 2Cl2 (g) to Cl- ( aq ) is ( - ) kJmol−1 (Nearest integer) Given: Δdis HCl2 0 = 240kJmol-1. ( g ) ΔegHCl o ( g ) = - 350kJmol-1, o 380kJmol-1 ΔhydHCl - = - ( g ) 1 1012 CHEM-2023-0101-S1-Q053" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="610">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">CHEM-2023-0101-S1-Q053</span>
@@ -834,7 +850,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 610</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q034" data-search="Given below are two statements: one is labelled as Assertion CHEM-2023-0101-S2-Q034" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">CHEM-2023-0101-S2-Q034</span>
@@ -851,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q036" data-search="Enthalpies of formation of CCl4( g), H2O(g), CO2( g) and HCl are −105, −242, −394 and −92 kJ mol−1 respectively. The magnitude of enthalpy of the reaction given below is kJmol−1. (nearest integer) CCl4( g) + 2H2O(g) →CO2( g) + 4 HCl(g) CHEM-2023-0101-S2-Q036" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">CHEM-2023-0101-S2-Q036</span>
@@ -868,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2023-0101-S2-Q041" data-search="The number of alkali metal(s), from Li, K, Cs, Rb having ionization enthalpy greater than 400 kJ mol−1 and forming stable super oxide is CHEM-2023-0101-S2-Q041" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">CHEM-2023-0101-S2-Q041</span>
@@ -885,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q032" data-search="Given below are two statements: Statement (I): Both metal and non-metal exist in $\mathrm{p}$ and d-block elements. Statement (II): Non-metals have higher ionisation enthalpy and higher electronegativity than the metals. In the light of the above statements, choose the most appropriate answer from the option given below: CHEM-2024-0101-S2-Q032" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">CHEM-2024-0101-S2-Q032</span>
@@ -902,7 +918,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q044" data-search="The transition metal having highest 3rd ionisation enthalpy is: CHEM-2024-0101-S2-Q044" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">CHEM-2024-0101-S2-Q044</span>
@@ -919,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q032" data-search="The correct order of first ionization enthalpy values of the following elements is: CHEM-2024-0101-S1-Q032" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">CHEM-2024-0101-S1-Q032</span>
@@ -936,7 +952,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q032" data-search="The correct order of the first ionization enthalpy is CHEM-2024-0101-S2-Q032" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">CHEM-2024-0101-S2-Q032</span>
@@ -953,7 +969,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q033" data-search="Given below are two statements: Statement I: The correct order of first ionization enthalpy values of Li, Na, F and Cl is Na &lt; Li &lt; Cl &lt; F. Statement II: The correct order of negative electron gain enthalpy values of Li, Na, F and Cl is Na &lt; Li &lt; F &lt; Cl In the light of the above statements, choose the correct answer from the options given below: CHEM-2024-0101-S2-Q033" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">CHEM-2024-0101-S2-Q033</span>
@@ -970,7 +986,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="0">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q057" data-search="A first row transition metal with highest enthalpy of atomisation, upon reaction with oxygen at high temperature forms oxides of formula M2On (where n = 3, 4, 5). The &#x27;spin-only&#x27; magnetic moment value of the amphoteric oxide from the above oxides is ______ (near integer) (Given atomic number: BM Sc: 21, Ti: 22, V: 23, Cr: 24, Mn: 25, Fe: 26, Co: 27, Ni: 28, Cu: 29, Zn: 30 ) CHEM-2024-0101-S2-Q057" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="0">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">CHEM-2024-0101-S2-Q057</span>
@@ -987,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q035" data-search="Given below are two statements: One is labelled as Assertion CHEM-2024-0101-S1-Q035" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">CHEM-2024-0101-S1-Q035</span>
@@ -1004,7 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q042" data-search="For the electro chemical cell If E0 = 0.46 V and E0 = 0.34 V. Which of the following is correct? (M2+/M) (x/X2−) CHEM-2024-0101-S2-Q042" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">CHEM-2024-0101-S2-Q042</span>
@@ -1021,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2000">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q054" data-search="For the reaction at 298 K, 2 A + B →C. ΔH = 400 kJ mol−1 and ΔS = 0.2 kJ mol−1 K−1. The reaction will become spontaneous above K. CHEM-2024-0101-S2-Q054" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="2000">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">CHEM-2024-0101-S2-Q054</span>
@@ -1038,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 2000</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q032" data-search="List - I List - II (Elements) (Properties in their respective groups) A. Cl, S I. Elements with highest electronegativity B. Ge, As II. Elements with largest atomic size Match List I with List II Choose Elements which show properties of both C. Fr, Ra III. metals and non-metal Elements with highest negative electron D. F, O IV. gain enthalpy the correct answer from the options given below: CHEM-2024-0101-S1-Q032" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">CHEM-2024-0101-S1-Q032</span>
@@ -1055,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q031" data-search="Identify the correct statements about p-block elements and their compounds. CHEM-2024-0101-S2-Q031" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">CHEM-2024-0101-S2-Q031</span>
@@ -1072,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q032" data-search="Given below are two statements: Statement (I): The oxidation state of an element in a particular compound is the charge acquired by its atom on the basis of electron gain enthalpy consideration from other atoms in the molecule. Statement (II): pπ −pπ bond formation is more prevalent in second period elements over other periods. In the light of the above statements, choose the most appropriate answer from the options given below: CHEM-2024-0101-S1-Q032" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">CHEM-2024-0101-S1-Q032</span>
@@ -1089,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q059" data-search="A transition metal &#x27; M &#x27; among Sc, Ti, V, Cr, Mn and Fe has the highest second ionisation enthalpy. The spin- only magnetic moment value of M+ ion is _______. BM (Near integer) (Given atomic number Sc: 21, Ti: 22, V: 23, Cr: 24, Mn: 25, Fe: 26 ) M2+ + H2 S →A (Black precipitate) + by product CHEM-2024-0101-S2-Q059" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">CHEM-2024-0101-S2-Q059</span>
@@ -1106,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q032" data-search="Given below are two statements: one is labelled as Assertion A and the other is labelled as Reason R: Assertion A: The first ionisation enthalpy decreases across a period. Reason R: The increasing nuclear charge outweighs the shielding across the period. In the light of the above statements, choose the most appropriate from the options given below: CHEM-2024-0101-S1-Q032" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">CHEM-2024-0101-S1-Q032</span>
@@ -1123,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q032" data-search="The element having the highest first ionization enthalpy is CHEM-2024-0101-S2-Q032" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">CHEM-2024-0101-S2-Q032</span>
@@ -1140,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q033" data-search="Given below are two statements: Statement I: Fluorine has most negative electron gain enthalpy in its group. Statement II: Oxygen has least negative electron gain enthalpy in its group. In the light of the above statements, choose the most appropriate from the options given below. CHEM-2024-0101-S2-Q033" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">CHEM-2024-0101-S2-Q033</span>
@@ -1157,7 +1173,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q041" data-search="Which of the following statements are correct about Zn, Cd and Hg? A. They exhibit high enthalpy of atomization as the d-subshell is full. B. Zn and Cd do not show variable oxidation state while Hg shows +I and + II. C. Compounds of Zn, Cd and Hg are paramagnetic in nature. D. and are called soft metals. Zn, Cd Hg Choose the most appropriate from the options given below: CHEM-2024-0101-S2-Q041" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">CHEM-2024-0101-S2-Q041</span>
@@ -1174,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="56">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q054" data-search="Standard enthalpy of vapourisation for CCl4 is 30.5 kJ mol−1. Heat required for vapourisation of 284 g of gmol−1; CCl4 at constant temperature is __________ kJ. (Given molar mass in C = 12, Cl = 35.5 ) Round off your answer to the nearest integer. CHEM-2024-0101-S2-Q054" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="56">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">CHEM-2024-0101-S2-Q054</span>
@@ -1191,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 56</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q033" data-search="Given below are two statements: One is labelled as Assertion A and the other is labelled as Reason R. Assertion A: H2Te is more acidic than H2 S. Reason R: Bond dissociation enthalpy of H2Te is lower than H2 S. In the light of the above statements. Choose the most appropriate from the options given below. CHEM-2024-0101-S2-Q033" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">CHEM-2024-0101-S2-Q033</span>
@@ -1208,7 +1224,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="492">
+</div><div class="q-card" id="q-CHEM-2024-0101-S2-Q052" data-search="Two reactions are given below: 2Fe + 3 2O2 →Fe2O3, ΔHo = - 822 kJ / mol ( s ) ( g ) ( s ) C ( s ) + 1 2O2 →CO, ΔHo = - 110 kJ / mol ( g ) ( g ) Then enthalpy change for following reaction 3C ( s ) + Fe2O3 ( s ) →2Fe ( s ) + 3CO ( g ) CHEM-2024-0101-S2-Q052" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="492">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">CHEM-2024-0101-S2-Q052</span>
@@ -1225,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 492</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2024-0101-S1-Q031" data-search="The correct sequence of electron gain enthalpy of the elements listed below is A. Ar B. Br C. F D. S Choose the most appropriate from the options given below: CHEM-2024-0101-S1-Q031" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">CHEM-2024-0101-S1-Q031</span>
@@ -1242,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q034" data-search="A Carnot engine (E) is working between two temperatures 473 K and 273 K. In a new system two engines - engine works between 473 K to 373 K and engine works between 373 K to 273 K. If and are E1 E2 η12, η1 η2 the efficiencies of the engines E, E1 and E2, respectively, then CHEM-2025-0101-S1-Q034" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">CHEM-2025-0101-S1-Q034</span>
@@ -1259,7 +1275,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q054" data-search="An element &#x27; E ′ has the ionisation enthalpy value of 374 kJ mol−1. &#x27; E &#x27; reacts with elements A, B, C and D with electron gain enthalpy values of −328, −349, −325 and −295 kJ mol−1, respectively. The correct order of the products EA, EB, EC and ED in terms of ionic character is: (1) ED &gt; EC &gt; EB &gt; EA (2) EA &gt; EB &gt; EC &gt; ED (3) EB &gt; EA &gt; EC &gt; ED (4) ED &gt; EC &gt; EA &gt; EB CHEM-2025-0101-S1-Q054" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">CHEM-2025-0101-S1-Q054</span>
@@ -1276,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-CHEM-2025-0101-S1-Q057" data-search="Given below are two statements: Statement ( I ): The radii of isoelectronic species increases in the order. Mg2+ Na+ F−&lt; O2− &lt; &lt; Statement (II): The magnitude of electron gain enthalpy of halogen decreases in the order. Cl &gt; F &gt; Br &gt; I In the light of the above statements, choose the most appropriate answer from the options given below: (1) Statement I is incorrect but Statement II is (2) Statement I is correct but Statement II is correct incorrect (3) Both Statement I and Statement II are incorrect (4) Both Statement I and Statement II are correct CHEM-2025-0101-S1-Q057" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">CHEM-2025-0101-S1-Q057</span>
@@ -1293,7 +1309,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-CHEM-2025-0101-S2-Q042" data-search="A poly-atomic molecule ( CV = 3R, CP = 4R, where R is gas constant) goes from phase space point A (PA = 105 Pa, VA = 4 × 10−6 m3) to point B (PB = 5 × 104 Pa, VB = 6 × 10−6 m3) to point C (PC = 104 Pa, VC = 8 × 10−6 m3). A to B is an adiabatic path and B to C is an isothermal path. The net heat absorbed per unit mole by the system is: CHEM-2025-0101-S2-Q042" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">CHEM-2025-0101-S2-Q042</span>

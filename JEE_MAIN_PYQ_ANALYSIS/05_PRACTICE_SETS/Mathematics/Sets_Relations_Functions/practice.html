@@ -89,9 +89,20 @@
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -238,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -246,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -284,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -298,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(65 questions)</span>
     &nbsp;<a href="clusters/MATH-SETSRELA-SETS_OPERATIONS_VENN/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+  <div class="q-card" id="q-MATH-2021-0101-S2-Q071" data-search="The range of the function f(x) = log√53 + cos 3π + x+ cos π + x+ cos π - x- cos 3π - x is: 4 4 4 4 MATH-2021-0101-S2-Q071" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q1</span>
     <span class="q-id">MATH-2021-0101-S2-Q071</span>
@@ -315,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="77">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q082" data-search="All the arrangements, with or without meaning, of the word FARMER are written excluding any word that has two R appearing together. The arrangements are listed serially in the alphabetic order as in the English dictionary. Then the serial number of the word FARMER in this list is _____. MATH-2021-0101-S2-Q082" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="77">
   <div class="q-header">
     <span class="q-num">Q2</span>
     <span class="q-id">MATH-2021-0101-S2-Q082</span>
@@ -332,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 77</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q076" data-search="If the functions are defined as f(x) = √x and g(x) = √1 −x, then what is the common domain of the following functions:, where f(x) f + g, f −g, f/g, g/f, g −f (f ± g)(x) = f(x) ± g(x), (f/g)(x) = g(x) MATH-2021-0101-S1-Q076" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">MATH-2021-0101-S1-Q076</span>
@@ -349,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q071" data-search="Let [x] denote the greatest integer ≤x, where x ∈R. If the domain of the real valued function f(x) = √|[x]|−2 is (−∞, a) ∪[b, c) ∪[4, ∞), a &lt; b &lt; c, then the value of a + b + c is: |[x]|−3 MATH-2021-0101-S1-Q071" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q4</span>
     <span class="q-id">MATH-2021-0101-S1-Q071</span>
@@ -366,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q071" data-search="If the domain of the function f(x) = cos−1 √x2−x+1 is the interval (α, β], then α + β is equal to: √sin−1( 2x−1 ) 2 MATH-2021-0101-S1-Q071" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q5</span>
     <span class="q-id">MATH-2021-0101-S1-Q071</span>
@@ -383,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q070" data-search="Let f: R→R be defined as fx= 2 x−1 and g: R−1 →R. be defined as gx= x−1.1 2 Then the composition x- function fgx is: MATH-2021-0101-S1-Q070" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q6</span>
     <span class="q-id">MATH-2021-0101-S1-Q070</span>
@@ -400,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q072" data-search="Let f, g: N →N such that f(n + 1) = f(n) + f MATH-2021-0101-S1-Q072" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q7</span>
     <span class="q-id">MATH-2021-0101-S1-Q072</span>
@@ -417,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q074" data-search="Consider function f: A →B and g: B →C(A, B, C ⊆R) such that exists, then: MATH-2021-0101-S2-Q074" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q8</span>
     <span class="q-id">MATH-2021-0101-S2-Q074</span>
@@ -434,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q068" data-search="Let R = {(P, Q)|P and Q are at the same distance from the origin } be a relation, then the equivalence class of (1, −1) is the set MATH-2021-0101-S1-Q068" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q9</span>
     <span class="q-id">MATH-2021-0101-S1-Q068</span>
@@ -451,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q070" data-search="Let f(x) = x and g(x) = 2x2−x−6. If g MATH-2021-0101-S2-Q070" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q10</span>
     <span class="q-id">MATH-2021-0101-S2-Q070</span>
@@ -468,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q068" data-search="Let Z be the set of all integers, A = {(x, y) ∈Z × Z: (x −2)2 + y2 ≤4} B = {(x, y) ∈Z × Z: x2 + y2 ≤4} and C = {(x, y) ∈Z × Z: (x −2)2 + (y −2)2 ≤4} If the total number of relations from A ∩B to A ∩C is 2p, then the value of p is: MATH-2021-0101-S2-Q068" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q11</span>
     <span class="q-id">MATH-2021-0101-S2-Q068</span>
@@ -485,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q071" data-search="Let N be the set of natural numbers and a relation R on N be defined by x3 −3x2y −xy2 3y3. Then the relation is R = {(x, y) ∈N × N: + = 0} R MATH-2021-0101-S2-Q071" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q12</span>
     <span class="q-id">MATH-2021-0101-S2-Q071</span>
@@ -502,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q070" data-search="Which of the following is not correct for relation R on the set of real numbers? MATH-2021-0101-S1-Q070" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q13</span>
     <span class="q-id">MATH-2021-0101-S1-Q070</span>
@@ -519,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2021-0101-S2-Q072" data-search="The domain of the function, fx= sin-13x2 + x−1 + cos−1 x−1 is: ( x−1 ) 2 x+ 1 MATH-2021-0101-S2-Q072" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q14</span>
     <span class="q-id">MATH-2021-0101-S2-Q072</span>
@@ -536,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q072" data-search="The cos−1( x2−5x+6 ) domain of f(x) = x2−9 is log(x2−3x+2) MATH-2022-0101-S1-Q072" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q15</span>
     <span class="q-id">MATH-2022-0101-S1-Q072</span>
@@ -553,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q073" data-search="Let f: R→R and g: R→R be two functions defined by fx= logex2 + 1 - e-x+ 1 and gx= 1 - 2e2x · Then, for ex which of the following range of α, the inequality fg α- 12 &gt; fgα- 5 holds? 3 3 MATH-2022-0101-S1-Q073" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q16</span>
     <span class="q-id">MATH-2022-0101-S1-Q073</span>
@@ -570,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q075" data-search="Let f(x) = 2 cos−1 x + 4 cot−1 x −3x2 −2x + 10, x ∈[−1, 1]. If [a, b] is the range of the function, then is equal to 4a −b MATH-2022-0101-S1-Q075" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q17</span>
     <span class="q-id">MATH-2022-0101-S1-Q075</span>
@@ -587,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q071" data-search="Let f: R →R be defined as f(x) = x −1 and g: R →{1, −1} →R be defined as g(x) = x2. Then the x2−1 function fog is: MATH-2022-0101-S2-Q071" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q18</span>
     <span class="q-id">MATH-2022-0101-S2-Q071</span>
@@ -604,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q070" data-search="⎡ 2n, n = 2, 4, 6, 8,..... Let a function N →N be defined by n −1, n = 3, 7, 11, 15,..... f: f(n) = ⎣ n+1, n = 1, 5, 9, 13,..... 2 then, f is MATH-2022-0101-S1-Q070" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q19</span>
     <span class="q-id">MATH-2022-0101-S1-Q070</span>
@@ -621,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q087" data-search="Let R1 and R2 be relations on the set {1, 2,..., 50} such that R1 = { (p,: p is a prime and n ≥0 is an integer} and R2 = { (p, pn): p is a prime and n = 0 or 1 }. Then, the number of elements in R1 −R2 is ____. MATH-2022-0101-S1-Q087" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="8">
   <div class="q-header">
     <span class="q-num">Q20</span>
     <span class="q-id">MATH-2022-0101-S1-Q087</span>
@@ -638,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 8</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="37">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q089" data-search="Let S = {1, 2, 3, 4}. Then the number of elements in the set { f: S × S →S: f is onto and f(a, b) = f(b, a) ≥a∀(a, b) ∈S × S } is MATH-2022-0101-S2-Q089" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="37">
   <div class="q-header">
     <span class="q-num">Q21</span>
     <span class="q-id">MATH-2022-0101-S2-Q089</span>
@@ -655,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 37</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q069" data-search="Let a set A = A1 ∪A2 ∪... ∪Ak, where Ai ∩Aj = φ for i ≠j; 1 ≤i, j ≤k. Define the relation R from A to A by R = { (x, y): y ∈Ai if and only if x ∈Ai, 1 ≤i ≤k }. Then, R is: MATH-2022-0101-S1-Q069" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q22</span>
     <span class="q-id">MATH-2022-0101-S1-Q069</span>
@@ -672,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q073" data-search="The cos−1( sin−1( ) ) domain of the function 2 4x2−1 1 is π MATH-2022-0101-S1-Q073" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q23</span>
     <span class="q-id">MATH-2022-0101-S1-Q073</span>
@@ -689,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q078" data-search="Let the sets A and B denote the domain and range respectively of the function f(x) = 1, where [x] √[x]−x denotes the smallest integer greater than or equal to x. Then among the statements (S1): A ∩B = (1, ∞) −N and (S2): A ∪B = (1, ∞) MATH-2023-0101-S2-Q078" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q24</span>
     <span class="q-id">MATH-2023-0101-S2-Q078</span>
@@ -706,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q078" data-search="If loge( 6x2+5x+1 ) cos−1( 2x2−3x+4 ) domain of the function 2x−1 + 3x−5 is (α, β) ∪(γ, δ), then 18(α2 + β2 + γ 2 + δ2) is equal to MATH-2023-0101-S2-Q078" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q25</span>
     <span class="q-id">MATH-2023-0101-S2-Q078</span>
@@ -723,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="24">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q085" data-search="If the domain of the function fx= sec−1 is [α, β) ∪( γ, δ], then 3α+ 10β+ γ+ 21δ is equal to __________ 5x+ 3 MATH-2023-0101-S2-Q085" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="24">
   <div class="q-header">
     <span class="q-num">Q26</span>
     <span class="q-id">MATH-2023-0101-S2-Q085</span>
@@ -740,7 +756,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 24</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q078" data-search="The domain of the function f(x) = √[x]2−3[x]−10 is (where [x] denotes the greatest integer less than or equal to x ) MATH-2023-0101-S2-Q078" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q27</span>
     <span class="q-id">MATH-2023-0101-S2-Q078</span>
@@ -757,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q074" data-search="The number of relations, on the set {1, 2, 3} containing (1, 2) and (2, 3) which are reflexive and transitive but not symmetric, is _________. MATH-2023-0101-S1-Q074" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q28</span>
     <span class="q-id">MATH-2023-0101-S1-Q074</span>
@@ -774,7 +790,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q077" data-search="Let D be the domain of the function f(x) = sin−1(log3x( 6+2 log3 x )). If the range of the function g: D →R −5x defined by g(x) = x −[x], ( [x] is the greatest integer function), is (α, β), then α2 + 5 is equal to β MATH-2023-0101-S1-Q077" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q29</span>
     <span class="q-id">MATH-2023-0101-S1-Q077</span>
@@ -791,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q072" data-search="The x2 range of fx= 4sin-1 x2 + 1 is MATH-2023-0101-S2-Q072" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q30</span>
     <span class="q-id">MATH-2023-0101-S2-Q072</span>
@@ -808,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q072" data-search="If the domain of the function f(x) = loge(4x2 + 11x + 6) + sin−1(4x + 3) + cos−1( 10x+6 3 ) is (α, β], then 36|α + β| is equal to MATH-2023-0101-S1-Q072" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q31</span>
     <span class="q-id">MATH-2023-0101-S1-Q072</span>
@@ -825,7 +841,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q086" data-search="Let = {1, 2, 3, 4} and be a relation on the set × defined by A R A A R = {((a, b), (c, d)): 2a + 3b = 4c + 5d}. Then the number of elements in R is _________. MATH-2023-0101-S1-Q086" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="6">
   <div class="q-header">
     <span class="q-num">Q32</span>
     <span class="q-id">MATH-2023-0101-S1-Q086</span>
@@ -842,7 +858,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 6</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q074" data-search="The minimum number of elements that must be added to relation R = {(a, b), (b, c), (b, d)} on the set {a, b, c, d}, so that it is an equivalence relation is MATH-2023-0101-S2-Q074" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q33</span>
     <span class="q-id">MATH-2023-0101-S2-Q074</span>
@@ -859,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q076" data-search="Let R →R be a function defined by {√2(sin −2}, for some, such that f: f(x) = log√m x −cos x) + m m the range of f is [0, 2]. Then the value of m is _____. MATH-2023-0101-S2-Q076" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q34</span>
     <span class="q-id">MATH-2023-0101-S2-Q076</span>
@@ -876,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q076" data-search="The domain of f(x) = log(x+1)(x−2), ∈R is e2 loge x−(2x+3) x MATH-2023-0101-S1-Q076" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q35</span>
     <span class="q-id">MATH-2023-0101-S1-Q076</span>
@@ -893,7 +909,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q077" data-search="Let: →R be a function such that f(x) = x2+2x+1. Then f R x2+1 MATH-2023-0101-S1-Q077" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q36</span>
     <span class="q-id">MATH-2023-0101-S1-Q077</span>
@@ -910,7 +926,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q070" data-search="The minimum number of elements that must be added to the relation R= ( a, b), ( b, c ) on the set {a, b, c} so that it becomes symmetric and transitive is: MATH-2023-0101-S1-Q070" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q37</span>
     <span class="q-id">MATH-2023-0101-S1-Q070</span>
@@ -927,7 +943,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3240">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q085" data-search="Let S= {1, 2, 3, 4, 5, 6}. Then the number of oneone functions f: S→P( S), where P( S) denote the power set of S, such that f( n) ⊂f( m) where n&lt; m is MATH-2023-0101-S1-Q085" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3240">
   <div class="q-header">
     <span class="q-num">Q38</span>
     <span class="q-id">MATH-2023-0101-S1-Q085</span>
@@ -944,7 +960,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 3240</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q077" data-search="The range of the function f(x) = √3 −x + √2 + x is [√5, √10] [2√2, √11] MATH-2023-0101-S2-Q077" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q39</span>
     <span class="q-id">MATH-2023-0101-S2-Q077</span>
@@ -961,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q072" data-search="If the domain of the function fx= x x2, where x is greatest integer ≤x, is [2, 6 ), then its range is 1 + MATH-2023-0101-S1-Q072" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q40</span>
     <span class="q-id">MATH-2023-0101-S1-Q072</span>
@@ -978,7 +994,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q079" data-search="Let f: R −{2, 6} →R be real valued function defined as f(x) = x+2x+1. Then range of f is x2−8x+12 MATH-2023-0101-S2-Q079" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q41</span>
     <span class="q-id">MATH-2023-0101-S2-Q079</span>
@@ -995,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q072" data-search="Let logex, x&gt; 0 f: R→R and g: R→R be defined as fx= and gx= x, x≥0. Then, gof: R→R is: e−x, x≤0 ex, x&lt; 0 MATH-2024-0101-S1-Q072" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q42</span>
     <span class="q-id">MATH-2024-0101-S1-Q072</span>
@@ -1012,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q072" data-search="If √x2 the domain of the function fx= −25 + log10x2 + 2x−15 is −∞, α∪β, ∞, then α2 + β3 is equal to: 4 −x2 MATH-2024-0101-S2-Q072" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q43</span>
     <span class="q-id">MATH-2024-0101-S2-Q072</span>
@@ -1029,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q071" data-search="If the domain of the function sin−1 ( 3x−22 ) + loge ( 3x2−8x+5 ) is (α, β], then 3α + 10β is equal to: 2x−19 x2−3x−10 MATH-2024-0101-S1-Q071" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q44</span>
     <span class="q-id">MATH-2024-0101-S1-Q071</span>
@@ -1046,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q070" data-search="Let A = {1, 3, 7, 9, 11} and B = {2, 4, 5, 7, 8, 10, 12}. Then the total number of one-one maps f: A →B, such that, is: f MATH-2024-0101-S1-Q070" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q45</span>
     <span class="q-id">MATH-2024-0101-S1-Q070</span>
@@ -1063,7 +1079,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q071" data-search="Let {ex, MARA x ≥0 f, g: R →R be defined as: f(x) = |x −1| and g(x) = x + 1, x ≤0 Then the function f(g(x)) is MATH-2024-0101-S2-Q071" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q46</span>
     <span class="q-id">MATH-2024-0101-S2-Q071</span>
@@ -1080,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q070" data-search="Let the relations R1 and R2 on the set X = {1, 2, 3,..., 20} be given by R1 = {(x, y): 2x −3y = 2} and. If and be the minimum number of elements required to be added in R2 = {(x, y): −5x + 4y = 0} M N R1 and R2, respectively, in order to make the relations symmetric, then M + N equals MATH-2024-0101-S1-Q070" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q47</span>
     <span class="q-id">MATH-2024-0101-S1-Q070</span>
@@ -1097,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q072" data-search="The x2+2x−15 ∈R function f: R-&gt;R, f(x) = x2−4x+9, x is MATH-2024-0101-S1-Q072" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q48</span>
     <span class="q-id">MATH-2024-0101-S1-Q072</span>
@@ -1114,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q071" data-search="Let f(x) = 1 be a function defined on R. Then the range of the function f(x) is equal to; 1 1 7−sin 5x 1 1 MATH-2024-0101-S2-Q071" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q49</span>
     <span class="q-id">MATH-2024-0101-S2-Q071</span>
@@ -1131,7 +1147,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q069" data-search="Let [t] be the greatest integer less than or equal to t. Let A be the set of all prime factors of 2310 and f: A →Z be the function f(x) = [log2 (x2 + [ x3 ])]. The number of one-to-one functions from A to the 5 range of f is MATH-2024-0101-S1-Q069" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q50</span>
     <span class="q-id">MATH-2024-0101-S1-Q069</span>
@@ -1148,7 +1164,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q071" data-search="Let { −a if −a ≤x ≤0 f(x) = x + a if 0 &lt; x ≤a where a &gt; 0 and g(x) = (f(x ∣) −|f(x)|)/2. Then the function g: [−a, a] →[−a, a] is MATH-2024-0101-S2-Q071" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q51</span>
     <span class="q-id">MATH-2024-0101-S2-Q071</span>
@@ -1165,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q070" data-search="If the domain of the function f(x) = ( 2x+3 ) is −(α, β), then 12αβ is equal to: MATH-2024-0101-S1-Q070" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q52</span>
     <span class="q-id">MATH-2024-0101-S1-Q070</span>
@@ -1182,7 +1198,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q072" data-search="Let the range of the function f(x) = 1, x ∈R be [a, b]. If α and β are respectively the A.M. and 2+sin 3x+cos 3x the G.M. of a and b, then α is equal to β MATH-2024-0101-S2-Q072" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q53</span>
     <span class="q-id">MATH-2024-0101-S2-Q072</span>
@@ -1199,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q071" data-search="Let S = {1, 2, 3,..., 10}. Suppose M is the set of all the subsets of S, then the relation R = {(A, B): A ∩B ≠φ; A, B ∈M} is: MATH-2024-0101-S1-Q071" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q54</span>
     <span class="q-id">MATH-2024-0101-S1-Q071</span>
@@ -1216,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q073" data-search="The function f: N −{1} →N; defined by f(n) = the highest prime factor of n, is: MATH-2024-0101-S1-Q073" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q55</span>
     <span class="q-id">MATH-2024-0101-S1-Q073</span>
@@ -1233,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q071" data-search="Let f: R - -1 →R and g: R - -5 →R be defined as fx = 2x + 3 and gx = |x | + 1. Then the domain of the function 2 2 2x + 1 2x + 5 fog is: 5 MATH-2024-0101-S2-Q071" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q56</span>
     <span class="q-id">MATH-2024-0101-S2-Q071</span>
@@ -1250,7 +1266,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q071" data-search="If { 2 + 2x, −1 ≤x &lt; 0 { −x, −3 ≤x ≤0 f(x) =; g(x) =, then range of (f ∘g(x)) is 1 −x 3, 0 ≤x ≤3 x, 0 &lt; x ≤1 MATH-2024-0101-S1-Q071" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q57</span>
     <span class="q-id">MATH-2024-0101-S1-Q071</span>
@@ -1267,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q069" data-search="If is the smallest equivalence relation on the set such that, then the number R {1, 2, 3, 4} {(1, 2), (1, 3)} ⊂R of elements in R is ______. MATH-2024-0101-S2-Q069" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q58</span>
     <span class="q-id">MATH-2024-0101-S2-Q069</span>
@@ -1284,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q072" data-search="If the domain of the function f(x) = cos−1( 2−|x| ) + (loge(3 −x))−1 is [−α, β) −{γ}, then α + β + γ is 4 equal to: MATH-2024-0101-S1-Q072" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q59</span>
     <span class="q-id">MATH-2024-0101-S1-Q072</span>
@@ -1301,7 +1317,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="44">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q086" data-search="Let A = {1, 2, 3,.... 7} and let P(A) denote the power set of A. If the number of functions f: A →P(A) such that a ∈f(a), ∀a ∈A is mn, m and n ∈N and m is least, then m + n is equal to ______. MATH-2024-0101-S1-Q086" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="44">
   <div class="q-header">
     <span class="q-num">Q60</span>
     <span class="q-id">MATH-2024-0101-S1-Q086</span>
@@ -1318,7 +1334,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 44</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q070" data-search="If the domain of the function fx= loge 2x+ 3 + cos-12x- 1 is ( α, β], then the value of 5β- 4α is equal to 4x2 + x−3 x+ 2 MATH-2024-0101-S2-Q070" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q61</span>
     <span class="q-id">MATH-2024-0101-S2-Q070</span>
@@ -1335,7 +1351,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="960">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q087" data-search="The number of symmetric relations defined on the set which are not reflexive is _______. {1, 2, 3, 4} MATH-2024-0101-S2-Q087" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="960">
   <div class="q-header">
     <span class="q-num">Q62</span>
     <span class="q-id">MATH-2024-0101-S2-Q087</span>
@@ -1352,7 +1368,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 960</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q073" data-search="If the function f: −∞, −1 →a, b defined by fx= ex3 −3x+ 1 is one-one and onto, then the distance of the point P2b+ 4, a+ 2 from the line x+ e−3y= 4 is: MATH-2024-0101-S2-Q073" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q63</span>
     <span class="q-id">MATH-2024-0101-S2-Q073</span>
@@ -1369,7 +1385,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2025-0101-S1-Q069" data-search="Arrange the following solutions in order of their increasing boiling points. (i) 10−4M (ii) 10−4M Urea NaCl (iii) 10−3M NaCl (iv) 10−2M NaCl MATH-2025-0101-S1-Q069" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q64</span>
     <span class="q-id">MATH-2025-0101-S1-Q069</span>
@@ -1386,7 +1402,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2025-0101-S2-Q069" data-search="Arrange the following compounds in increasing order of their dipole moment: and HBr, H2 S, NF3 CHCl3 MATH-2025-0101-S2-Q069" data-year="2025" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q65</span>
     <span class="q-id">MATH-2025-0101-S2-Q069</span>
@@ -1410,7 +1426,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(19 questions)</span>
     &nbsp;<a href="clusters/MATH-SETSRELA-RELATIONS_EQUIVALENCE/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+  <div class="q-card" id="q-MATH-2021-0101-S2-Q067" data-search="Let A = {2, 3, 4, 5,...., 30} and ′≃′ be an equivalence relation on A × A, defined by (a, b) ≃(c, d), if and only if ad = bc. Then the number of ordered pairs which satisfy this equivalence relation with ordered pair is equal to: (4, 3) MATH-2021-0101-S2-Q067" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q66</span>
     <span class="q-id">MATH-2021-0101-S2-Q067</span>
@@ -1427,7 +1443,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q068" data-search="If the curves, x2 + y2 = 1 and x2 + y2 = 1 intersect each other at an angle of 90°, then which of the a b c d following relations is TRUE? MATH-2021-0101-S1-Q068" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q67</span>
     <span class="q-id">MATH-2021-0101-S1-Q068</span>
@@ -1444,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2022-0101-S2-Q069" data-search="Let R1 = {(a, b) ∈N × N: |a −b| ≤13} and R2 = {(a, b) ∈N × N: |a −b| ≠13} Then on N: MATH-2022-0101-S2-Q069" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q68</span>
     <span class="q-id">MATH-2022-0101-S2-Q069</span>
@@ -1461,7 +1477,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q070" data-search="Let R be a relation on R, given by R= {a, b: 3a- 3b+ √7 is an irrational number }. Then R is MATH-2023-0101-S1-Q070" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q69</span>
     <span class="q-id">MATH-2023-0101-S1-Q070</span>
@@ -1478,7 +1494,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="18">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q085" data-search="Let A= 1, 2, 3, 4,.......... 10 and B= 0, 1, 2, 3, 4. The number of elements in the relation R= (a, b) ∈A× A: 2a- b2 + 3a- b∈B is __________. MATH-2023-0101-S1-Q085" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="18">
   <div class="q-header">
     <span class="q-num">Q70</span>
     <span class="q-id">MATH-2023-0101-S1-Q085</span>
@@ -1495,7 +1511,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 18</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q076" data-search="Let A = {0, 3, 4, 6, 7, 8, 9, 10} and R be the relation defined on A such that R{(x, y) ∈A × A: x −y is odd positive integer or x −y = 2}. The minimum number of elements that must be added to the relation R, so that it is a symmetric relation, is equal to _________ MATH-2023-0101-S1-Q076" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q71</span>
     <span class="q-id">MATH-2023-0101-S1-Q076</span>
@@ -1512,7 +1528,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q075" data-search="Let A = {1, 2, 3, 4, 5, 6, 7}. Then the relation R = {(x, y) ∈A × A: x + y = 7} is MATH-2023-0101-S2-Q075" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q72</span>
     <span class="q-id">MATH-2023-0101-S2-Q075</span>
@@ -1529,7 +1545,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q071" data-search="Let A= 2, 3, 4 and B= 8, 9, 12. Then the number of elements in the relation R= a1, b1, a2, b2 ∈A× B, A× B: a1 divides b2 and a2 divides b1 is MATH-2023-0101-S2-Q071" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q73</span>
     <span class="q-id">MATH-2023-0101-S2-Q071</span>
@@ -1546,7 +1562,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="7">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q087" data-search="Let A= { - 4, - 3, - 2, 0, 1, 3, 4} and R= { ( a, b) ∈A× A: b= | a| or b2 = a+ 1 be a relation on A. Then the minimum number of elements, that must be added to the relation R so that it becomes reflexive and symmetric, is MATH-2023-0101-S2-Q087" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="7">
   <div class="q-header">
     <span class="q-num">Q74</span>
     <span class="q-id">MATH-2023-0101-S2-Q087</span>
@@ -1563,7 +1579,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 7</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q067" data-search="The relation R= a, b: gcda, b= 1, 2a≠b, a, b∈Z is: MATH-2023-0101-S1-Q067" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q75</span>
     <span class="q-id">MATH-2023-0101-S1-Q067</span>
@@ -1580,7 +1596,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q075" data-search="Let R be a relation defined on N as a R b is 2a + 3b is a multiple of 5, a, b ∈N. Then R is MATH-2023-0101-S2-Q075" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q76</span>
     <span class="q-id">MATH-2023-0101-S2-Q075</span>
@@ -1597,7 +1613,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S1-Q067" data-search="Let R be a relation on N× N defined by a, bRc, d if and only if adb- c= bca- d. Then R is MATH-2023-0101-S1-Q067" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q77</span>
     <span class="q-id">MATH-2023-0101-S1-Q067</span>
@@ -1614,7 +1630,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q074" data-search="Among the relations a S = {(a, b): a, b ∈R −{0}, 2 + b &gt; 0} and T = {(a, b): a, b ∈R, a2 −b2 ∈Z}, MATH-2023-0101-S2-Q074" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q78</span>
     <span class="q-id">MATH-2023-0101-S2-Q074</span>
@@ -1631,7 +1647,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q070" data-search="Consider the relations and defined as aR1b⇔a2 b2 for all and R1 R2 + = 1 a, b, ∈R a, bR2c, d⇔a+ d= b+ c for all a, b, c, d∈N× N. Then MATH-2024-0101-S2-Q070" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q79</span>
     <span class="q-id">MATH-2024-0101-S2-Q070</span>
@@ -1648,7 +1664,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q070" data-search="Let a relation R on N × N be defined as: (x1, y1)R (x2, y2) if and only if x1 ≤x2 or y1 ≤y2. Consider the two statements: (I) is reflexive but not symmetric. (II) is transitive Then which one of the following is R R true? MATH-2024-0101-S2-Q070" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="D">
   <div class="q-header">
     <span class="q-num">Q80</span>
     <span class="q-id">MATH-2024-0101-S2-Q070</span>
@@ -1665,7 +1681,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> D</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q069" data-search="Let A = {1, 2, 3, 4, 5}. Let R be a relation on A defined by xRy if and only if 4x ≤5y. Let m be the number of elements in R and n be the minimum number of elements from A × A that are required to be added to R to make it a symmetric relation. Then m + n is equal to: MATH-2024-0101-S2-Q069" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q81</span>
     <span class="q-id">MATH-2024-0101-S2-Q069</span>
@@ -1682,7 +1698,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q068" data-search="Let be a relation on defined by if and only if is divisible by. Then is R Z × Z (a, b)R(c, d) ad −bc 5 R MATH-2024-0101-S1-Q068" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q82</span>
     <span class="q-id">MATH-2024-0101-S1-Q068</span>
@@ -1699,7 +1715,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="16">
+</div><div class="q-card" id="q-MATH-2024-0101-S1-Q085" data-search="Let A= 1, 2, 3, 4 and R= ( 1, 2 ), ( 2, 3 ), ( 1, 4 ) be a relation on A. Let S be the equivalence relation on such that and the number of elements in is n. Then, the minimum value of is _______ A R⊂S S n MATH-2024-0101-S1-Q085" data-year="2024" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="16">
   <div class="q-header">
     <span class="q-num">Q83</span>
     <span class="q-id">MATH-2024-0101-S1-Q085</span>
@@ -1716,7 +1732,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 16</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="66">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q085" data-search="Let A= 1, 2, 3,....100. Let R be a relation on A defined by x, y∈R if and only if 2x= 3y. Let R1 be a symmetric relation on such that and the number of elements in is n. Then the minimum value of A R⊂R1 R1 n is _______. MATH-2024-0101-S2-Q085" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="66">
   <div class="q-header">
     <span class="q-num">Q84</span>
     <span class="q-id">MATH-2024-0101-S2-Q085</span>
@@ -1740,7 +1756,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="cluster-meta">(5 questions)</span>
     &nbsp;<a href="clusters/MATH-SETSRELA-FUNCTIONS_DOMAIN_RANGE/practice.html" style="font-size:.78rem;color:var(--accent)">↗ Cluster set</a>
   </div>
-  <div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="720">
+  <div class="q-card" id="q-MATH-2021-0101-S1-Q087" data-search="Let A = {0, 1, 2, 3, 4, 5, 6, 7}. Then the number of bijective functions f: A →A such that f(1) + f(2) = 3 −f(3) is equal to { 3(1 −|x| ) MATH-2021-0101-S1-Q087" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="720">
   <div class="q-header">
     <span class="q-num">Q85</span>
     <span class="q-id">MATH-2021-0101-S1-Q087</span>
@@ -1757,7 +1773,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 720</div>
     </div>
-</div><div class="q-card" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2021-0101-S1-Q070" data-search="Let g: N→N be defined as g( 3n+ 1 ) = 3n+ 2 g( 3n+ 2 ) = 3n+ 3 g( 3n+ 3 ) = 3n+ 1, for all n≥0 Then which of the following statements is true? MATH-2021-0101-S1-Q070" data-year="2021" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q86</span>
     <span class="q-id">MATH-2021-0101-S1-Q070</span>
@@ -1774,7 +1790,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="31">
+</div><div class="q-card" id="q-MATH-2022-0101-S1-Q084" data-search="The number of one-one functions f: {a, b, c, d} →{0, 1, 2,..., 10} such that 2f(a) −f(b) + 3f(c) + f(d) = 0 is _____ MATH-2022-0101-S1-Q084" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="31">
   <div class="q-header">
     <span class="q-num">Q87</span>
     <span class="q-id">MATH-2022-0101-S1-Q084</span>
@@ -1791,7 +1807,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 31</div>
     </div>
-</div><div class="q-card" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
+</div><div class="q-card" id="q-MATH-2023-0101-S2-Q079" data-search="Let R = {a, b, c, d, e} and S = {1, 2, 3, 4}. Total number of onto functions f: R →S such that f(a) ≠1, is equal to ________. MATH-2023-0101-S2-Q079" data-year="2023" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="A">
   <div class="q-header">
     <span class="q-num">Q88</span>
     <span class="q-id">MATH-2023-0101-S2-Q079</span>
@@ -1808,7 +1824,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> A</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="24">
+</div><div class="q-card" id="q-MATH-2024-0101-S2-Q087" data-search="Let A = {(x, y): 2x + 3y = 23, x, y ∈N} and B = {x: (x, y) ∈A}. Then the number of one-one functions from A to B is equal to _______ MATH-2024-0101-S2-Q087" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="24">
   <div class="q-header">
     <span class="q-num">Q89</span>
     <span class="q-id">MATH-2024-0101-S2-Q087</span>
