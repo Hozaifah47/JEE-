@@ -31,7 +31,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg);
          color: var(--text); line-height: 1.6; padding: 0 0 60px; }
-  header { background:#1a237e;
+  header { background: #1a237e;
            color: #fff; padding: 20px 32px; }
   header h1 { font-size: 1.5rem; font-weight: 700; }
   header p  { font-size: 0.9rem; opacity: 0.85; margin-top: 4px; }
@@ -78,12 +78,31 @@
   .matrix-semantic-title { color:var(--muted); font-size:.78rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:.04em; }
   .matrix-semantic { border-collapse:collapse; margin:0; }
   .matrix-semantic td { border:1px solid var(--border); min-width:2.4rem; padding:7px 10px; text-align:center; }
+  .truth-table-wrap { overflow-x:auto; margin:14px 0; }
+  .truth-table-title { color:var(--muted); font-size:.78rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:.04em; }
+  .truth-table { border-collapse:collapse; margin:0; }
+  .truth-table th, .truth-table td { border:1px solid var(--border); min-width:2.4rem; padding:7px 10px; text-align:center; }
+  .truth-table th { background:var(--cluster-bg); }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+    outline:3px solid var(--accent); outline-offset:3px;
+  }
   .filter-panel { display:flex; flex-wrap:wrap; gap:10px; align-items:end; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0 0 22px; }
   .filter-title { width:100%; font-size:.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
   .filter-panel label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.75rem; font-weight:600; }
+  .filter-panel .search-label { min-width:240px; }
+  .filter-panel input[type="search"] { padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .filter-panel select { min-width:118px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); }
   .btn-reset { padding:7px 12px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); cursor:pointer; }
   .filter-count { margin-left:auto; color:var(--muted); font-size:.8rem; }
+  .library-search { margin:0 0 24px; padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--card); }
+  .library-search label { display:block; color:var(--text); font-weight:700; margin-bottom:7px; }
+  .library-search input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #library-search-results { display:grid; gap:8px; margin-top:12px; }
+  .search-result { display:block; padding:10px 12px; border:1px solid var(--border); border-radius:7px; color:var(--text); text-decoration:none; }
+  .search-result:hover { border-color:var(--accent); }
+  .search-result span { color:var(--muted); font-size:.78rem; margin-left:8px; }
+  .search-result div { margin-top:4px; color:var(--muted); font-size:.86rem; }
+  .search-empty { color:var(--muted); margin:8px 0 0; }
   .options { margin: 10px 0 10px 8px; }
   .option { padding: 4px 0; font-size: 0.9rem; }
   .option-select { width:100%; text-align:left; border:1px solid transparent; background:transparent; color:inherit; border-radius:6px; cursor:pointer; }
@@ -230,6 +249,7 @@ function initFilters() {
   var panel = document.querySelector('.filter-panel');
   if (!panel || !cards.length) return;
   var fields = ['year','shift','difficulty','type'];
+  var search = panel.querySelector('[data-filter-search]');
   fields.forEach(function(field) {
     var select = panel.querySelector('[data-filter="' + field + '"]');
     var values = Array.from(new Set(cards.map(function(card) { return card.dataset[field]; }).filter(Boolean))).sort();
@@ -238,12 +258,15 @@ function initFilters() {
   });
   panel.querySelector('[data-filter-reset]').addEventListener('click', function() {
     fields.forEach(function(field) { panel.querySelector('[data-filter="' + field + '"]').value = ''; });
+    search.value = '';
     applyFilters();
   });
+  search.addEventListener('input', applyFilters);
   function applyFilters() {
     var visible = 0;
+    var query = search.value.trim().toLowerCase();
     cards.forEach(function(card) {
-      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; });
+      var show = fields.every(function(field) { var value = panel.querySelector('[data-filter="' + field + '"]').value; return !value || card.dataset[field] === value; }) && (!query || (card.dataset.search || '').toLowerCase().indexOf(query) !== -1);
       card.hidden = !show;
       if (show) visible++;
     });
@@ -258,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
 <body>
 <header>
   <h1>📌 Cluster: PHY-ELECINDU-FARADAYS_LENZS_LAW</h1>
-  <p>Electromagnetic Induction · Physics · 3 questions</p>
+  <p>Electromagnetic Induction · Physics · 4 questions</p>
 </header>
 <nav class="breadcrumb">
   <a href="../../../../index.html">🏠 Practice Home</a> &rsaquo;
@@ -269,11 +292,12 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
 <div class="container">
   <div class="stats-bar">
     <div class="stat-chip">Cluster: <strong>PHY-ELECINDU-FARADAYS_LENZS_LAW</strong></div>
-    <div class="stat-chip">Questions: <strong>3</strong></div>
+    <div class="stat-chip">Questions: <strong>4</strong></div>
   </div>
   
   <section class="filter-panel" aria-label="Practice filters">
     <div class="filter-title">Filter questions</div>
+    <label class="search-label">Search <input data-filter-search type="search" placeholder="Question text or ID" autocomplete="off"></label>
     <label>Year <select data-filter="year"><option value="">All years</option></select></label>
     <label>Shift <select data-filter="shift"><option value="">All shifts</option></select></label>
     <label>Difficulty <select data-filter="difficulty"><option value="">All levels</option></select></label>
@@ -282,41 +306,41 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
     <span class="filter-count" data-filter-count></span>
   </section>
 
-<div class="q-card" data-year="2022" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="100">
+<div class="q-card" id="q-PHY-2021-0101-S2-Q003" data-search="Match List - I with List - II: List - I List - II a Magnetic induction i ML2 T−2 A−1 L−1 b Magnetic flux ii M0 A c Magnetic permeability iii MT−2 A−1 d Magnetization iv MLT−2 A−2 Choose the most appropriate answer from the options given below: PHY-2021-0101-S2-Q003" data-year="2021" data-shift="Shift 2" data-difficulty="Unknown" data-type="MCQ" data-answer="B">
   <div class="q-header">
     <span class="q-num">Q1</span>
-    <span class="q-id">PHY-2022-0101-S1-Q030</span>
-    <span class="badge badge-year">2022 | 28 Jun | Shift 1</span>
+    <span class="q-id">PHY-2021-0101-S2-Q003</span>
+    <span class="badge badge-year">2021 | 26 Aug | Shift 2</span>
     <span class="badge badge-unknown">—</span>
-    <span class="badge badge-integer">Integer</span>
+    <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">A telegraph line of length 100 km has a capacity of 0.01 μF km−1 and it carries an alternating current at 0.5 kilo cycle per second. If minimum impedance is required, then the value of the inductance that needs to be introduced in series is _____ mH. (If π = √10 )</div>
+  <div class="q-text">Match List - I with List - II: List - I List - II a Magnetic induction i ML2 T−2 A−1 L−1 b Magnetic flux ii M0 A c Magnetic permeability iii MT−2 A−1 d Magnetization iv MLT−2 A−2 Choose the most appropriate answer from the options given below:</div>
   
-  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
+  <div class="options"><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>−(iii),</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>−(ii),</button></div>
   <div class="ans-reveal">
       <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> 100</div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> B</div>
     </div>
-</div><div class="q-card" data-year="2022" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="0">
+</div><div class="q-card" id="q-PHY-2023-0101-S1-Q014" data-search="A rod with circular cross-section area 2 cm2 and length 40 cm is wound uniformly with 400 turns of an insulated wire. If a current of 0.4 A flows in the wire windings, the total magnetic flux produced inside 10−6 windings is 4π × Wb. The relative permeability of the rod is (Given: Permeability of vacuum μ0 = 4π × 10−7 N A−2) PHY-2023-0101-S1-Q014" data-year="2023" data-shift="Shift 1" data-difficulty="Unknown" data-type="MCQ" data-answer="C">
   <div class="q-header">
     <span class="q-num">Q2</span>
-    <span class="q-id">PHY-2022-0101-S2-Q027</span>
-    <span class="badge badge-year">2022 | 28 Jun | Shift 2</span>
+    <span class="q-id">PHY-2023-0101-S1-Q014</span>
+    <span class="badge badge-year">2023 | 31 Jan | Shift 1</span>
     <span class="badge badge-unknown">—</span>
-    <span class="badge badge-integer">Integer</span>
+    <span class="badge badge-mcq">MCQ</span>
     
   </div>
-  <div class="q-text">In the given circuit, the magnitude of VL and VC are twice that of VR. Given that f = 50 Hz, the inductance of the coil is 1 mH. The value of K is _____. Kπ</div>
+  <div class="q-text">A rod with circular cross-section area 2 cm2 and length 40 cm is wound uniformly with 400 turns of an insulated wire. If a current of 0.4 A flows in the wire windings, the total magnetic flux produced inside 10−6 windings is 4π × Wb. The relative permeability of the rod is (Given: Permeability of vacuum μ0 = 4π × 10−7 N A−2)</div>
   
-  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
+  <div class="options"><button type="button" class="option option-select" data-option="A" onclick="selectOption(this)"><span class="option-label">(A)</span>12.5</button><button type="button" class="option option-select" data-option="B" onclick="selectOption(this)"><span class="option-label">(B)</span>32 5 5</button><button type="button" class="option option-select" data-option="C" onclick="selectOption(this)"><span class="option-label">(C)</span>125</button><button type="button" class="option option-select" data-option="D" onclick="selectOption(this)"><span class="option-label">(D)</span>16</button></div>
   <div class="ans-reveal">
       <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
-      <div class="ans-box"><span class="ans-label">Answer:</span> 0</div>
+      <div class="ans-box"><span class="ans-label">Answer:</span> C</div>
     </div>
-</div><div class="q-card" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
+</div><div class="q-card" id="q-PHY-2024-0101-S2-Q028" data-search="The current in an inductor is given by I = (3t + 8) where t is in second. The magnitude of induced emf produced in the inductor is 12mV. The self-inductance of the inductor _____ mH. PHY-2024-0101-S2-Q028" data-year="2024" data-shift="Shift 2" data-difficulty="Unknown" data-type="Integer" data-answer="4">
   <div class="q-header">
     <span class="q-num">Q3</span>
     <span class="q-id">PHY-2024-0101-S2-Q028</span>
@@ -332,6 +356,23 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
       <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
       <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
       <div class="ans-box"><span class="ans-label">Answer:</span> 4</div>
+    </div>
+</div><div class="q-card" id="q-PHY-2025-0101-S1-Q027" data-search="A coil of area A and N turns is rotating with angular velocity ω in a uniform magnetic field about an axis perpendicular to. Magnetic flux φ and induced emf ε across it, at an instant when is parallel to the plane of coil, are: (1) φ = AB, ε = 0 (2) φ = 0, ε = 0 (3) φ = 0, ε = NABω (4) φ = AB, ε = NABω PHY-2025-0101-S1-Q027" data-year="2025" data-shift="Shift 1" data-difficulty="Unknown" data-type="Integer" data-answer="3">
+  <div class="q-header">
+    <span class="q-num">Q4</span>
+    <span class="q-id">PHY-2025-0101-S1-Q027</span>
+    <span class="badge badge-year">2025 | 29 Jan | Shift 1</span>
+    <span class="badge badge-unknown">—</span>
+    <span class="badge badge-integer">Integer</span>
+    
+  </div>
+  <div class="q-text">A coil of area A and N turns is rotating with angular velocity ω in a uniform magnetic field about an axis perpendicular to. Magnetic flux φ and induced emf ε across it, at an instant when is parallel to the plane of coil, are: (1) φ = AB, ε = 0 (2) φ = 0, ε = 0 (3) φ = 0, ε = NABω (4) φ = AB, ε = NABω</div>
+  
+  <div class="options"><input class="answer-input" type="text" inputmode="decimal" placeholder="Enter your answer" aria-label="Answer"></div>
+  <div class="ans-reveal">
+      <button class="btn-check" type="button" onclick="checkAnswer(this)">Check answer</button><span class="check-status" aria-live="polite"></span>
+      <button class="btn-show" onclick="toggleAns(this)">Show Answer</button>
+      <div class="ans-box"><span class="ans-label">Answer:</span> 3</div>
     </div>
 </div></div>
 <footer>JEE Main PYQ Analysis — Practice Sets &nbsp;|&nbsp;

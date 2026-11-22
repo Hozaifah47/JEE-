@@ -5,7 +5,7 @@ Includes Bucket 0 (Unassigned / Not in Reference Image) with 'HIGH FREQ' indicat
 Includes Bucket -1 for conflict chapters with prominent conflict badges.
 Cleaned up verbose alert boxes and embedded compact warning pills directly into tables.
 """
-import json, csv, os, sys, html
+import json, csv, os, sys, html, re
 from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
@@ -24,6 +24,10 @@ def load_questions():
             if line:
                 qs.append(json.loads(line))
     return qs
+
+def practice_slug(value):
+    value = re.sub(r"[^\w\s-]", "", value, flags=re.UNICODE)
+    return re.sub(r"\s+", "_", value.strip())[:60]
 
 # ─── Reference Bucket Definitions ────────────────────────────────
 BUCKET_1 = {
@@ -273,7 +277,11 @@ tr:hover{background:#f1f3f5}
 </style>
 """
 
-def nav_html(active=""):
+SEARCH_CSS = r'''[hidden]{display:none!important}.global-search{position:fixed;inset:0;z-index:1000;background:#07111dcc;display:grid;place-items:start center;padding:12vh 1rem 1rem}.global-search__panel{width:min(680px,100%);max-height:76vh;overflow:auto;background:var(--card,#111c2c);color:var(--text,#e8eef7);border:1px solid var(--border,#304057);border-radius:14px;box-shadow:0 24px 80px #0009;padding:1rem}.global-search__top{display:flex;gap:.75rem;align-items:center}.global-search input{flex:1;min-width:0;padding:.8rem 1rem;border-radius:9px;border:1px solid var(--border,#304057);background:var(--bg,#0b1422);color:inherit;font:inherit}.global-search__close{border:0;background:transparent;color:inherit;font-size:1.35rem;cursor:pointer;padding:.4rem}.global-search__hint,.global-search__status{color:var(--muted,#9aabc0);font-size:.85rem;margin:.65rem .2rem}.global-search__results{display:grid;gap:.35rem}.global-search__result{display:block;padding:.7rem .8rem;border-radius:8px;color:inherit;text-decoration:none}.global-search__result:hover,.global-search__result:focus{outline:2px solid #71a7ff;background:#ffffff10}.global-search__meta{display:block;color:var(--muted,#9aabc0);font-size:.8rem;margin-top:.25rem}'''
+
+SEARCH_JS = r'''(()=>{const modal=document.querySelector('[data-global-search]');if(!modal)return;const input=modal.querySelector('input'),list=modal.querySelector('.global-search__results'),status=modal.querySelector('.global-search__status');let rows=[],loaded=false,selected=-1;const open=()=>{modal.hidden=false;document.body.style.overflow='hidden';input.focus();load()};const close=()=>{modal.hidden=true;document.body.style.overflow='';selected=-1};async function load(){if(loaded)return;status.textContent='Loading question index…';try{const r=await fetch(modal.dataset.bundle);if(!r.ok)throw Error('HTTP '+r.status);rows=await r.json();loaded=true;status.textContent='Search '+rows.length.toLocaleString()+' questions';render()}catch(e){status.textContent='Search index could not be loaded. Reload the page to try again.'}}function render(){const q=input.value.trim().toLowerCase();list.replaceChildren();selected=-1;if(!q){status.textContent='Type to search question text, ID, subject, or chapter.';return}const terms=q.split(/\s+/).filter(Boolean);const hits=[];for(const row of rows){const hay=(row.text+' '+row.id+' '+row.subject+' '+row.chapter).toLowerCase();let score=0;for(const t of terms){const i=hay.indexOf(t);if(i<0){score=-1;break}score+=i===0?4:1}if(score>=0)hits.push([score,row])}hits.sort((a,b)=>b[0]-a[0]);const shown=hits.slice(0,40);status.textContent=hits.length?`${hits.length.toLocaleString()} results · showing ${shown.length}`:'No matching questions';for(const[,row]of shown){const a=document.createElement('a');a.className='global-search__result';a.href=modal.dataset.root+row.href;const title=document.createElement('span');title.textContent=row.text||('Question '+row.id);const meta=document.createElement('span');meta.className='global-search__meta';meta.textContent=`${row.subject} · ${row.chapter} · ${row.id}`;a.append(title,meta);list.append(a)}}document.addEventListener('keydown',e=>{if(e.key==='/'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();open()}if(e.key==='Escape'&&!modal.hidden)close();if(!modal.hidden&&(e.key==='ArrowDown'||e.key==='ArrowUp')){const links=[...list.querySelectorAll('a')];if(!links.length)return;e.preventDefault();selected=(selected+(e.key==='ArrowDown'?1:-1)+links.length)%links.length;links[selected].focus()}});input.addEventListener('input',render);modal.addEventListener('click',e=>{if(e.target===modal||e.target.closest('[data-close]'))close()});document.querySelectorAll('[data-open-search]').forEach(b=>b.addEventListener('click',open));})();'''
+
+def nav_html(active="", base=""):
     items = [
         ("index.html", "🏠 Dashboard"),
         ("00_HIGHEST_WEIGHTAGE_PCM.html", "📊 Weightage Report"),
@@ -286,8 +294,13 @@ def nav_html(active=""):
     links = []
     for h, l in items:
         cls = " class=active" if l == active else ""
-        links.append(f"<a href=\"{h}\"{cls}>{l}</a>")
-    return "<nav class=nav>" + " ".join(links) + "</nav>\n"
+        links.append(f"<a href=\"{base}{h}\"{cls}>{l}</a>")
+    links.append('<button type="button" class="search-trigger" data-open-search aria-label="Search questions (/)" title="Search questions (/)" >Search <kbd>/</kbd></button>')
+    return ("<nav class=nav>" + " ".join(links) + "</nav>\n" +
+        f'<link rel="stylesheet" href="{base}06_ASSETS/search_modal.css">' +
+        f'<section class="global-search" data-global-search hidden data-bundle="{base}06_ASSETS/search_bundle.json" data-root="{base}" role="dialog" aria-modal="true" aria-label="Search all questions">' +
+        '<div class="global-search__panel"><div class="global-search__top"><input type="search" aria-label="Search all questions" placeholder="Search question, ID, subject, chapter…" autocomplete="off"><button class="global-search__close" type="button" data-close aria-label="Close search">×</button></div><p class="global-search__hint">Press / to search · ↑ ↓ to move · Esc to close</p><p class="global-search__status" aria-live="polite">Loading question index…</p><div class="global-search__results"></div></div></section>' +
+        f'<script defer src="{base}06_ASSETS/search_modal.js"></script>\n')
 def badge_html(b_num, has_conflict=False):
     if has_conflict:
         return f'<span class="badge badge-cf">Bucket -1 (Conflict)</span>'
@@ -337,6 +350,27 @@ def build_metadata(questions, ch_stats):
 
 def generate_reports():
     questions = load_questions()
+    search_assets = ROOT / "06_ASSETS"
+    search_assets.mkdir(parents=True, exist_ok=True)
+    search_rows = []
+    for q in questions:
+        subject = str(q.get("subject", ""))
+        chapter = str(q.get("chapter", ""))
+        qid = str(q.get("question_id", ""))
+        if not (subject and chapter and qid):
+            continue
+        search_rows.append({
+            "id": qid,
+            "text": " ".join(str(q.get("question_text", "")).split())[:1600],
+            "subject": subject,
+            "chapter": chapter,
+            "href": f"05_PRACTICE_SETS/{subject}/{practice_slug(chapter)}/practice.html#q-{qid}",
+        })
+    (search_assets / "search_bundle.json").write_text(
+        json.dumps(search_rows, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
+    )
+    (search_assets / "search_modal.css").write_text(SEARCH_CSS, encoding="utf-8")
+    (search_assets / "search_modal.js").write_text(SEARCH_JS, encoding="utf-8")
     ch_stats = compute_chapter_stats(questions)
     metadata = build_metadata(questions, ch_stats)
     years = sorted(set(q.get("year") for q in questions if q.get("year")))
@@ -412,7 +446,7 @@ function filterTable(){
     hp = f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><title>Three-Bucket Priority Strategy</title>{get_css()}</head><body>
 <div class="container">
-{nav_html("🎯 Priority System")}
+{nav_html("🎯 Priority System", "../")}
 <h1>🎯 Strategic Chapter Priority System</h1>
 <p class="meta">Integrated strategic preparation roadmap based on historical frequency and your preparation tiers.</p>
 

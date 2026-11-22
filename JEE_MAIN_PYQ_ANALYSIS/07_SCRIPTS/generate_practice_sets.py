@@ -23,7 +23,7 @@ from pathlib import Path
 from html import escape
 
 # ─────────────────────────── PATHS ───────────────────────────
-PROJECT_ROOT = Path("/home/hozaifah/HozzCode/JEE/JEE_MAIN_PYQ_ANALYSIS")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DB_FILE      = PROJECT_ROOT / "03_DATABASE" / "questions.jsonl"
 PS_DIR       = PROJECT_ROOT / "05_PRACTICE_SETS"
 
