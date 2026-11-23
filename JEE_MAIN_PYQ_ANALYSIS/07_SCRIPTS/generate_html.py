@@ -62,17 +62,17 @@ def html_head(title: str, css_depth: int = 0) -> str:
 <body>"""
 
 
-def site_header(active: str = "") -> str:
+def site_header(active: str = "", root_prefix: str = "") -> str:
     subjects = ["Physics", "Chemistry", "Mathematics"]
     nav_links = "".join(
-        f'<a href="{s}/index.html" class="{"active" if active == s else ""}">{s}</a>'
+        f'<a href="{root_prefix}{s}/index.html" class="{"active" if active == s else ""}">{s}</a>'
         for s in subjects
     )
     return f"""<header class="site-header">
   <div class="container">
     <h1>📚 JEE Main PYQ Analysis</h1>
     <nav class="site-nav">
-      <a href="index.html" class="{"active" if active == "home" else ""}">Home</a>
+      <a href="{root_prefix}index.html" class="{"active" if active == "home" else ""}">Home</a>
       {nav_links}
     </nav>
   </div>
@@ -124,7 +124,7 @@ def question_block(q: dict) -> str:
     media_name = q.get("media_asset")
     media_html = ""
     if media_name:
-        media_html = f'<div class="q-media" style="margin:12px 0;text-align:center;"><img src="../../05_PRACTICE_SETS/assets/{html.escape(str(media_name), quote=True)}" alt="Figure for Q{qn}" style="max-width:100%;max-height:450px;border-radius:6px;border:1px solid #dee2e6;background:#fff;" loading="lazy"></div>'
+        media_html = f'<div class="q-media" style="margin:12px 0;text-align:center;"><img src="../../../05_PRACTICE_SETS/assets/{html.escape(str(media_name), quote=True)}" alt="Figure for Q{qn}" style="max-width:100%;max-height:450px;border-radius:6px;border:1px solid #dee2e6;background:#fff;" loading="lazy"></div>'
 
     opt_html = ""
     if opts:
@@ -203,8 +203,8 @@ def generate_index(out_dir: Path, trends: dict, questions: list):
 </div>
 </details>"""
 
-    content = f"""{html_head("Dashboard", css_depth=0)}
-{site_header("home")}
+    content = f"""{html_head("Dashboard", css_depth=1)}
+{site_header("home", root_prefix="")}
 <div class="page-wrapper">
   <div class="container">
     {breadcrumb([("Home", None)])}
@@ -290,8 +290,8 @@ def generate_subject_index(out_dir: Path, subject: str, trends: dict, questions:
     subj_cls  = subject.lower()
     subj_icon = {"Physics": "⚡", "Chemistry": "🧪", "Mathematics": "∑"}.get(subject, "📖")
 
-    content = f"""{html_head(subject, css_depth=1)}
-{site_header(subject)}
+    content = f"""{html_head(subject, css_depth=2)}
+{site_header(subject, root_prefix="../")}
 <div class="page-wrapper">
   <div class="container">
     {breadcrumb([("Home", "../index.html"), (subject, None)])}
@@ -358,7 +358,7 @@ def generate_chapter_page(chapter_dir: Path, subject: str, chapter: str, questio
     subj_icon = {"Physics": "⚡", "Chemistry": "🧪", "Mathematics": "∑"}.get(subject, "📖")
 
     content = f"""{html_head(chapter, css_depth=css_depth)}
-{site_header(subject)}
+{site_header(subject, root_prefix="../../")}
 <div class="page-wrapper">
   <div class="container">
     {breadcrumb([("Home", "../" * css_depth + "index.html"), (subject, "../" * (css_depth-1) + "index.html"), (chapter, None)])}
@@ -471,7 +471,7 @@ def main():
         for chapter, chap_qs in sorted(chapter_map.items()):
             slug = chapter.replace(" ", "_").replace("&", "and").replace("/", "_")
             chapter_dir = out_dir / subject / slug
-            generate_chapter_page(chapter_dir, subject, chapter, chap_qs, clusters, all_years, css_depth=2)
+            generate_chapter_page(chapter_dir, subject, chapter, chap_qs, clusters, all_years, css_depth=3)
 
     print(f"\n✅ HTML generation complete.")
     print(f"   Open: {out_dir}/index.html")

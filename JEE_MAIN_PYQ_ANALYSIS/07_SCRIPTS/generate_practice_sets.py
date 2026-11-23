@@ -482,6 +482,9 @@ document.addEventListener('DOMContentLoaded', function() { initTheme(); initFilt
 FOOTER_HTML = """<footer>JEE Main PYQ Analysis — Practice Sets &nbsp;|&nbsp;
 <a href="../../index.html">🏠 Practice Home</a></footer>"""
 
+FOOTER_HTML_CLUSTER = """<footer>JEE Main PYQ Analysis — Practice Sets &nbsp;|&nbsp;
+<a href="../../../../index.html">🏠 Practice Home</a></footer>"""
+
 FOOTER_HTML_ROOT = """<footer>JEE Main PYQ Analysis — Practice Sets</footer>"""
 
 # ─────────────────────── RENDER QUESTION ─────────────────────
@@ -703,7 +706,7 @@ def build_cluster_practice(subject, chapter, cluster_id, questions, out_path):
         html += render_question(q, i, show_cluster_badge=False, media_prefix="../../../../assets/")
 
     html += f"""</div>
-{FOOTER_HTML}
+{FOOTER_HTML_CLUSTER}
 </body></html>"""
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -760,7 +763,7 @@ def build_cluster_answers(subject, chapter, cluster_id, questions, out_path):
     <tbody>{rows}</tbody>
   </table>
 </div>
-{FOOTER_HTML}
+{FOOTER_HTML_CLUSTER}
 </body></html>"""
 
     out_path.parent.mkdir(parents=True, exist_ok=True)

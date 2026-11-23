@@ -56,8 +56,11 @@ def main() -> int:
     external = ("http", "https", "mailto", "tel", "data", "javascript", "blob")
     for page, parser in parsed.items():
         for kind, raw in parser.refs:
-            if not raw or raw.startswith("#"):
-                if raw.startswith("#") and unquote(raw[1:]) not in parser.ids:
+            if not raw or raw == "#":
+                continue
+            if raw.startswith("#"):
+                fragment = unquote(raw[1:])
+                if fragment and fragment not in parser.ids:
                     broken.append({"page": str(page.relative_to(ROOT)), "target": raw, "kind": kind})
                 continue
             url = urlsplit(raw)
